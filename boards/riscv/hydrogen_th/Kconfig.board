@@ -1,0 +1,5 @@
+config BOARD_HYDROGEN_TH294
+	bool "Hydrogen Test Hardware board"
+	depends on SOC_RISCV32_HYDROGEN
+	select HAS_DTS
+	select RISCV
