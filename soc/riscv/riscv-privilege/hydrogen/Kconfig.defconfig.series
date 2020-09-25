@@ -1,0 +1,31 @@
+if SOC_SERIES_RISCV32_HYDROGEN
+
+config SOC_SERIES
+	string
+	default "hydrogen"
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	int
+	default 100000000
+
+config RISCV_SOC_INTERRUPT_INIT
+	bool
+	default n
+
+config RISCV_HAS_CPU_IDLE
+	bool
+	default n
+
+config RISCV_HAS_PLIC
+	bool
+	default y
+
+config NUM_IRQS
+	int
+	default 20
+
+config XIP
+	bool
+	default n
+
+endif # SOC_SERIES_RISCV32_HYDROGEN
