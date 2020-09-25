@@ -1,0 +1,9 @@
+choice
+prompt "Hydrogen implementations"
+depends on SOC_SERIES_RISCV32_HYDROGEN
+
+config SOC_RISCV32_HYDROGEN
+	bool "Hydrogen implementation"
+	select ATOMIC_OPERATIONS_C
+
+endchoice
