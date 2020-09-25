@@ -1,0 +1,12 @@
+# Kconfig.hydrogen - Hydrogen UART configuration option
+#
+# Copyright (c) 2019 Phytec Messtechnik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig SPI_HYDROGEN
+	bool "Hydrogen SPI controller driver"
+	depends on SOC_SERIES_RISCV32_HYDROGEN
+	help
+	  Enable the Hydrogen SPI driver.
