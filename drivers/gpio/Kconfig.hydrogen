@@ -1,0 +1,23 @@
+# Kconfig.hydrogen - Hydrogen GPIO configuration option
+#
+# Copyright (c) 2019 Phytec Messtechnik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig GPIO_HYDROGEN
+	bool "Hydrogen GPIO driver"
+	depends on GPIO && SOC_SERIES_RISCV32_HYDROGEN
+	select HAS_DTS_GPIO
+	help
+	  Enable driver for the Hydrogen GPIO controller.
+
+	  Says n if not sure.
+
+
+if GPIO_HYDROGEN
+
+config GPIO_HYDROGEN_INTERRUPT
+	bool "Enable interrupt support"
+
+endif # GPIO_HYDROGEN
