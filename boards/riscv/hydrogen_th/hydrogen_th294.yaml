@@ -1,0 +1,14 @@
+identifier: hydrogen_th
+name: Hydrogen Test Hardware board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - spi
+  - gpio
+testing:
+  ignore_tags:
+    - net
+    - bluetooth
