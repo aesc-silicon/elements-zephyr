@@ -1,3 +1,10 @@
+if BOARD_HYDROGEN_TH283
+
+config BOARD
+	default "hydrogen_th283"
+
+endif
+
 if BOARD_HYDROGEN_TH294
 
 config BOARD
