@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2020 Phytec Messtechnik GmbH
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <hydrogen.dtsi>
+
+/ {
+	model = "hydrogen_th294";
+	compatible = "hydrogen,hydrogen_th294";
+
+	aliases {
+		gpio-1 = &gpio1;
+	};
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &ram0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		heartbeat: HEARTBEAT {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "Heartbeat LED";
+		};
+
+		ok: OK {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Status OK LED";
+		};
+
+		warning: WARNING {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Status warning LED";
+		};
+
+		error: ERROR {
+			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+			label = "Status error LED";
+		};
+	};
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "hydrogen,hydrogen-soc", "simple-bus";
+		ranges;
+
+		gpio1: gpio1@f0011000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0011000 0x1000>;
+			status = "okay";
+			label = "gpio1";
+			interrupt-parent = <&plic>;
+			interrupts = <3>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+	};
+};
+
+&plic {
+	riscv,ndev = <2>;
+};
