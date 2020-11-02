@@ -1,13 +1,13 @@
 if BOARD_HYDROGEN_TH283
 
 config BOARD
-	default "hydrogen_th283"
+	default "th283"
 
 endif
 
 if BOARD_HYDROGEN_TH294
 
 config BOARD
-	default "hydrogen_th294"
+	default "th294"
 
 endif
