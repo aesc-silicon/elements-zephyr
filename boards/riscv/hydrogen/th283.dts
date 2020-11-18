@@ -6,14 +6,17 @@
 
 /dts-v1/;
 
-#include <hydrogen.dtsi>
+#include <hydrogen1.dtsi>
 
 / {
-	model = "hydrogen_th294";
-	compatible = "hydrogen,hydrogen_th294";
+	model = "hydrogen_th283";
+	compatible = "hydrogen,hydrogen_th283";
 
 	aliases {
+		uart-0 = &uart0;
+		gpio-0 = &gpio0;
 		gpio-1 = &gpio1;
+		spi-0 = &spi0;
 	};
 
 	chosen {
@@ -45,26 +48,4 @@
 			label = "Status error LED";
 		};
 	};
-
-	soc {
-		#address-cells = <1>;
-		#size-cells = <1>;
-		compatible = "hydrogen,hydrogen-soc", "simple-bus";
-		ranges;
-
-		gpio1: gpio1@f0011000 {
-			compatible = "hydrogen,gpio";
-			reg = <0xF0011000 0x1000>;
-			status = "okay";
-			label = "gpio1";
-			interrupt-parent = <&plic>;
-			interrupts = <3>;
-			gpio-controller;
-			#gpio-cells = <2>;
-		};
-	};
-};
-
-&plic {
-	riscv,ndev = <2>;
 };
