@@ -3,9 +3,6 @@
 
 #include <soc_common.h>
 
-/* was previously defined in soc_common.h, but removed later on zephyr upstream */
-#define RISCV_MAX_GENERIC_IRQ        12 /* Max Generic Interrupt */
-
 /* Timer configuration */
 #define RISCV_MTIME_BASE		DT_REG_ADDR(DT_NODELABEL(mtimer))
 #define RISCV_MTIMECMP_BASE		RISCV_MTIME_BASE + 0x2

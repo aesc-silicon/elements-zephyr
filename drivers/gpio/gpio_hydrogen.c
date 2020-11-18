@@ -15,12 +15,14 @@
 #include <drivers/gpio.h>
 #include <sys/util.h>
 #include "gpio_utils.h"
+#include <irq.h>
 
 typedef void (*hydrogen_cfg_func_t)(void);
 
 struct gpio_hydrogen_config {
 	uint32_t regs;
 	hydrogen_cfg_func_t cfg_func;
+	uint32_t irq_no;
 };
 
 struct gpio_hydrogen_regs {
@@ -48,13 +50,14 @@ struct gpio_hydrogen_data {
 #define DEV_GPIO(dev) ((struct gpio_hydrogen_regs *)(DEV_GPIO_CFG(dev))->regs)
 #define DEV_GPIO_DATA(dev) ((struct gpio_hydrogen_data *)(dev)->data)
 
-#ifdef GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
 #define GPIO(no)							     \
 	static struct gpio_hydrogen_data gpio_hydrogen_dev_data_##no;	     \
 	static void gpio_hydrogen_irq_cfg_func_##no(void);		     \
 	static struct gpio_hydrogen_config gpio_hydrogen_dev_cfg_##no = {    \
 		.regs = DT_REG_ADDR(DT_INST(no, hydrogen_gpio)),	     \
 		.cfg_func = gpio_hydrogen_irq_cfg_func_##no,		     \
+		.irq_no = DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
 	};								     \
 	DEVICE_AND_API_INIT(gpio_hydrogen_##no,				     \
 			    DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
@@ -65,14 +68,12 @@ struct gpio_hydrogen_data {
 			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
 			    (void *)&gpio_hydrogen_driver_api);		     \
 	static void gpio_hydrogen_irq_cfg_func_##no(void) {		     \
-	IRQ_CONNECT(RISCV_MAX_GENERIC_IRQ +				     \
-		    DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
+	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
+		     DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
 		    0,							     \
 		    gpio_hydrogen_irq_handler,				     \
 		    DEVICE_GET(gpio_hydrogen_##no),			     \
 		    0);							     \
-	irq_enable(RISCV_MAX_GENERIC_IRQ +				     \
-			DT_IRQN(DT_INST(no, hydrogen_gpio)));		     \
 	}
 #else
 #define GPIO(no)							     \
@@ -110,42 +111,6 @@ static int gpio_hydrogen_config(const struct device *dev, gpio_pin_t pin,
 		gpio->direction |= BIT(pin);
 	else
 		gpio->direction &= ~BIT(pin);
-
-	if (!(flags & GPIO_INT_ENABLE))
-		return 0;
-
-	if (flags & GPIO_OUTPUT)
-		return -EINVAL;
-
-	/* Edge or Level triggered ? */
-	if (flags & GPIO_INT_EDGE) {
-		gpio->high_ie &= ~BIT(pin);
-		gpio->low_ie &= ~BIT(pin);
-
-		/* Rising Edge, Falling Edge or Double Edge ? */
-		if (flags & GPIO_INT_EDGE_BOTH) { // double edge
-			gpio->rise_ie |= BIT(pin);
-			gpio->fall_ie |= BIT(pin);
-		} else if (flags & GPIO_INT_EDGE_RISING) { // rising edge
-			gpio->rise_ie |= BIT(pin);
-			gpio->fall_ie &= ~BIT(pin);
-		} else { // falling edge
-			gpio->rise_ie &= ~BIT(pin);
-			gpio->fall_ie |= BIT(pin);
-		}
-	} else {
-		gpio->rise_ie &= ~BIT(pin);
-		gpio->fall_ie &= ~BIT(pin);
-
-		/* Level High ? */
-		if (flags & GPIO_INT_LEVEL_HIGH) {
-			gpio->high_ie |= BIT(pin);
-			gpio->low_ie &= ~BIT(pin);
-		} else {
-			gpio->high_ie &= ~BIT(pin);
-			gpio->low_ie |= BIT(pin);
-		}
-	}
 
 	return 0;
 }
@@ -202,36 +167,89 @@ static int gpio_hydrogen_port_toggle_bits(const struct device *dev,
 	return 0;
 }
 
-#ifdef GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
 
 static void gpio_hydrogen_irq_handler(void *arg)
 {
 	struct device *dev = (struct device *)arg;
 	struct gpio_hydrogen_data *data = DEV_GPIO_DATA(dev);
 	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
-	const struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
-	int pin_mask;
+	uint32_t pin_mask = 0;
 
-	/* Get the pin number generating the interrupt */
-	pin_mask = 1 << (riscv_plic_get_irq() -
-			 (cfg->irq_base - RISCV_MAX_GENERIC_IRQ));
+	pin_mask |= gpio->rise_ip;
+	pin_mask |= gpio->fall_ip;
+	pin_mask |= gpio->high_ip;
+	pin_mask |= gpio->low_ip;
 
-	/* Call the corresponding callback registered for the pin */
-	_gpio_fire_callbacks(&data->cb, dev, pin_mask);
+	for (int pin = 0; pin < 32; pin++) {
+		if (pin_mask & (0x1 << pin)) {
+			/* Fire callback for pin */
+			gpio_fire_callbacks(&data->cb, dev, BIT(pin));
+			/*
+			 * Write to either the rise_ip, fall_ip, high_ip or
+			 * low_ip registers to indicate to GPIO controller
+			 * that interrupt for the corresponding pin has been
+			 * handled.
+			 */
+			gpio->rise_ip = BIT(pin);
+			gpio->fall_ip = BIT(pin);
+			gpio->high_ip = BIT(pin);
+			gpio->low_ip = BIT(pin);
+		}
+	}
+}
 
-	/*
-	 * Write to either the rise_ip, fall_ip, high_ip or low_ip registers
-	 * to indicate to GPIO controller that interrupt for the corresponding
-	 * pin has been handled.
-	 */
-	if (gpio->rise_ip & pin_mask)
-		gpio->rise_ip = pin_mask;
-	else if (gpio->fall_ip & pin_mask)
-		gpio->fall_ip = pin_mask;
-	else if (gpio->high_ip & pin_mask)
-		gpio->high_ip = pin_mask;
-	else if (gpio->low_ip & pin_mask)
-		gpio->low_ip = pin_mask;
+static int gpio_hydrogen_pin_interrupt_configure(const struct device *dev,
+						 gpio_pin_t pin,
+						 enum gpio_int_mode int_mode,
+						 enum gpio_int_trig int_trig)
+{
+	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
+
+	/* Disable all interrupts */
+	gpio->high_ie &= ~BIT(pin);
+	gpio->low_ie &= ~BIT(pin);
+	gpio->rise_ie &= ~BIT(pin);
+	gpio->fall_ie &= ~BIT(pin);
+
+	/* Disable interrupt for the pin at PLIC level */
+	if (int_mode & GPIO_INT_MODE_DISABLED) {
+		irq_disable(irq_to_level_2(cfg->irq_no));
+		return 0;
+	}
+
+	if (int_mode & GPIO_INT_EDGE) {
+		/* Clear pending pits */
+		gpio->rise_ip = BIT(pin);
+		gpio->fall_ip = BIT(pin);
+
+		/* Double edge */
+		if ((int_trig & GPIO_INT_TRIG_BOTH) == GPIO_INT_TRIG_BOTH) {
+			gpio->rise_ie |= BIT(pin);
+			gpio->fall_ie |= BIT(pin);
+		/* Rising edge */
+		} else if (int_trig & GPIO_INT_TRIG_HIGH) {
+			gpio->rise_ie |= BIT(pin);
+		/* Falling edge */
+		} else {
+			gpio->fall_ie |= BIT(pin);
+		}
+	} else {
+		/* Clear pending pits */
+		gpio->high_ip = BIT(pin);
+		gpio->low_ip = BIT(pin);
+
+		/* Level High ? */
+		if (int_trig & GPIO_INT_TRIG_HIGH) {
+			gpio->high_ie |= BIT(pin);
+		} else {
+			gpio->low_ie |= BIT(pin);
+		}
+	}
+	irq_enable(irq_to_level_2(cfg->irq_no));
+
+	return 0;
 }
 
 static int gpio_hydrogen_manage_callback(const struct device *dev,
@@ -241,26 +259,6 @@ static int gpio_hydrogen_manage_callback(const struct device *dev,
 	struct gpio_hydrogen_data *data = DEV_GPIO_DATA(dev);
 
 	return gpio_manage_callback(&data->cb, callback, set);
-}
-
-static int gpio_hydrogen_enable_callback(struct device *dev, gpio_pin_t pin)
-{
-	const struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
-
-	// Enable interrupt for the pin at PLIC level
-	irq_enable(cfg->irq_base + pin);
-
-	return 0;
-}
-
-static int gpio_hydrogen_disable_callback(struct device *dev, gpio_pin_t pin)
-{
-	const struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
-
-	// Disable interrupt for the pin at PLIC level
-	irq_disable(cfg->irq_base + pin);
-
-	return 0;
 }
 
 #endif /* CONFIG_GPIO_INTERRUPT */
@@ -277,7 +275,7 @@ static int gpio_hydrogen_disable_callback(struct device *dev, gpio_pin_t pin)
 static int gpio_hydrogen_init(const struct device *dev)
 {
 	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
-#ifdef GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
 	volatile struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
 #endif
 
@@ -288,7 +286,12 @@ static int gpio_hydrogen_init(const struct device *dev)
 	gpio->rise_ie = 0;
 	gpio->fall_ie = 0;
 
-#ifdef GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
+	gpio->high_ip = 0;
+	gpio->low_ip = 0;
+	gpio->rise_ip = 0;
+	gpio->fall_ip = 0;
+
 	cfg->cfg_func();
 #endif
 
@@ -302,10 +305,9 @@ static const struct gpio_driver_api gpio_hydrogen_driver_api = {
 	.port_set_bits_raw = gpio_hydrogen_port_set_bits_raw,
 	.port_clear_bits_raw = gpio_hydrogen_port_clear_bits_raw,
 	.port_toggle_bits = gpio_hydrogen_port_toggle_bits,
-#ifdef GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
+	.pin_interrupt_configure = gpio_hydrogen_pin_interrupt_configure,
 	.manage_callback = gpio_hydrogen_manage_callback,
-	.enable_callback = gpio_hydrogen_enable_callback,
-	.disable_callback = gpio_hydrogen_disable_callback,
 #endif
 };
 
