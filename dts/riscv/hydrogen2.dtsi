@@ -1,0 +1,87 @@
+/*
+ * Copyright (c) 2020 Phytec Messtechnik GmbH
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <hydrogen.dtsi>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "hydrogen,hydrogen-soc", "simple-bus";
+		ranges;
+
+		uart0: uart0@f0000000 {
+			compatible = "hydrogen,uart";
+			reg = <0xF0000000 0x1000>;
+			status = "okay";
+			label = "uart0";
+			interrupt-parent = <&plic>;
+			interrupts = <0>;
+			clock-frequency = <100000000>;
+			current-speed = <115200>;
+		};
+
+		gpio0: gpio0@f0010000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0010000 0x1000>;
+			status = "okay";
+			label = "gpio0";
+			interrupt-parent = <&plic>;
+			interrupts = <1>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+
+		gpio1: gpio1@f0011000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0011000 0x1000>;
+			status = "okay";
+			label = "gpio1";
+			interrupt-parent = <&plic>;
+			interrupts = <3>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+
+		gpio2: gpio2@f0012000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0012000 0x1000>;
+			status = "okay";
+			label = "gpio2";
+			interrupt-parent = <&plic>;
+			interrupts = <4>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+
+		gpio3: gpio3@f0013000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0013000 0x1000>;
+			status = "okay";
+			label = "gpio3";
+			interrupt-parent = <&plic>;
+			interrupts = <5>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+
+		spi0: spi0@f0040000 {
+			compatible = "hydrogen,spi";
+			reg = <0xF0040000 0x1000>;
+			status = "okay";
+			label = "spi0";
+			interrupt-parent = <&plic>;
+			interrupts = <2>;
+		};
+	};
+};
+
+&plic {
+	riscv,ndev = <6>;
+};

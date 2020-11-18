@@ -10,12 +10,6 @@
 	#address-cells = <1>;
 	#size-cells = <1>;
 
-	aliases {
-		uart-0 = &uart0;
-		gpio-0 = &gpio0;
-		spi-0 = &spi0;
-	};
-
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -60,37 +54,6 @@
 		mtimer: machine-timer0@f0020000 {
 			reg = <0xF0020000 0x1000>;
 			status = "okay";
-		};
-
-		uart0: uart0@f0000000 {
-			compatible = "hydrogen,uart";
-			reg = <0xF0000000 0x1000>;
-			status = "okay";
-			label = "uart0";
-			interrupt-parent = <&plic>;
-			interrupts = <0>;
-			clock-frequency = <100000000>;
-			current-speed = <115200>;
-		};
-
-		gpio0: gpio0@f0010000 {
-			compatible = "hydrogen,gpio";
-			reg = <0xF0010000 0x1000>;
-			status = "okay";
-			label = "gpio0";
-			interrupt-parent = <&plic>;
-			interrupts = <1>;
-			gpio-controller;
-			#gpio-cells = <2>;
-		};
-
-		spi0: spi0@f0040000 {
-			compatible = "hydrogen,spi";
-			reg = <0xF0040000 0x1000>;
-			status = "okay";
-			label = "spi0";
-			interrupt-parent = <&plic>;
-			interrupts = <2>;
 		};
 	};
 };
