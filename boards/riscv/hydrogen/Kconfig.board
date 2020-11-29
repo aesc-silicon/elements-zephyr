@@ -1,5 +1,5 @@
-config BOARD_HYDROGEN_TH283
-	bool "Hydrogen Test Hardware board"
+config BOARD_HYDROGEN_DH006
+	bool "PHYTEC RISC-V Development Kit"
 	depends on SOC_RISCV32_HYDROGEN
 	select HAS_DTS
 	select RISCV

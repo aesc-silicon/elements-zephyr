@@ -1,7 +1,7 @@
-if BOARD_HYDROGEN_TH283
+if BOARD_HYDROGEN_DH006
 
 config BOARD
-	default "th283"
+	default "dh006"
 
 endif
 

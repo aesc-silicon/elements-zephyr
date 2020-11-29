@@ -9,8 +9,8 @@
 #include <hydrogen1.dtsi>
 
 / {
-	model = "hydrogen_th283";
-	compatible = "hydrogen,hydrogen_th283";
+	model = "hydrogen_dh006";
+	compatible = "hydrogen,hydrogen_dh006";
 
 	aliases {
 		uart-0 = &uart0;
@@ -38,14 +38,18 @@
 			label = "Status OK LED";
 		};
 
-		warning: WARNING {
-			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
-			label = "Status warning LED";
-		};
-
 		error: ERROR {
-			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
 			label = "Status error LED";
+		};
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset: RESET {
+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+			label = "Reset Button";
 		};
 	};
 };

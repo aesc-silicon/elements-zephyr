@@ -1,5 +1,5 @@
-identifier: hydrogen_th
-name: Hydrogen Test Hardware board
+identifier: dh006
+name: PHYTEC RISC-V Development Kit
 type: mcu
 arch: riscv32
 toolchain:
@@ -8,6 +8,7 @@ ram: 128
 supported:
   - spi
   - gpio
+  - i2c
 testing:
   ignore_tags:
     - net
