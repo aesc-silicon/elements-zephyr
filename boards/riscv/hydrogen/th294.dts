@@ -40,13 +40,8 @@
 			label = "Status OK LED";
 		};
 
-		warning: WARNING {
-			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
-			label = "Status warning LED";
-		};
-
 		error: ERROR {
-			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
 			label = "Status error LED";
 		};
 	};
@@ -55,7 +50,7 @@
 		compatible = "gpio-keys";
 
 		reset: RESET {
-			gpios = <&gpio0 4 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
 			label = "Reset Button";
 		};
 	};
