@@ -4,6 +4,12 @@ config BOARD_HYDROGEN_DH006
 	select HAS_DTS
 	select RISCV
 
+config BOARD_HYDROGEN_TH283
+	bool "Hydrogen Test Adapter board"
+	depends on SOC_RISCV32_HYDROGEN
+	select HAS_DTS
+	select RISCV
+
 config BOARD_HYDROGEN_TH294
 	bool "Hydrogen Test Hardware board"
 	depends on SOC_RISCV32_HYDROGEN
