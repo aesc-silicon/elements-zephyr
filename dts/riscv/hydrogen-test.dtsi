@@ -22,7 +22,7 @@
 			status = "okay";
 			label = "uart0";
 			interrupt-parent = <&plic>;
-			interrupts = <0>;
+			interrupts = <1>;
 			clock-frequency = <100000000>;
 			current-speed = <115200>;
 		};
@@ -33,7 +33,7 @@
 			status = "okay";
 			label = "gpio0";
 			interrupt-parent = <&plic>;
-			interrupts = <1>;
+			interrupts = <2>;
 			gpio-controller;
 			#gpio-cells = <2>;
 		};
@@ -55,7 +55,7 @@
 			status = "okay";
 			label = "spi0";
 			interrupt-parent = <&plic>;
-			interrupts = <2>;
+			interrupts = <4>;
 		};
 	};
 };
