@@ -9,6 +9,6 @@ menuconfig UART_HYDROGEN
 	bool "Hydrogen UART driver"
 	depends on SOC_SERIES_RISCV32_HYDROGEN
 	select SERIAL_HAS_DRIVER
-#	select SERIAL_SUPPORT_INTERRUPT
+	select SERIAL_SUPPORT_INTERRUPT
 	help
 	  Enable the Hydrogen UART driver.

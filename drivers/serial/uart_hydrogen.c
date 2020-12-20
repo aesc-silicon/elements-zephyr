@@ -5,6 +5,7 @@
  */
 
 #include <kernel.h>
+#include <irq.h>
 #include <arch/cpu.h>
 #include <drivers/uart.h>
 
@@ -12,7 +13,7 @@
 #define DEV_UART_IRQ_RX_EN		(1 << 1)
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
-typedef void (*irq_cfg_func_t)(void);
+typedef void (*hydrogen_cfg_func_t)(void);
 #endif
 
 struct uart_hydrogen_data {
@@ -27,7 +28,8 @@ struct uart_hydrogen_config {
 	uint32_t sys_clk_freq;
 	uint32_t current_speed;
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
-	irq_cfg_func_t cfg_func;
+	hydrogen_cfg_func_t cfg_func;
+	uint32_t irq_no;
 #endif
 };
 
@@ -58,6 +60,7 @@ struct uart_hydrogen_regs {
 		.current_speed =					     \
 			DT_PROP(DT_INST(no, hydrogen_uart), current_speed),  \
 		.cfg_func = uart_hydrogen_irq_cfg_func_##no,		     \
+		.irq_no = DT_IRQN(DT_INST(no, hydrogen_uart)),		     \
 	};								     \
 	DEVICE_AND_API_INIT(uart_hydrogen_##no,				     \
 			    DT_PROP(DT_INST(no, hydrogen_uart), label),	     \
@@ -68,14 +71,12 @@ struct uart_hydrogen_regs {
 			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
 			    (void *)&uart_hydrogen_driver_api);		     \
 	static void uart_hydrogen_irq_cfg_func_##no(void) {		     \
-	IRQ_CONNECT(RISCV_MAX_GENERIC_IRQ +				     \
-			DT_IRQN(DT_INST(no, hydrogen_uart)),		     \
+	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
+		     DT_IRQN(DT_INST(no, hydrogen_uart)),		     \
 		    0,							     \
 		    uart_hydrogen_irq_handler,				     \
 		    DEVICE_GET(uart_hydrogen_##no),			     \
 		    0);							     \
-	irq_enable(RISCV_MAX_GENERIC_IRQ +				     \
-			DT_IRQN(DT_INST(no, hydrogen_uart)));		     \
 	}
 #else
 #define UART(no)							     \
@@ -164,16 +165,21 @@ static int uart_hydrogen_fifo_read(const struct device *dev,
 static void uart_hydrogen_irq_tx_enable(const struct device *dev)
 {
 	volatile struct uart_hydrogen_regs *uart = DEV_UART(dev);
+	volatile struct uart_hydrogen_config *cfg = DEV_UART_CFG(dev);
 
 	uart->ip |= DEV_UART_IRQ_TX_EN;
 	uart->ie |= DEV_UART_IRQ_TX_EN;
+	irq_enable(irq_to_level_2(cfg->irq_no));
 }
 
 static void uart_hydrogen_irq_tx_disable(const struct device *dev)
 {
 	volatile struct uart_hydrogen_regs *uart = DEV_UART(dev);
+	volatile struct uart_hydrogen_config *cfg = DEV_UART_CFG(dev);
 
 	uart->ie &= ~DEV_UART_IRQ_TX_EN;
+	if (!uart->ie)
+		irq_disable(irq_to_level_2(cfg->irq_no));
 }
 
 static int uart_hydrogen_irq_tx_ready(const struct device *dev)
@@ -197,16 +203,21 @@ static int uart_hydrogen_irq_tx_complete(const struct device *dev)
 static void uart_hydrogen_irq_rx_enable(const struct device *dev)
 {
 	volatile struct uart_hydrogen_regs *uart = DEV_UART(dev);
+	volatile struct uart_hydrogen_config *cfg = DEV_UART_CFG(dev);
 
 	uart->ip |= DEV_UART_IRQ_RX_EN;
 	uart->ie |= DEV_UART_IRQ_RX_EN;
+	irq_enable(irq_to_level_2(cfg->irq_no));
 }
 
 static void uart_hydrogen_irq_rx_disable(const struct device *dev)
 {
 	volatile struct uart_hydrogen_regs *uart = DEV_UART(dev);
+	volatile struct uart_hydrogen_config *cfg = DEV_UART_CFG(dev);
 
 	uart->ie &= ~DEV_UART_IRQ_RX_EN;
+	if (!uart->ie)
+		irq_disable(irq_to_level_2(cfg->irq_no));
 }
 
 static int uart_hydrogen_irq_rx_ready(const struct device *dev)
