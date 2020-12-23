@@ -57,6 +57,17 @@
 			interrupt-parent = <&plic>;
 			interrupts = <4>;
 		};
+
+		i2c0: i2c@f0050000 {
+			compatible = "hydrogen,i2c";
+			reg = <0xF0050000 0x1000>;
+			status = "okay";
+			label = "i2c0";
+			interrupt-parent = <&plic>;
+			interrupts = <5>;
+			input-frequency = <100000000>;
+			clock-frequency = <100000>;
+		};
 	};
 };
 
