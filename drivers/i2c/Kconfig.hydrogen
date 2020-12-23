@@ -1,0 +1,12 @@
+# Kconfig.hydrogen - Hydrogen I2C configuration option
+#
+# Copyright (c) 2020 Phytec Messtechnik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig I2C_HYDROGEN
+	bool "Hydrogen I2C controller driver"
+	depends on SOC_SERIES_RISCV32_HYDROGEN
+	help
+	  Enable the Hydrogen I2C controller driver.
