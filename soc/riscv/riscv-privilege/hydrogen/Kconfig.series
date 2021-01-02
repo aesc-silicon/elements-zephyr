@@ -1,6 +1,5 @@
 config SOC_SERIES_RISCV32_HYDROGEN
 	bool "Hydrogen implementation"
-	#depends on RISCV32
 	select SOC_FAMILY_RISCV_PRIVILEGE
 	help
 	  Enable support for Hydrogen

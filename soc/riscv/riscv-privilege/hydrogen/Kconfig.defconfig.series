@@ -12,6 +12,9 @@ config RISCV_SOC_INTERRUPT_INIT
 config RISCV_HAS_CPU_IDLE
 	default n
 
+config RISCV_MACHINE_TIMER
+	default y
+
 config RISCV_HAS_PLIC
 	default y
 
@@ -23,6 +26,9 @@ config 2ND_LVL_INTR_00_OFFSET
 
 config NUM_IRQS
 	default 32
+
+config GEN_ISR_TABLES
+	default y
 
 config XIP
 	default n
