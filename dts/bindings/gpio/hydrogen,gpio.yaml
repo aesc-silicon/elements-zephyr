@@ -8,21 +8,21 @@ compatible: "hydrogen,gpio"
 
 description: Hydrogen GPIO - This is a representation of the Hydrogen GPIO nodes
 
+include: [gpio-controller.yaml, base.yaml]
+
 properties:
     reg:
-      type: array
-      description: mmio register space
+      required: true
+
+    label:
       required: true
 
     interrupts:
-      type: int
-
-    label:
-      type: string
       required: true
-      description: Human readable string describing the device (used by Zephyr for API name)
+
+    "#gpio-cells":
+      const: 2
 
 gpio-cells:
   - pin
   - flags
-
