@@ -65,14 +65,15 @@ struct i2c_hydrogen_regs {
 		.bus_clk_freq =						     \
 			DT_PROP(DT_INST(no, hydrogen_i2c), clock_frequency), \
 	};								     \
-	DEVICE_AND_API_INIT(i2c_hydrogen_##no,				     \
-			    DT_PROP(DT_INST(no, hydrogen_i2c), label),	     \
-			    i2c_hydrogen_init,				     \
-			    &i2c_hydrogen_dev_data_##no,		     \
-			    &i2c_hydrogen_dev_cfg_##no,			     \
-			    PRE_KERNEL_1,				     \
-			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-			    (void *)&i2c_hydrogen_driver_api);
+	DEVICE_DEFINE(i2c_hydrogen_##no,				     \
+		      DT_PROP(DT_INST(no, hydrogen_i2c), label),	     \
+		      i2c_hydrogen_init,				     \
+		      NULL,						     \
+		      &i2c_hydrogen_dev_data_##no,			     \
+		      &i2c_hydrogen_dev_cfg_##no,			     \
+		      PRE_KERNEL_1,					     \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
+		      (void *)&i2c_hydrogen_driver_api);
 
 
 /* Wait for a previous transfer to complete */

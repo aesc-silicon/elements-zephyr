@@ -59,17 +59,18 @@ struct gpio_hydrogen_data {
 		.cfg_func = gpio_hydrogen_irq_cfg_func_##no,		     \
 		.irq_no = DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
 	};								     \
-	DEVICE_AND_API_INIT(gpio_hydrogen_##no,				     \
-			    DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
-			    gpio_hydrogen_init,				     \
-			    &gpio_hydrogen_dev_data_##no,		     \
-			    &gpio_hydrogen_dev_cfg_##no,		     \
-			    PRE_KERNEL_1,				     \
-			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-			    (void *)&gpio_hydrogen_driver_api);		     \
+	DEVICE_DEFINE(gpio_hydrogen_##no,				     \
+		      DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
+		      gpio_hydrogen_init,				     \
+		      NULL,						     \
+		      &gpio_hydrogen_dev_data_##no,			     \
+		      &gpio_hydrogen_dev_cfg_##no,			     \
+		      PRE_KERNEL_1,					     \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
+		      (void *)&gpio_hydrogen_driver_api);		     \
 	static void gpio_hydrogen_irq_cfg_func_##no(void) {		     \
 	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
-		     DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
+		    DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
 		    0,							     \
 		    gpio_hydrogen_irq_handler,				     \
 		    DEVICE_GET(gpio_hydrogen_##no),			     \
@@ -81,14 +82,15 @@ struct gpio_hydrogen_data {
 	static struct gpio_hydrogen_config gpio_hydrogen_dev_cfg_##no = {    \
 		.regs = DT_REG_ADDR(DT_INST(no, hydrogen_gpio)),	     \
 	};								     \
-	DEVICE_AND_API_INIT(gpio_hydrogen_##no,				     \
-			    DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
-			    gpio_hydrogen_init,				     \
-			    &gpio_hydrogen_dev_data_##no,		     \
-			    &gpio_hydrogen_dev_cfg_##no,		     \
-			    PRE_KERNEL_1,				     \
-			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-			    (void *)&gpio_hydrogen_driver_api);
+	DEVICE_DEFINE(gpio_hydrogen_##no,				     \
+		      DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
+		      gpio_hydrogen_init,				     \
+		      NULL,						     \
+		      &gpio_hydrogen_dev_data_##no,			     \
+		      &gpio_hydrogen_dev_cfg_##no,			     \
+		      PRE_KERNEL_1,					     \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
+		      (void *)&gpio_hydrogen_driver_api);
 #endif
 
 
@@ -310,7 +312,6 @@ static const struct gpio_driver_api gpio_hydrogen_driver_api = {
 	.manage_callback = gpio_hydrogen_manage_callback,
 #endif
 };
-
 
 #if DT_NODE_EXISTS(DT_INST(0, hydrogen_gpio))
 	GPIO(0)
