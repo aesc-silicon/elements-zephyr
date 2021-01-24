@@ -62,14 +62,15 @@ struct uart_hydrogen_regs {
 		.cfg_func = uart_hydrogen_irq_cfg_func_##no,		     \
 		.irq_no = DT_IRQN(DT_INST(no, hydrogen_uart)),		     \
 	};								     \
-	DEVICE_AND_API_INIT(uart_hydrogen_##no,				     \
-			    DT_PROP(DT_INST(no, hydrogen_uart), label),	     \
-			    uart_hydrogen_init,				     \
-			    &uart_hydrogen_dev_data_##no,		     \
-			    &uart_hydrogen_dev_cfg_##no,		     \
-			    PRE_KERNEL_1,				     \
-			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-			    (void *)&uart_hydrogen_driver_api);		     \
+	DEVICE_DEFINE(uart_hydrogen_##no,				     \
+		      DT_PROP(DT_INST(no, hydrogen_uart), label),	     \
+		      uart_hydrogen_init,				     \
+		      NULL,						     \
+		      &uart_hydrogen_dev_data_##no,			     \
+		      &uart_hydrogen_dev_cfg_##no,			     \
+		      PRE_KERNEL_1,					     \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
+		      (void *)&uart_hydrogen_driver_api);		     \
 	static void uart_hydrogen_irq_cfg_func_##no(void) {		     \
 	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
 		     DT_IRQN(DT_INST(no, hydrogen_uart)),		     \
@@ -88,14 +89,15 @@ struct uart_hydrogen_regs {
 		.current_speed =					     \
 			DT_PROP(DT_INST(no, hydrogen_uart), current_speed),  \
 	};								     \
-	DEVICE_AND_API_INIT(uart_hydrogen_##no,				     \
-			    DT_PROP(DT_INST(no, hydrogen_uart), label),	     \
-			    uart_hydrogen_init,				     \
-			    &uart_hydrogen_dev_data_##no,		     \
-			    &uart_hydrogen_dev_cfg_##no,		     \
-			    PRE_KERNEL_1,				     \
-			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-			    (void *)&uart_hydrogen_driver_api);
+	DEVICE_DEFINE(uart_hydrogen_##no,				     \
+		      DT_PROP(DT_INST(no, hydrogen_uart), label),	     \
+		      uart_hydrogen_init,				     \
+		      NULL,						     \
+		      &uart_hydrogen_dev_data_##no,			     \
+		      &uart_hydrogen_dev_cfg_##no,			     \
+		      PRE_KERNEL_1,					     \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
+		      (void *)&uart_hydrogen_driver_api);
 #endif
 
 

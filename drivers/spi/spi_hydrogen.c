@@ -72,14 +72,15 @@ struct spi_hydrogen_regs {
 	static struct spi_hydrogen_config spi_hydrogen_dev_cfg_##no = {	     \
 		.regs = DT_REG_ADDR(DT_INST(no, hydrogen_spi)),		     \
 	};								     \
-	DEVICE_AND_API_INIT(spi_hydrogen_##no,				     \
-			    DT_PROP(DT_INST(no, hydrogen_spi), label),	     \
-			    spi_hydrogen_init,				     \
-			    &spi_hydrogen_dev_data_##no,		     \
-			    &spi_hydrogen_dev_cfg_##no,			     \
-			    PRE_KERNEL_1,				     \
-			    CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-			    (void *)&spi_hydrogen_driver_api);
+	DEVICE_DEFINE(spi_hydrogen_##no,				     \
+		      DT_PROP(DT_INST(no, hydrogen_spi), label),	     \
+		      spi_hydrogen_init,				     \
+		      NULL,						     \
+		      &spi_hydrogen_dev_data_##no,			     \
+		      &spi_hydrogen_dev_cfg_##no,			     \
+		      PRE_KERNEL_1,					     \
+		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
+		      (void *)&spi_hydrogen_driver_api);
 
 
 /*
