@@ -15,3 +15,9 @@ config BOARD_HYDROGEN_TH294
 	depends on SOC_RISCV32_HYDROGEN
 	select HAS_DTS
 	select RISCV
+
+config BOARD_HYDROGEN_NEXYS4DDR
+	bool "Hydrogen Nexys 4 DDR board"
+	depends on SOC_RISCV32_HYDROGEN
+	select HAS_DTS
+	select RISCV

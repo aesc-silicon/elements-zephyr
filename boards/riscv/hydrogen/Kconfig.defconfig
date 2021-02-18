@@ -18,3 +18,10 @@ config BOARD
 	default "th294"
 
 endif
+
+if BOARD_HYDROGEN_NEXYS4DDR
+
+config BOARD
+	default "nexys4ddr"
+
+endif

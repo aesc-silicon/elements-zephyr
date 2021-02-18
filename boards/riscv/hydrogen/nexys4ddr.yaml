@@ -1,0 +1,14 @@
+identifier: hydrogen_nexys4ddr
+name: Hydrogen Nexys 4 DDR board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - spi
+  - gpio
+testing:
+  ignore_tags:
+    - net
+    - bluetooth

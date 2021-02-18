@@ -1,0 +1,45 @@
+/*
+ * Copyright (c) 2021 Phytec Messtechnik GmbH
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <hydrogen.dtsi>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "hydrogen,hydrogen-soc", "simple-bus";
+		ranges;
+
+		uart0: uart0@f0000000 {
+			compatible = "hydrogen,uart";
+			reg = <0xF0000000 0x1000>;
+			status = "okay";
+			label = "uart0";
+			interrupt-parent = <&plic>;
+			interrupts = <1 1>;
+			clock-frequency = <100000000>;
+			current-speed = <115200>;
+		};
+
+		gpio0: gpio0@f0010000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0010000 0x1000>;
+			status = "okay";
+			label = "gpio0";
+			interrupt-parent = <&plic>;
+			interrupts = <2 2>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
+	};
+};
+
+&plic {
+	riscv,ndev = <2>;
+};
