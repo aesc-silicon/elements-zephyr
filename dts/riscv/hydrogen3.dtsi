@@ -37,9 +37,20 @@
 			gpio-controller;
 			#gpio-cells = <2>;
 		};
+
+		gpio1: gpio1@f0011000 {
+			compatible = "hydrogen,gpio";
+			reg = <0xF0011000 0x1000>;
+			status = "okay";
+			label = "gpio1";
+			interrupt-parent = <&plic>;
+			interrupts = <3 1>;
+			gpio-controller;
+			#gpio-cells = <2>;
+		};
 	};
 };
 
 &plic {
-	riscv,ndev = <2>;
+	riscv,ndev = <3>;
 };
