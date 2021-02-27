@@ -15,6 +15,7 @@
 	aliases {
 		uart-0 = &uart0;
 		gpio-0 = &gpio0;
+		gpio-1 = &gpio1;
 	};
 
 	chosen {
@@ -48,6 +49,31 @@
 		reset: RESET {
 			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
 			label = "Reset Button";
+		};
+
+		cursor_up: CURSOR_UP {
+			gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			label = "Cursor Up Button";
+		};
+
+		cursor_right: CURSOR_RIGHT {
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+			label = "Cursor Right Button";
+		};
+
+		cursor_down: CURSOR_DOWN {
+			gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
+			label = "Cursor Down Button";
+		};
+
+		cursor_left: CURSOR_LEFT {
+			gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
+			label = "Cursor Left Button";
+		};
+
+		cursor_enter: CURSOR_ENTER {
+			gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+			label = "Cursor Enter Button";
 		};
 	};
 };
