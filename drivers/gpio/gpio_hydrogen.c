@@ -20,6 +20,8 @@
 typedef void (*hydrogen_cfg_func_t)(void);
 
 struct gpio_hydrogen_config {
+	/* gpio_driver_config needs to be first */
+	struct gpio_driver_config common;
 	uint32_t regs;
 	hydrogen_cfg_func_t cfg_func;
 	uint32_t irq_no;
@@ -41,6 +43,8 @@ struct gpio_hydrogen_regs {
 };
 
 struct gpio_hydrogen_data {
+	/* gpio_driver_data needs to be first */
+	struct gpio_driver_data common;
 	/* list of callbacks */
 	sys_slist_t cb;
 };
