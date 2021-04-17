@@ -5,6 +5,13 @@ config BOARD
 
 endif
 
+if BOARD_HYDROGEN_DH008
+
+config BOARD
+	default "dh008"
+
+endif
+
 if BOARD_HYDROGEN_TH283
 
 config BOARD
