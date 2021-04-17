@@ -1,0 +1,16 @@
+identifier: dh008
+name: PHYTEC RISC-V Arcade Board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - spi
+  - gpio
+  - i2c
+  - vga
+testing:
+  ignore_tags:
+    - net
+    - bluetooth

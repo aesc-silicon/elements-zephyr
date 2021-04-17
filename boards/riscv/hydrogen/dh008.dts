@@ -1,0 +1,115 @@
+/*
+ * Copyright (c) 2020 Phytec Messtechnik GmbH
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <hydrogen4.dtsi>
+
+/ {
+	model = "hydrogen_dh008";
+	compatible = "hydrogen,hydrogen_dh008";
+
+	aliases {
+		uart-0 = &uart0;
+		gpio-0 = &gpio0;
+		gpio-1 = &gpio1;
+		spi-0 = &spi0;
+	};
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &ram0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		heartbeat: HEARTBEAT {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "Heartbeat LED";
+		};
+
+		ok: OK {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "Status OK LED";
+		};
+
+		error: ERROR {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "Status error LED";
+		};
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		reset: RESET {
+			gpios = <&gpio0 3 GPIO_ACTIVE_LOW>;
+			label = "Reset Button";
+		};
+
+		player1_arrow_right: PLAYER1_ARROW_RIGHT {
+			gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Arrow Right Button";
+		};
+
+		player1_arrow_up: PLAYER1_ARROW_UP {
+			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Arrow Up Button";
+		};
+
+		player1_arrow_left: PLAYER1_ARROW_LEFT {
+			gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Arrow Left Button";
+		};
+
+		player1_arrow_down: PLAYER1_ARROW_DOWN {
+			gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Arrow Down Button";
+		};
+
+		player1_back_left: PLAYER1_BACK_LEFT {
+			gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Back Left";
+		};
+
+		player1_back_right: PLAYER1_BACK_RIGHT {
+			gpios = <&gpio1 5 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Back Right";
+		};
+
+		player1_a: PLAYER1_A {
+			gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+			label = "Player1 A Button";
+		};
+
+		player1_b: PLAYER1_B {
+			gpios = <&gpio1 7 GPIO_ACTIVE_HIGH>;
+			label = "Player1 B Button";
+		};
+
+		player1_x: PLAYER1_X {
+			gpios = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+			label = "Player1 X Button";
+		};
+
+		player1_y: PLAYER1_Y {
+			gpios = <&gpio1 9 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Y Button";
+		};
+
+		player1_select: PLAYER1_SELECT {
+			gpios = <&gpio1 10 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Select Button";
+		};
+
+		player1_start: PLAYER1_START {
+			gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Start Button";
+		};
+	};
+};
