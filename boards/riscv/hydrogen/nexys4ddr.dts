@@ -51,29 +51,29 @@
 			label = "Reset Button";
 		};
 
-		cursor_up: CURSOR_UP {
-			gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
-			label = "Cursor Up Button";
-		};
-
-		cursor_right: CURSOR_RIGHT {
+		player1_arrow_right: PLAYER1_ARROW_RIGHT {
 			gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
-			label = "Cursor Right Button";
+			label = "Player1 Arrow Right Button";
 		};
 
-		cursor_down: CURSOR_DOWN {
-			gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
-			label = "Cursor Down Button";
+		player1_arrow_up: PLAYER1_ARROW_UP {
+			gpios = <&gpio1 0 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Arrow Up Button";
 		};
 
-		cursor_left: CURSOR_LEFT {
+		player1_arrow_left: PLAYER1_ARROW_LEFT {
 			gpios = <&gpio1 3 GPIO_ACTIVE_HIGH>;
-			label = "Cursor Left Button";
+			label = "Player1 Arrow Left Button";
 		};
 
-		cursor_enter: CURSOR_ENTER {
+		player1_arrow_down: PLAYER1_ARROW_DOWN {
+			gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
+			label = "Player1 Arrow Down Button";
+		};
+
+		player1_select: PLAYER1_SELECT {
 			gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
-			label = "Cursor Enter Button";
+			label = "Player1 Select Button";
 		};
 	};
 };
