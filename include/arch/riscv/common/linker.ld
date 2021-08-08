@@ -33,7 +33,12 @@
 
 #ifdef CONFIG_XIP
 #if DT_NODE_HAS_COMPAT_STATUS(DT_CHOSEN(zephyr_flash), soc_nv_flash, okay)
+#ifdef CONFIG_FLASH_LOAD_OFFSET
+#define ROM_BASE (DT_REG_ADDR(DT_CHOSEN(zephyr_flash)) + \
+				CONFIG_FLASH_LOAD_OFFSET)
+#else /* !CONFIG_FLASH_LOAD_OFFSET */
 #define ROM_BASE DT_REG_ADDR(DT_CHOSEN(zephyr_flash))
+#endif /* CONFIG_FLASH_LOAD_OFFSET */
 #define ROM_SIZE DT_REG_SIZE(DT_CHOSEN(zephyr_flash))
 #elif DT_NODE_HAS_COMPAT_STATUS(DT_CHOSEN(zephyr_flash), jedec_spi_nor, okay)
 /* For jedec,spi-nor we expect the spi controller to memory map the flash
@@ -247,6 +252,12 @@ SECTIONS
  * zephyr_linker_sources() Cmake function.
  */
 #include <snippets-ram-sections.ld>
+
+/* Located in generated directory. This file is populated by the
+ * zephyr_linker_sources() Cmake function.
+ */
+#include <snippets-data-sections.ld>
+
     __data_ram_end = .;
 
     MPU_MIN_SIZE_ALIGN

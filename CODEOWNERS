@@ -41,8 +41,8 @@
 /soc/arm/infineon_xmc/                    @parthitce
 /soc/arm/nxp*/                            @MaureenHelm @mmahadevan108 @dleach02
 /soc/arm/nordic_nrf/                      @ioannisg
-/soc/arm/nuvoton/                         @ssekar15
 /soc/arm/nuvoton_npcx/                    @MulinChao @WealianLiao @ChiHuaL
+/soc/arm/nuvoton_numicro/                 @ssekar15
 /soc/arm/quicklogic_eos_s3/               @kowalewskijan @kgugala
 /soc/arm/silabs_exx32/efm32pg1b/          @rdmeneze
 /soc/arm/silabs_exx32/efr32mg21/          @l-alfred
@@ -185,6 +185,7 @@
 /drivers/*/*npcx*                         @MulinChao @WealianLiao @ChiHuaL
 /drivers/adc/                             @anangl
 /drivers/adc/adc_stm32.c                  @cybertale
+/drivers/bbram/*                          @yperess @sjg20 @jackrosenthal
 /drivers/bluetooth/                       @joerchan @jhedberg @Vudentz
 /drivers/cache/                           @carlocaione
 /drivers/syscon/                          @carlocaione
@@ -310,7 +311,7 @@
 /drivers/serial/uart_xlnx_ps.c            @wjliang
 /drivers/serial/uart_xlnx_uartlite.c      @henrikbrixandersen
 /drivers/serial/*xmc4xxx*                 @parthitce
-/drivers/serial/*nuvoton*                 @ssekar15
+/drivers/serial/*numicro*                 @ssekar15
 /drivers/serial/*apbuart*                 @martin-aberg
 /drivers/serial/*rcar*                    @aaillet
 /drivers/serial/Kconfig.test              @str4t0m
