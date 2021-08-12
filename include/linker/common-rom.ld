@@ -52,7 +52,7 @@
 	}
 	ASSERT(SIZEOF(initlevel_error) == 0, "Undefined initialization levels used.")
 
-#ifdef CONFIG_CPLUSPLUS
+#ifdef CONFIG_CPP_STATIC_INIT_GNU
 	SECTION_PROLOGUE(_CTOR_SECTION_NAME,,)
 	{
 		/*
@@ -113,6 +113,10 @@
 
 #if defined(CONFIG_BT_BREDR)
 	Z_ITERABLE_SECTION_ROM(bt_l2cap_br_fixed_chan, 4)
+#endif
+
+#if defined(CONFIG_BT_CONN)
+	Z_ITERABLE_SECTION_ROM(bt_conn_cb, 4)
 #endif
 
 	Z_ITERABLE_SECTION_ROM(bt_gatt_service_static, 4)
