@@ -548,7 +548,12 @@ static struct net_buf *create_frag(struct bt_conn *conn, struct net_buf *buf)
 		break;
 #endif
 	default:
+#if defined(CONFIG_BT_CONN)
 		frag = bt_conn_create_frag(0);
+#else
+		return NULL;
+#endif /* CONFIG_BT_CONN */
+
 	}
 
 	if (conn->state != BT_CONN_CONNECTED) {
@@ -1061,15 +1066,6 @@ void bt_conn_unref(struct bt_conn *conn)
 {
 	atomic_val_t old;
 
-	/* Cleanup ISO before releasing the last reference to prevent other
-	 * threads reallocating the same connection while cleanup is ongoing.
-	 */
-	if (IS_ENABLED(CONFIG_BT_ISO_UNICAST) &&
-	    conn->type == BT_CONN_TYPE_ISO &&
-	    atomic_get(&conn->ref) == 1) {
-		bt_iso_cleanup(conn);
-	}
-
 	old = atomic_dec(&conn->ref);
 
 	BT_DBG("handle %u ref %d -> %d", conn->handle, old,
@@ -1114,6 +1110,68 @@ uint8_t bt_conn_index(struct bt_conn *conn)
 	}
 
 	return (uint8_t)index;
+}
+
+
+#if defined(CONFIG_NET_BUF_LOG)
+struct net_buf *bt_conn_create_pdu_timeout_debug(struct net_buf_pool *pool,
+						 size_t reserve,
+						 k_timeout_t timeout,
+						 const char *func, int line)
+#else
+struct net_buf *bt_conn_create_pdu_timeout(struct net_buf_pool *pool,
+					   size_t reserve, k_timeout_t timeout)
+#endif
+{
+	struct net_buf *buf;
+
+	/*
+	 * PDU must not be allocated from ISR as we block with 'K_FOREVER'
+	 * during the allocation
+	 */
+	__ASSERT_NO_MSG(!k_is_in_isr());
+
+	if (!pool) {
+#if defined(CONFIG_BT_CONN)
+		pool = &acl_tx_pool;
+#else
+		return NULL;
+#endif /* CONFIG_BT_CONN */
+	}
+
+	if (IS_ENABLED(CONFIG_BT_DEBUG_CONN)) {
+#if defined(CONFIG_NET_BUF_LOG)
+		buf = net_buf_alloc_fixed_debug(pool, K_NO_WAIT, func, line);
+#else
+		buf = net_buf_alloc(pool, K_NO_WAIT);
+#endif
+		if (!buf) {
+			BT_WARN("Unable to allocate buffer with K_NO_WAIT");
+#if defined(CONFIG_NET_BUF_LOG)
+			buf = net_buf_alloc_fixed_debug(pool, timeout, func,
+							line);
+#else
+			buf = net_buf_alloc(pool, timeout);
+#endif
+		}
+	} else {
+#if defined(CONFIG_NET_BUF_LOG)
+		buf = net_buf_alloc_fixed_debug(pool, timeout, func,
+							line);
+#else
+		buf = net_buf_alloc(pool, timeout);
+#endif
+	}
+
+	if (!buf) {
+		BT_WARN("Unable to allocate buffer within timeout");
+		return NULL;
+	}
+
+	reserve += sizeof(struct bt_hci_acl_hdr) + BT_BUF_RESERVE;
+	net_buf_reserve(buf, reserve);
+
+	return buf;
 }
 
 /* Group Connected BT_CONN only in this */
@@ -1415,31 +1473,28 @@ static void tx_complete_work(struct k_work *work)
 	tx_notify(conn);
 }
 
+#if defined(CONFIG_BT_ISO_UNICAST)
 static struct bt_conn *conn_lookup_iso(struct bt_conn *conn)
 {
-#if defined(CONFIG_BT_ISO)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(iso_conns); i++) {
-		struct bt_conn *iso_conn = bt_conn_ref(&iso_conns[i]);
+		struct bt_conn *iso = bt_conn_ref(&iso_conns[i]);
 
-		if (!iso_conn) {
+		if (iso == NULL) {
 			continue;
 		}
 
-		if (iso_conn == conn) {
-			return iso_conn;
+		if (iso->iso.acl == conn) {
+			return iso;
 		}
 
-		if (bt_conn_iso(iso_conn)->acl == conn) {
-			return iso_conn;
-		}
-
-		bt_conn_unref(iso_conn);
+		bt_conn_unref(iso);
 	}
-#endif /* CONFIG_BT_ISO */
+
 	return NULL;
 }
+#endif /* CONFIG_BT_ISO */
 
 static void deferred_work(struct k_work *work)
 {
@@ -1449,26 +1504,33 @@ static void deferred_work(struct k_work *work)
 	BT_DBG("conn %p", conn);
 
 	if (conn->state == BT_CONN_DISCONNECTED) {
-		if (IS_ENABLED(CONFIG_BT_ISO)) {
-			struct bt_conn *iso;
+#if defined(CONFIG_BT_ISO_UNICAST)
+		struct bt_conn *iso;
 
-			/* Disconnect all ISO channels associated
-			 * with ACL conn.
-			 */
-			iso = conn_lookup_iso(conn);
-			while (iso) {
-				iso->err = conn->err;
-
-				bt_iso_disconnected(iso);
-				bt_conn_unref(iso);
-
-				/* Stop if only ISO was Disconnected */
-				if (conn->type == BT_CONN_TYPE_ISO) {
-					return;
-				}
-				iso = conn_lookup_iso(conn);
-			}
+		if (conn->type == BT_CONN_TYPE_ISO) {
+			bt_iso_disconnected(conn);
+			bt_conn_unref(conn);
+			return;
 		}
+
+		/* Mark all ISO channels associated
+		 * with ACL conn as not connected, and
+		 * remove ACL reference
+		 */
+		iso = conn_lookup_iso(conn);
+		while (iso != NULL) {
+			struct bt_iso_chan *chan = iso->iso.chan;
+
+			if (chan != NULL) {
+				bt_iso_chan_set_state(chan, BT_ISO_DISCONNECT);
+			}
+
+			bt_iso_cleanup_acl(iso);
+
+			bt_conn_unref(iso);
+			iso = conn_lookup_iso(conn);
+		}
+#endif
 
 		bt_l2cap_disconnected(conn);
 		notify_disconnected(conn);
@@ -2668,63 +2730,6 @@ struct net_buf *bt_conn_create_frag_timeout(size_t reserve, k_timeout_t timeout)
 #else
 	return bt_conn_create_pdu_timeout(pool, reserve, timeout);
 #endif /* CONFIG_NET_BUF_LOG */
-}
-
-#if defined(CONFIG_NET_BUF_LOG)
-struct net_buf *bt_conn_create_pdu_timeout_debug(struct net_buf_pool *pool,
-						 size_t reserve,
-						 k_timeout_t timeout,
-						 const char *func, int line)
-#else
-struct net_buf *bt_conn_create_pdu_timeout(struct net_buf_pool *pool,
-					   size_t reserve, k_timeout_t timeout)
-#endif
-{
-	struct net_buf *buf;
-
-	/*
-	 * PDU must not be allocated from ISR as we block with 'K_FOREVER'
-	 * during the allocation
-	 */
-	__ASSERT_NO_MSG(!k_is_in_isr());
-
-	if (!pool) {
-		pool = &acl_tx_pool;
-	}
-
-	if (IS_ENABLED(CONFIG_BT_DEBUG_CONN)) {
-#if defined(CONFIG_NET_BUF_LOG)
-		buf = net_buf_alloc_fixed_debug(pool, K_NO_WAIT, func, line);
-#else
-		buf = net_buf_alloc(pool, K_NO_WAIT);
-#endif
-		if (!buf) {
-			BT_WARN("Unable to allocate buffer with K_NO_WAIT");
-#if defined(CONFIG_NET_BUF_LOG)
-			buf = net_buf_alloc_fixed_debug(pool, timeout, func,
-							line);
-#else
-			buf = net_buf_alloc(pool, timeout);
-#endif
-		}
-	} else {
-#if defined(CONFIG_NET_BUF_LOG)
-		buf = net_buf_alloc_fixed_debug(pool, timeout, func,
-							line);
-#else
-		buf = net_buf_alloc(pool, timeout);
-#endif
-	}
-
-	if (!buf) {
-		BT_WARN("Unable to allocate buffer within timeout");
-		return NULL;
-	}
-
-	reserve += sizeof(struct bt_hci_acl_hdr) + BT_BUF_RESERVE;
-	net_buf_reserve(buf, reserve);
-
-	return buf;
 }
 
 #if defined(CONFIG_BT_SMP) || defined(CONFIG_BT_BREDR)

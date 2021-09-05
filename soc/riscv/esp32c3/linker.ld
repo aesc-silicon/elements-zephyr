@@ -119,13 +119,13 @@ SECTIONS
     *libkernel.a:(.literal .text .literal.* .text.*)
     *libgcc.a:lib2funcs.*(.literal .text .literal.* .text.*)
     *libzephyr.a:log_noos.*(.literal .text .literal.* .text.*)
-    *libzephyr.a:esp32c3_sys_timer.*(.literal .text .literal.* .text.*)
+    *libdrivers__timer.a:esp32c3_sys_timer.*(.literal .text .literal.* .text.*)
     *libzephyr.a:log_core.*(.literal .text .literal.* .text.*)
     *libzephyr.a:cbprintf_complete.*(.literal .text .literal.* .text.*)
     *libzephyr.a:printk.*(.literal.printk .literal.vprintk .literal.char_out .text.printk .text.vprintk .text.char_out)
     *libzephyr.a:log_msg.*(.literal .text .literal.* .text.*)
     *libzephyr.a:log_list.*(.literal .text .literal.* .text.*)
-    *libzephyr.a:uart_console.*(.literal.console_out .text.console_out)
+    *libdrivers__console.a:uart_console.*(.literal.console_out .text.console_out)
     *libzephyr.a:log_output.*(.literal .text .literal.* .text.*)
     *libzephyr.a:log_backend_uart.*(.literal .text .literal.* .text.*)
     *liblib__libc__minimal.a:string.*(.literal .text .literal.* .text.*)
@@ -154,7 +154,9 @@ SECTIONS
     *(.data.*)
     *(.gnu.linkonce.d.*)
     *(.data1)
+#ifdef CONFIG_RISCV_GP
     __global_pointer$ = . + 0x800;
+#endif /* CONFIG_RISCV_GP */
     *(.sdata)
     *(.sdata.*)
     *(.gnu.linkonce.s.*)
@@ -236,7 +238,7 @@ SECTIONS
   .flash.rodata : ALIGN(0x10)
   {
     _rodata_start = ABSOLUTE(.);
-    _image_rodata_start = .;
+    __rodata_region_start = .;
     __esp_shell_root_cmds_start = .;
     KEEP(*(SORT(.shell_root_cmd_*)));
     __esp_shell_root_cmds_end = .;
@@ -283,7 +285,7 @@ SECTIONS
     *(.xt_except_desc_end)
     *(.dynamic)
     *(.gnu.version_d)
-    _image_rodata_end = .;
+    __rodata_region_end = .;
     _rodata_end = ABSOLUTE(.);
     /* Literals are also RO data. */
     _lit4_start = ABSOLUTE(.);
