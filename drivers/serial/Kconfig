@@ -85,7 +85,7 @@ config UART_DRV_CMD
 
 comment "Serial Drivers"
 
-source "drivers/serial/Kconfig.hydrogen"
+source "drivers/serial/Kconfig.elements"
 
 source "drivers/serial/Kconfig.b91"
 

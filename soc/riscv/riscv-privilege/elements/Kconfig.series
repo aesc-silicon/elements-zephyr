@@ -1,0 +1,6 @@
+config SOC_SERIES_RISCV32_ELEMENTS
+	bool "Elements implementation"
+	select SOC_FAMILY_RISCV_PRIVILEGE
+	select HAS_DTS
+	help
+	  Enable support for Elements SOCs

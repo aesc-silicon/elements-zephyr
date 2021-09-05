@@ -21,7 +21,13 @@ config GPIO_SHELL
 	help
 	  Enable GPIO Shell for testing.
 
-source "drivers/gpio/Kconfig.hydrogen"
+config GPIO_INIT_PRIORITY
+	int "GPIO init priority"
+	default KERNEL_INIT_PRIORITY_DEFAULT
+	help
+	  GPIO driver device initialization priority.
+
+source "drivers/gpio/Kconfig.elements"
 
 source "drivers/gpio/Kconfig.b91"
 

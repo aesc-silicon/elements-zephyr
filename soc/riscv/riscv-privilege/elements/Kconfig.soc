@@ -1,0 +1,9 @@
+choice
+prompt "Elements implementations"
+depends on SOC_SERIES_RISCV32_ELEMENTS
+
+config SOC_RISCV32_ELEMENTS
+	bool "Elements implementation"
+	select ATOMIC_OPERATIONS_C
+
+endchoice

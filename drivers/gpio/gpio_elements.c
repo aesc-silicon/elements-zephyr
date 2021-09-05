@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2020 Phytec Messtechnik GmbH
+ * Copyright (c) 2021 Phytec Messtechnik GmbH
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
 /**
- * @file GPIO driver for the Hydrogen
+ * @file GPIO driver for the Elements
  */
 
 #include <errno.h>
@@ -17,17 +17,17 @@
 #include "gpio_utils.h"
 #include <irq.h>
 
-typedef void (*hydrogen_cfg_func_t)(void);
+typedef void (*elements_cfg_func_t)(void);
 
-struct gpio_hydrogen_config {
+struct gpio_elements_config {
 	/* gpio_driver_config needs to be first */
 	struct gpio_driver_config common;
 	uint32_t regs;
-	hydrogen_cfg_func_t cfg_func;
+	elements_cfg_func_t cfg_func;
 	uint32_t irq_no;
 };
 
-struct gpio_hydrogen_regs {
+struct gpio_elements_regs {
 	unsigned int read;
 	unsigned int write;
 	unsigned int direction;
@@ -42,7 +42,7 @@ struct gpio_hydrogen_regs {
 	unsigned int fall_ie;
 };
 
-struct gpio_hydrogen_data {
+struct gpio_elements_data {
 	/* gpio_driver_data needs to be first */
 	struct gpio_driver_data common;
 	/* list of callbacks */
@@ -50,51 +50,51 @@ struct gpio_hydrogen_data {
 };
 
 #define DEV_GPIO_CFG(dev)                                                      \
-	((struct gpio_hydrogen_config *)(dev)->config)
-#define DEV_GPIO(dev) ((struct gpio_hydrogen_regs *)(DEV_GPIO_CFG(dev))->regs)
-#define DEV_GPIO_DATA(dev) ((struct gpio_hydrogen_data *)(dev)->data)
+	((struct gpio_elements_config *)(dev)->config)
+#define DEV_GPIO(dev) ((struct gpio_elements_regs *)(DEV_GPIO_CFG(dev))->regs)
+#define DEV_GPIO_DATA(dev) ((struct gpio_elements_data *)(dev)->data)
 
-#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT
 #define GPIO(no)							     \
-	static struct gpio_hydrogen_data gpio_hydrogen_dev_data_##no;	     \
-	static void gpio_hydrogen_irq_cfg_func_##no(void);		     \
-	static struct gpio_hydrogen_config gpio_hydrogen_dev_cfg_##no = {    \
-		.regs = DT_REG_ADDR(DT_INST(no, hydrogen_gpio)),	     \
-		.cfg_func = gpio_hydrogen_irq_cfg_func_##no,		     \
-		.irq_no = DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
+	static struct gpio_elements_data gpio_elements_dev_data_##no;	     \
+	static void gpio_elements_irq_cfg_func_##no(void);		     \
+	static struct gpio_elements_config gpio_elements_dev_cfg_##no = {    \
+		.regs = DT_REG_ADDR(DT_INST(no, elements_gpio)),	     \
+		.cfg_func = gpio_elements_irq_cfg_func_##no,		     \
+		.irq_no = DT_IRQN(DT_INST(no, elements_gpio)),		     \
 	};								     \
-	DEVICE_DEFINE(gpio_hydrogen_##no,				     \
-		      DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
-		      gpio_hydrogen_init,				     \
+	DEVICE_DEFINE(gpio_elements_##no,				     \
+		      DT_PROP(DT_INST(no, elements_gpio), label),	     \
+		      gpio_elements_init,				     \
 		      NULL,						     \
-		      &gpio_hydrogen_dev_data_##no,			     \
-		      &gpio_hydrogen_dev_cfg_##no,			     \
+		      &gpio_elements_dev_data_##no,			     \
+		      &gpio_elements_dev_cfg_##no,			     \
 		      PRE_KERNEL_1,					     \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&gpio_hydrogen_driver_api);		     \
-	static void gpio_hydrogen_irq_cfg_func_##no(void) {		     \
+		      (void *)&gpio_elements_driver_api);		     \
+	static void gpio_elements_irq_cfg_func_##no(void) {		     \
 	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
-		    DT_IRQN(DT_INST(no, hydrogen_gpio)),		     \
+		    DT_IRQN(DT_INST(no, elements_gpio)),		     \
 		    0,							     \
-		    gpio_hydrogen_irq_handler,				     \
-		    DEVICE_GET(gpio_hydrogen_##no),			     \
+		    gpio_elements_irq_handler,				     \
+		    DEVICE_GET(gpio_elements_##no),			     \
 		    0);							     \
 	}
 #else
 #define GPIO(no)							     \
-	static struct gpio_hydrogen_data gpio_hydrogen_dev_data_##no;	     \
-	static struct gpio_hydrogen_config gpio_hydrogen_dev_cfg_##no = {    \
-		.regs = DT_REG_ADDR(DT_INST(no, hydrogen_gpio)),	     \
+	static struct gpio_elements_data gpio_elements_dev_data_##no;	     \
+	static struct gpio_elements_config gpio_elements_dev_cfg_##no = {    \
+		.regs = DT_REG_ADDR(DT_INST(no, elements_gpio)),	     \
 	};								     \
-	DEVICE_DEFINE(gpio_hydrogen_##no,				     \
-		      DT_PROP(DT_INST(no, hydrogen_gpio), label),	     \
-		      gpio_hydrogen_init,				     \
+	DEVICE_DEFINE(gpio_elements_##no,				     \
+		      DT_PROP(DT_INST(no, elements_gpio), label),	     \
+		      gpio_elements_init,				     \
 		      NULL,						     \
-		      &gpio_hydrogen_dev_data_##no,			     \
-		      &gpio_hydrogen_dev_cfg_##no,			     \
+		      &gpio_elements_dev_data_##no,			     \
+		      &gpio_elements_dev_cfg_##no,			     \
 		      PRE_KERNEL_1,					     \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&gpio_hydrogen_driver_api);
+		      (void *)&gpio_elements_driver_api);
 #endif
 
 
@@ -107,10 +107,10 @@ struct gpio_hydrogen_data {
  *
  * @return 0 if successful, failed otherwise
  */
-static int gpio_hydrogen_config(const struct device *dev, gpio_pin_t pin,
+static int gpio_elements_config(const struct device *dev, gpio_pin_t pin,
 				gpio_flags_t flags)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 
 	/* Configure gpio direction */
 	if (flags & GPIO_OUTPUT)
@@ -122,64 +122,64 @@ static int gpio_hydrogen_config(const struct device *dev, gpio_pin_t pin,
 }
 
 
-static int gpio_hydrogen_port_get_raw(const struct device *dev,
+static int gpio_elements_port_get_raw(const struct device *dev,
 				   gpio_port_value_t *value)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 
 	*value = gpio->read;
 
 	return 0;
 }
 
-static int gpio_hydrogen_port_set_masked_raw(const struct device *dev,
+static int gpio_elements_port_set_masked_raw(const struct device *dev,
 					  gpio_port_pins_t mask,
 					  gpio_port_value_t value)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 
 	gpio->write = (gpio->write & ~mask) | (value & mask);
 
 	return 0;
 }
 
-static int gpio_hydrogen_port_set_bits_raw(const struct device *dev,
+static int gpio_elements_port_set_bits_raw(const struct device *dev,
 					gpio_port_pins_t mask)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 
 	gpio->write |= mask;
 
 	return 0;
 }
 
-static int gpio_hydrogen_port_clear_bits_raw(const struct device *dev,
+static int gpio_elements_port_clear_bits_raw(const struct device *dev,
 					  gpio_port_pins_t mask)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 
 	gpio->write &= ~mask;
 
 	return 0;
 }
 
-static int gpio_hydrogen_port_toggle_bits(const struct device *dev,
+static int gpio_elements_port_toggle_bits(const struct device *dev,
 				       gpio_port_pins_t mask)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 
 	gpio->write ^= mask;
 
 	return 0;
 }
 
-#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT
 
-static void gpio_hydrogen_irq_handler(void *arg)
+static void gpio_elements_irq_handler(void *arg)
 {
 	struct device *dev = (struct device *)arg;
-	struct gpio_hydrogen_data *data = DEV_GPIO_DATA(dev);
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
+	struct gpio_elements_data *data = DEV_GPIO_DATA(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 	uint32_t pin_mask = 0;
 
 	pin_mask |= gpio->rise_ip;
@@ -205,13 +205,13 @@ static void gpio_hydrogen_irq_handler(void *arg)
 	}
 }
 
-static int gpio_hydrogen_pin_interrupt_configure(const struct device *dev,
+static int gpio_elements_pin_interrupt_configure(const struct device *dev,
 						 gpio_pin_t pin,
 						 enum gpio_int_mode int_mode,
 						 enum gpio_int_trig int_trig)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
-	volatile struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
+	volatile struct gpio_elements_config *cfg = DEV_GPIO_CFG(dev);
 
 	/* Disable all interrupts */
 	gpio->high_ie &= ~BIT(pin);
@@ -258,11 +258,11 @@ static int gpio_hydrogen_pin_interrupt_configure(const struct device *dev,
 	return 0;
 }
 
-static int gpio_hydrogen_manage_callback(const struct device *dev,
+static int gpio_elements_manage_callback(const struct device *dev,
 					 struct gpio_callback *callback,
 					 bool set)
 {
-	struct gpio_hydrogen_data *data = DEV_GPIO_DATA(dev);
+	struct gpio_elements_data *data = DEV_GPIO_DATA(dev);
 
 	return gpio_manage_callback(&data->cb, callback, set);
 }
@@ -278,11 +278,11 @@ static int gpio_hydrogen_manage_callback(const struct device *dev,
  *
  * @return 0
  */
-static int gpio_hydrogen_init(const struct device *dev)
+static int gpio_elements_init(const struct device *dev)
 {
-	volatile struct gpio_hydrogen_regs *gpio = DEV_GPIO(dev);
-#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
-	volatile struct gpio_hydrogen_config *cfg = DEV_GPIO_CFG(dev);
+	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
+#ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT
+	volatile struct gpio_elements_config *cfg = DEV_GPIO_CFG(dev);
 #endif
 
 	gpio->write = 0;
@@ -292,7 +292,7 @@ static int gpio_hydrogen_init(const struct device *dev)
 	gpio->rise_ie = 0;
 	gpio->fall_ie = 0;
 
-#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
+#ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT
 	gpio->high_ip = 0;
 	gpio->low_ip = 0;
 	gpio->rise_ip = 0;
@@ -304,31 +304,31 @@ static int gpio_hydrogen_init(const struct device *dev)
 	return 0;
 }
 
-static const struct gpio_driver_api gpio_hydrogen_driver_api = {
-	.pin_configure = gpio_hydrogen_config,
-	.port_get_raw = gpio_hydrogen_port_get_raw,
-	.port_set_masked_raw = gpio_hydrogen_port_set_masked_raw,
-	.port_set_bits_raw = gpio_hydrogen_port_set_bits_raw,
-	.port_clear_bits_raw = gpio_hydrogen_port_clear_bits_raw,
-	.port_toggle_bits = gpio_hydrogen_port_toggle_bits,
-#ifdef CONFIG_GPIO_HYDROGEN_INTERRUPT
-	.pin_interrupt_configure = gpio_hydrogen_pin_interrupt_configure,
-	.manage_callback = gpio_hydrogen_manage_callback,
+static const struct gpio_driver_api gpio_elements_driver_api = {
+	.pin_configure = gpio_elements_config,
+	.port_get_raw = gpio_elements_port_get_raw,
+	.port_set_masked_raw = gpio_elements_port_set_masked_raw,
+	.port_set_bits_raw = gpio_elements_port_set_bits_raw,
+	.port_clear_bits_raw = gpio_elements_port_clear_bits_raw,
+	.port_toggle_bits = gpio_elements_port_toggle_bits,
+#ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT
+	.pin_interrupt_configure = gpio_elements_pin_interrupt_configure,
+	.manage_callback = gpio_elements_manage_callback,
 #endif
 };
 
-#if DT_NODE_EXISTS(DT_INST(0, hydrogen_gpio))
+#if DT_NODE_EXISTS(DT_INST(0, elements_gpio))
 	GPIO(0)
 #endif
-#if DT_NODE_EXISTS(DT_INST(1, hydrogen_gpio))
+#if DT_NODE_EXISTS(DT_INST(1, elements_gpio))
 	GPIO(1)
 #endif
-#if DT_NODE_EXISTS(DT_INST(2, hydrogen_gpio))
+#if DT_NODE_EXISTS(DT_INST(2, elements_gpio))
 	GPIO(2)
 #endif
-#if DT_NODE_EXISTS(DT_INST(3, hydrogen_gpio))
+#if DT_NODE_EXISTS(DT_INST(3, elements_gpio))
 	GPIO(3)
 #endif
-#if DT_NODE_EXISTS(DT_INST(4, hydrogen_gpio))
+#if DT_NODE_EXISTS(DT_INST(4, elements_gpio))
 	GPIO(4)
 #endif
