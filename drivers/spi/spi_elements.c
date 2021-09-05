@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Phytec Messtechnik GmbH
+ * Copyright (c) 2021 Phytec Messtechnik GmbH
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,15 +8,15 @@
 #include <arch/cpu.h>
 #include <drivers/spi.h>
 
-struct spi_hydrogen_data {
+struct spi_elements_data {
 	unsigned int res;
 };
 
-struct spi_hydrogen_config {
+struct spi_elements_config {
 	uint32_t regs;
 };
 
-struct spi_hydrogen_regs {
+struct spi_elements_regs {
 	unsigned int read_write;
 	unsigned int status;
 	unsigned int config;
@@ -61,26 +61,26 @@ struct spi_hydrogen_regs {
 
 
 #define DEV_SPI_CFG(dev)						     \
-	((struct spi_hydrogen_config *)(dev)->config)
+	((struct spi_elements_config *)(dev)->config)
 #define DEV_SPI(dev)							     \
-	((struct spi_hydrogen_regs *)(DEV_SPI_CFG(dev))->regs)
+	((struct spi_elements_regs *)(DEV_SPI_CFG(dev))->regs)
 #define DEV_SPI_DATA(dev)						     \
-	((struct spi_hydrogen_data *)(dev)->driver_data)
+	((struct spi_elements_data *)(dev)->driver_data)
 
 #define SPI(no)								     \
-	static struct spi_hydrogen_data spi_hydrogen_dev_data_##no;	     \
-	static struct spi_hydrogen_config spi_hydrogen_dev_cfg_##no = {	     \
-		.regs = DT_REG_ADDR(DT_INST(no, hydrogen_spi)),		     \
+	static struct spi_elements_data spi_elements_dev_data_##no;	     \
+	static struct spi_elements_config spi_elements_dev_cfg_##no = {	     \
+		.regs = DT_REG_ADDR(DT_INST(no, elements_spi)),		     \
 	};								     \
-	DEVICE_DEFINE(spi_hydrogen_##no,				     \
-		      DT_PROP(DT_INST(no, hydrogen_spi), label),	     \
-		      spi_hydrogen_init,				     \
+	DEVICE_DEFINE(spi_elements_##no,				     \
+		      DT_PROP(DT_INST(no, elements_spi), label),	     \
+		      spi_elements_init,				     \
 		      NULL,						     \
-		      &spi_hydrogen_dev_data_##no,			     \
-		      &spi_hydrogen_dev_cfg_##no,			     \
+		      &spi_elements_dev_data_##no,			     \
+		      &spi_elements_dev_cfg_##no,			     \
 		      PRE_KERNEL_1,					     \
 		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&spi_hydrogen_driver_api);
+		      (void *)&spi_elements_driver_api);
 
 
 /*
@@ -90,10 +90,10 @@ struct spi_hydrogen_regs {
  * - CPHA
  * - CS_ACTIVE_HIGH
  */
-static int spi_hydrogen_configure(const struct device *dev,
+static int spi_elements_configure(const struct device *dev,
 				  const struct spi_config *config)
 {
-	volatile struct spi_hydrogen_regs *spi = DEV_SPI(dev);
+	volatile struct spi_elements_regs *spi = DEV_SPI(dev);
 	unsigned int clock_div;
 	unsigned int cfg;
 
@@ -132,20 +132,20 @@ static int spi_hydrogen_configure(const struct device *dev,
 	return 0;
 }
 
-static void spi_hydrogen_ss(const struct device *dev,
+static void spi_elements_ss(const struct device *dev,
 			    unsigned int slave_no,
 			    volatile unsigned int flag)
 {
-	volatile struct spi_hydrogen_regs *spi = DEV_SPI(dev);
+	volatile struct spi_elements_regs *spi = DEV_SPI(dev);
 	unsigned int slave = slave_no + 1;
 
 	spi->read_write = SPI_CMD_SS | flag | SPI_SS_SET_INDEX(slave);
 }
 
-static int spi_hydrogen_write(const struct device *dev,
+static int spi_elements_write(const struct device *dev,
 			      const struct spi_buf_set *tx_bufs)
 {
-	volatile struct spi_hydrogen_regs *spi = DEV_SPI(dev);
+	volatile struct spi_elements_regs *spi = DEV_SPI(dev);
 	unsigned int cnt = 0;
 	unsigned char val;
 	int buf_iter;
@@ -174,10 +174,10 @@ out:
 	return cnt;
 }
 
-static int spi_hydrogen_read(const struct device *dev,
+static int spi_elements_read(const struct device *dev,
 			     const struct spi_buf_set *rx_bufs)
 {
-	volatile struct spi_hydrogen_regs *spi = DEV_SPI(dev);
+	volatile struct spi_elements_regs *spi = DEV_SPI(dev);
 	unsigned int cnt = 0;
 	unsigned int val;
 	unsigned int chr;
@@ -205,54 +205,54 @@ out:
 	return cnt;
 }
 
-static int spi_hydrogen_transceive(const struct device *dev,
+static int spi_elements_transceive(const struct device *dev,
 				   const struct spi_config *config,
 				   const struct spi_buf_set *tx_bufs,
 				   const struct spi_buf_set *rx_bufs)
 {
 	unsigned int ret = 0;
 
-	ret = spi_hydrogen_configure(dev, config);
+	ret = spi_elements_configure(dev, config);
 	if (ret)
 		goto error;
 
-	spi_hydrogen_ss(dev, config->slave, SPI_SS_ENABLE);
-	spi_hydrogen_write(dev, tx_bufs);
-	spi_hydrogen_read(dev, rx_bufs);
-	spi_hydrogen_ss(dev, config->slave, SPI_SS_DISABLE);
+	spi_elements_ss(dev, config->slave, SPI_SS_ENABLE);
+	spi_elements_write(dev, tx_bufs);
+	spi_elements_read(dev, rx_bufs);
+	spi_elements_ss(dev, config->slave, SPI_SS_DISABLE);
 
 error:
 	return ret;
 }
 
-static int spi_hydrogen_release(const struct device *dev, const struct spi_config *config)
+static int spi_elements_release(const struct device *dev, const struct spi_config *config)
 {
 	return 0;
 }
 
-int spi_hydrogen_init(const struct device *dev)
+int spi_elements_init(const struct device *dev)
 {
 	return 0;
 }
 
-static const struct spi_driver_api spi_hydrogen_driver_api = {
-	.transceive = spi_hydrogen_transceive,
-	.release = spi_hydrogen_release,
+static const struct spi_driver_api spi_elements_driver_api = {
+	.transceive = spi_elements_transceive,
+	.release = spi_elements_release,
 };
 
 
-#if DT_NODE_EXISTS(DT_INST(0, hydrogen_spi))
+#if DT_NODE_EXISTS(DT_INST(0, elements_spi))
 	SPI(0)
 #endif
-#if DT_NODE_EXISTS(DT_INST(1, hydrogen_spi))
+#if DT_NODE_EXISTS(DT_INST(1, elements_spi))
 	SPI(1)
 #endif
-#if DT_NODE_EXISTS(DT_INST(2, hydrogen_spi))
+#if DT_NODE_EXISTS(DT_INST(2, elements_spi))
 	SPI(2)
 #endif
-#if DT_NODE_EXISTS(DT_INST(3, hydrogen_spi))
+#if DT_NODE_EXISTS(DT_INST(3, elements_spi))
 	SPI(3)
 #endif
-#if DT_NODE_EXISTS(DT_INST(4, hydrogen_spi))
+#if DT_NODE_EXISTS(DT_INST(4, elements_spi))
 	SPI(4)
 #endif

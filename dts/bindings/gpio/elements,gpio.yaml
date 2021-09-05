@@ -1,12 +1,12 @@
 #
-# Copyright (c) 2019 Phytec Messtechnik GmbH
+# Copyright (c) 2021 Phytec Messtechnik GmbH
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 ---
-compatible: "hydrogen,gpio"
+compatible: "elements,gpio"
 
-description: Hydrogen GPIO - This is a representation of the Hydrogen GPIO nodes
+description: Elements GPIO - This is a representation of the Elements GPIO nodes
 
 include: [gpio-controller.yaml, base.yaml]
 

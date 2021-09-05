@@ -1,13 +1,13 @@
 #
-# Copyright (c) 2020 Phytec Messtechnik GmbH
+# Copyright (c) 2021 Phytec Messtechnik GmbH
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 ---
 
-description: Hydrogen UART - This binding gives a base representation of the Hydrogen UART
+description: Elements UART - This binding gives a base representation of the Elements UART
 
-compatible: "hydrogen,uart"
+compatible: "elements,uart"
 
 # inherits:
 include: uart-controller.yaml
