@@ -565,6 +565,30 @@ function(zephyr_library_app_memory partition)
                "-l" $<TARGET_FILE_NAME:${ZEPHYR_CURRENT_LIBRARY}> "${partition}")
 endfunction()
 
+# Configure a Zephyr library specific property.
+#
+# Usage:
+#   zephyr_library_property(<property> <value>)
+#
+# Current Zephyr library specific properties that are supported:
+# ALLOW_EMPTY <TRUE:FALSE>: Allow a Zephyr library to be empty.
+#                           An empty Zephyr library will generate a CMake
+#                           configure time warning unless `ALLOW_EMPTY` is TRUE.
+function(zephyr_library_property)
+  set(single_args "ALLOW_EMPTY")
+  cmake_parse_arguments(LIB_PROP "" "${single_args}" "" ${ARGN})
+
+  if(LIB_PROP_UNPARSED_ARGUMENTS)
+      message(FATAL_ERROR "zephyr_library_property(${ARGV0} ...) given unknown arguments: ${FILE_UNPARSED_ARGUMENTS}")
+  endif()
+
+  foreach(arg ${single_args})
+    if(DEFINED LIB_PROP_${arg})
+      set_property(TARGET ${ZEPHYR_CURRENT_LIBRARY} PROPERTY ${arg} ${LIB_PROP_${arg}})
+    endif()
+  endforeach()
+endfunction()
+
 # 1.2.1 zephyr_interface_library_*
 #
 # A Zephyr interface library is a thin wrapper over a CMake INTERFACE
@@ -790,8 +814,11 @@ function(board_finalize_runner_args runner)
     # Default arguments from the common runner file come first.
     ${ARGN}
     # Arguments explicitly given with board_runner_args() come
-    # last, so they take precedence.
+    # next, so they take precedence over the common runner file.
     ${explicit}
+    # Arguments given via the CMake cache come last of all. Users
+    # can provide variables in this way from the CMake command line.
+    ${BOARD_RUNNER_ARGS_${runner_id}}
     )
 
   # Add the finalized runner to the global property list.
@@ -1282,6 +1309,66 @@ function(pow2round n)
   set(${n} ${${n}} PARENT_SCOPE)
 endfunction()
 
+# Function to create a build string based on BOARD, BOARD_REVISION, and BUILD
+# type.
+#
+# This is a common function to ensure that build strings are always created
+# in a uniform way.
+#
+# Usage:
+#   zephyr_build_string(<out-variable>
+#                       BOARD <board>
+#                       [BOARD_REVISION <revision>]
+#                       [BUILD <type>]
+#   )
+#
+# <out-variable>:            Output variable where the build string will be returned.
+# BOARD <board>:             Board name to use when creating the build string.
+# BOARD_REVISION <revision>: Board revision to use when creating the build string.
+# BUILD <type>:              Build type to use when creating the build string.
+#
+# Examples
+# calling
+#   zephyr_build_string(build_string BOARD alpha BUILD debug)
+# will return the string `alpha_debug` in `build_string` parameter.
+#
+# calling
+#   zephyr_build_string(build_string BOARD alpha BOARD_REVISION 1.0.0 BUILD debug)
+# will return the string `alpha_1_0_0_debug` in `build_string` parameter.
+#
+function(zephyr_build_string outvar)
+  set(single_args BOARD BOARD_REVISION BUILD)
+
+  cmake_parse_arguments(BUILD_STR "" "${single_args}" "" ${ARGN})
+  if(BUILD_STR_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR
+      "zephyr_build_string(${ARGV0} <val> ...) given unknown arguments:"
+      " ${BUILD_STR_UNPARSED_ARGUMENTS}"
+    )
+  endif()
+
+  if(DEFINED BUILD_STR_BOARD_REVISION AND NOT BUILD_STR_BOARD)
+    message(FATAL_ERROR
+      "zephyr_build_string(${ARGV0} <list> BOARD_REVISION ${BUILD_STR_BOARD_REVISION} ...)"
+      " given without BOARD argument, please specify BOARD"
+    )
+  endif()
+
+  set(${outvar} ${BUILD_STR_BOARD})
+
+  if(DEFINED BUILD_STR_BOARD_REVISION)
+    string(REPLACE "." "_" revision_string ${BUILD_STR_BOARD_REVISION})
+    set(${outvar} "${${outvar}}_${revision_string}")
+  endif()
+
+  if(BUILD_STR_BUILD)
+    set(${outvar} "${${outvar}}_${BUILD_STR_BUILD}")
+  endif()
+
+  # This updates the provided outvar in parent scope (callers scope)
+  set(${outvar} ${${outvar}} PARENT_SCOPE)
+endfunction()
+
 ########################################################
 # 2. Kconfig-aware extensions
 ########################################################
@@ -1769,30 +1856,35 @@ endfunction()
 # The argument 'include_files' is an output parameter with the result
 # of parsing the include files.
 function(toolchain_parse_make_rule input_file include_files)
-  file(READ ${input_file} input)
+  file(STRINGS ${input_file} input)
 
   # The file is formatted like this:
   # empty_file.o: misc/empty_file.c \
   # nrf52840dk_nrf52840/nrf52840dk_nrf52840.dts \
   # nrf52840_qiaa.dtsi
 
-  # Get rid of the backslashes
-  string(REPLACE "\\" ";" input_as_list ${input})
+  # The dep file will contain `\` for line continuation.
+  # This results in `\;` which is then treated a the char `;` instead of
+  # the element separator, so let's get the pure `;` back.
+  string(REPLACE "\;" ";" input_as_list ${input})
 
   # Pop the first line and treat it specially
-  list(GET input_as_list 0 first_input_line)
+  list(POP_FRONT input_as_list first_input_line)
   string(FIND ${first_input_line} ": " index)
   math(EXPR j "${index} + 2")
   string(SUBSTRING ${first_input_line} ${j} -1 first_include_file)
-  list(REMOVE_AT input_as_list 0)
 
-  list(APPEND result ${first_include_file})
+  # Remove whitespace before and after filename and convert to CMake path.
+  string(STRIP "${first_include_file}" first_include_file)
+  file(TO_CMAKE_PATH "${first_include_file}" first_include_file)
+  set(result "${first_include_file}")
 
-  # Add the other lines
-  list(APPEND result ${input_as_list})
-
-  # Strip away the newlines and whitespaces
-  list(TRANSFORM result STRIP)
+  # Remove whitespace before and after filename and convert to CMake path.
+  foreach(file ${input_as_list})
+    string(STRIP "${file}" file)
+    file(TO_CMAKE_PATH "${file}" file)
+    list(APPEND result "${file}")
+  endforeach()
 
   set(${include_files} ${result} PARENT_SCOPE)
 endfunction()
@@ -2043,6 +2135,8 @@ endfunction()
 #                          Issue an error for any relative path not specified
 #                          by user with `-D<path>`
 #
+# returns an updated list of absolute paths
+#
 # CONF_FILES <path>: Find all configuration files in path and return them in a
 #                    list. Configuration files will be:
 #                    - DTS:       Overlay files (.overlay)
@@ -2064,7 +2158,6 @@ endfunction()
 #                                  BUILD debug, will look for <board>_debug.conf
 #                                  and <board>_debug.overlay, instead of <board>.conf
 #
-# returns an updated list of absolute paths
 function(zephyr_file)
   set(file_options APPLICATION_ROOT CONF_FILES)
   if((ARGC EQUAL 0) OR (NOT (ARGV0 IN_LIST file_options)))
@@ -2080,7 +2173,7 @@ Please provide one of following: APPLICATION_ROOT, CONF_FILES")
 
   cmake_parse_arguments(FILE "" "${single_args}" "" ${ARGN})
   if(FILE_UNPARSED_ARGUMENTS)
-      message(FATAL_ERROR "zephyr_file(${ARGV0} <path> ...) given unknown arguments: ${FILE_UNPARSED_ARGUMENTS}")
+      message(FATAL_ERROR "zephyr_file(${ARGV0} <val> ...) given unknown arguments: ${FILE_UNPARSED_ARGUMENTS}")
   endif()
 
 
@@ -2135,15 +2228,22 @@ Relative paths are only allowed with `-D${ARGV1}=<path>`")
       endif()
     endif()
 
-    set(FILENAMES ${FILE_BOARD})
+    zephyr_build_string(filename
+                        BOARD ${FILE_BOARD}
+                        BUILD ${FILE_BUILD}
+    )
+    set(filename_list ${filename})
 
-    if(DEFINED FILE_BOARD_REVISION)
-      string(REPLACE "." "_" revision_string ${FILE_BOARD_REVISION})
-      list(APPEND FILENAMES "${FILE_BOARD}_${revision_string}")
-    endif()
+    zephyr_build_string(filename
+                        BOARD ${FILE_BOARD}
+                        BOARD_REVISION ${FILE_BOARD_REVISION}
+                        BUILD ${FILE_BUILD}
+    )
+    list(APPEND filename_list ${filename})
+    list(REMOVE_DUPLICATES filename_list)
 
     if(FILE_DTS)
-      foreach(filename ${FILENAMES})
+      foreach(filename ${filename_list})
         if(EXISTS ${FILE_CONF_FILES}/${filename}.overlay)
           list(APPEND ${FILE_DTS} ${FILE_CONF_FILES}/${filename}.overlay)
         endif()
@@ -2154,11 +2254,7 @@ Relative paths are only allowed with `-D${ARGV1}=<path>`")
     endif()
 
     if(FILE_KCONF)
-      foreach(filename ${FILENAMES})
-        if(FILE_BUILD)
-          set(filename "${filename}_${FILE_BUILD}")
-        endif()
-
+      foreach(filename ${filename_list})
         if(EXISTS ${FILE_CONF_FILES}/${filename}.conf)
           list(APPEND ${FILE_KCONF} ${FILE_CONF_FILES}/${filename}.conf)
         endif()
@@ -3051,8 +3147,8 @@ function(zephyr_linker_dts_memory)
 endfunction()
 
 # Usage:
-#   zephyr_linker_group(NAME <name> [VMA <region|group>] [LMA <region|group>])
-#   zephyr_linker_group(NAME <name> GROUP <group>)
+#   zephyr_linker_group(NAME <name> [VMA <region|group>] [LMA <region|group>] [SYMBOL <SECTION>])
+#   zephyr_linker_group(NAME <name> GROUP <group> [SYMBOL <SECTION>])
 #
 # Zephyr linker group.
 # This function specifies a group inside a memory region or another group.
@@ -3076,6 +3172,8 @@ endfunction()
 #                       If a group is used then the VMA region of that group will be used.
 # LMA <region|group>  : Memory region or group to be used for this group.
 # GROUP <group>       : Place the new group inside the existing group <group>
+# SYMBOL <SECTION>    : Specify that start symbol of the region should be identical
+#                       to the start address of the first section in the group.
 #
 # Note: VMA and LMA are mutual exclusive with GROUP
 #
@@ -3121,7 +3219,8 @@ endfunction()
 # |                     |
 # +---------------------+
 function(zephyr_linker_group)
-  set(single_args "NAME;GROUP;LMA;VMA")
+  set(single_args "NAME;GROUP;LMA;SYMBOL;VMA")
+  set(symbol_values SECTION)
   cmake_parse_arguments(GROUP "" "${single_args}" "" ${ARGN})
 
   if(GROUP_UNPARSED_ARGUMENTS)
@@ -3134,6 +3233,12 @@ function(zephyr_linker_group)
     message(FATAL_ERROR "zephyr_linker_group(GROUP ...) cannot be used with "
                         "VMA or LMA"
     )
+  endif()
+
+  if(DEFINED GROUP_SYMBOL)
+    if(NOT ${GROUP_SYMBOL} IN_LIST symbol_values)
+      message(FATAL_ERROR "zephyr_linker_group(SYMBOL ...) given unknown value")
+    endif()
   endif()
 
   set(GROUP)

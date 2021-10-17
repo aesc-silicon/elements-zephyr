@@ -9,10 +9,12 @@
 #include <soc/syscon_reg.h>
 #include <soc/system_reg.h>
 #include <soc/dport_access.h>
+#include <soc/rtc_cntl_reg.h>
 #include <soc/soc_caps.h>
 #include <esp32s2/rom/ets_sys.h>
 #include <esp32s2/rom/spi_flash.h>
 #include <esp32s2/rom/cache.h>
+#include <esp_clk.h>
 
 #include <zephyr/types.h>
 #include <stdbool.h>
@@ -22,6 +24,10 @@ extern void esp_rom_uart_attach(void);
 extern void esp_rom_uart_tx_wait_idle(uint8_t uart_no);
 extern STATUS esp_rom_uart_tx_one_char(uint8_t chr);
 extern STATUS esp_rom_uart_rx_one_char(uint8_t *chr);
+
+extern int esp_rom_gpio_matrix_in(uint32_t gpio, uint32_t signal_index, bool inverted);
+extern int esp_rom_gpio_matrix_out(uint32_t gpio, uint32_t signal_index,
+				bool out_invrted, bool out_enabled_inverted);
 
 /* cache related rom functions */
 extern uint32_t esp_rom_Cache_Disable_ICache(void);
@@ -37,5 +43,7 @@ extern void esp_rom_Cache_Set_ICache_Mode(cache_size_t cache_size, cache_ways_t 
 
 extern void esp_rom_Cache_Invalidate_ICache_All(void);
 void esp_rom_Cache_Resume_ICache(uint32_t autoload);
+
+extern uint32_t esp_rom_g_ticks_per_us_pro;
 
 #endif /* __SOC_H__ */

@@ -137,11 +137,10 @@ ARM arch:
         - stephanosio
         - bbolen
     files:
-        - arch/arm/aarch32/
-        - arch/arm/common/
-        - arch/arm/offsets/
-        - include/arch/arm/aarch32
-        - include/arch/arm/*
+        - arch/arm/
+        - arch/arm/core/offsets/
+        - include/arch/arm/aarch32/
+        - include/arch/arm/
         - tests/arch/arm/
     labels:
         - "area: ARM"
@@ -180,7 +179,7 @@ Bluetooth:
         - include/bluetooth/
         - include/drivers/bluetooth/
         - samples/bluetooth/
-        - subsys/bluetooth/*
+        - subsys/bluetooth/
         - subsys/bluetooth/common/
         - subsys/bluetooth/host/
         - subsys/bluetooth/services/
@@ -382,6 +381,7 @@ Display drivers:
         - vanwinkeljan
     collaborators:
         - jfischer-no
+        - gmarull
     files:
         - drivers/display/
         - dts/bindings/display/
@@ -390,7 +390,7 @@ Display drivers:
         - include/drivers/display.h
         - lib/gui/
         - subsys/fb/
-        - samples/display/
+        - samples/subsys/display/
     labels:
         - "area: Display"
 
@@ -402,14 +402,15 @@ Documentation:
         - nashif
         - utzig
         - mbolivar-nordic
+        - gmarull
     files:
-        - doc/*
-        - doc/static/
-        - doc/templates/
-        - doc/custom-doxygen/
-        - doc/scripts/
+        - doc/
+        - doc/_static/
+        - doc/_templates/
+        - doc/_doxygen/
+        - doc/_scripts/
         - README.rst
-        - Makefile
+        - doc/Makefile
     labels:
         - "area: Documentation"
 
@@ -437,7 +438,7 @@ Documentation:
     files:
         - drivers/audio/
         - include/audio/
-        - samples/audio/
+        - samples/subsys/audio/
     labels:
         - "area: Audio"
 
@@ -527,7 +528,6 @@ Documentation:
     status: orphaned
     files:
         - drivers/dma/
-        - include/dt-bindings/dma/
         - tests/drivers/dma/
     labels:
         - "area: DMA"
@@ -552,7 +552,6 @@ Documentation:
     files:
         - drivers/entropy/
         - include/drivers/entropy.h
-        - samples/drivers/entropy/
         - tests/drivers/entropy/
     labels:
         - "area: Crypto / RNG"
@@ -606,7 +605,6 @@ Documentation:
         - include/drivers/gpio.h
         - include/dt-bindings/gpio/
         - tests/drivers/gpio/
-        - samples/drivers/gpio/
     labels:
         - "area: GPIO"
 
@@ -682,6 +680,7 @@ Documentation:
       - albertofloyd
     collaborators:
       - VenkatKotakonda
+      - gmarull
     files:
         - drivers/kscan/
         - include/drivers/kscan.h
@@ -725,12 +724,14 @@ Documentation:
         - samples/drivers/lora/
         - include/lorawan/
         - subsys/lorawan/
-        - samples/lorawan/
+        - samples/subsys/lorawan/
     labels:
         - "area: LoRa"
 
 "Drivers: Modem":
-    status: orphaned
+    status: maintained
+    maintainers:
+        - rerickson1
     files:
         - drivers/modem/
     labels:
@@ -776,6 +777,8 @@ Documentation:
     status: maintained
     maintainers:
         - mnkp
+    collaborators:
+        - gmarull
     files:
         - doc/reference/peripherals/pinmux.rst
         - drivers/pinmux/
@@ -801,7 +804,7 @@ Documentation:
         - drivers/pm_cpu_ops/
         - include/drivers/pm_cpu_ops/
         - include/drivers/pm_cpu_ops.h
-        - include/arch/arm/arm-smccc.h
+        - include/arch/arm64/arm-smccc.h
     labels:
         - "area: PM CPU ops"
 
@@ -811,6 +814,7 @@ Documentation:
         - anangl
     collaborators:
         - henrikbrixandersen
+        - gmarull
     files:
         - drivers/pwm/
         - dts/bindings/pwm/
@@ -838,6 +842,7 @@ Documentation:
         - MaureenHelm
     collaborators:
         - avisconti
+        - gmarull
     files:
         - drivers/sensor/
         - include/drivers/sensor.h
@@ -936,12 +941,29 @@ Filesystems:
     labels:
         - "area: File System"
 
+IPC:
+    status: maintained
+    maintainers:
+        - carlocaione
+        - arnopo
+    files:
+        - include/ipc/
+        - samples/subsys/ipc/
+        - subsys/ipc/
+    description: >-
+        Inter-Processor Communication
+    labels:
+        - "area: IPC"
+
 JSON Web Token:
     status: orphaned
     collaborators:
         - mrfuchs
+        - sir-branch
     files:
         - subsys/jwt/
+        - include/data/
+        - lib/os/json.c
     labels:
         - "area: JSON"
 
@@ -952,7 +974,7 @@ Kconfig:
         - nashif
     files:
         - scripts/kconfig/
-        - doc/guides/kconfig/
+        - doc/guides/build/kconfig/
     labels:
         - "area: Kconfig"
     description: >-
@@ -967,6 +989,7 @@ Kernel:
         - nashif
         - ceolin
         - dcpleung
+        - peter-mitsis
     files:
         - doc/reference/kernel/
         - include/kernel*.h
@@ -1050,6 +1073,17 @@ OSDP:
     labels:
         - "area: OSDP"
 
+hawkBit:
+    status: orphaned
+    collaborators:
+        - ycsin
+    files:
+        - subsys/mgmt/hawkbit/
+        - include/mgmt/hawkbit.h
+        - samples/subsys/mgmt/hawkbit/
+    labels:
+        - "area: hawkBit"
+
 Native POSIX and POSIX arch:
     status: maintained
     maintainers:
@@ -1123,6 +1157,8 @@ Networking:
     status: maintained
     maintainers:
         - rlubos
+    collaborators:
+        - pdgendt
     files:
         - subsys/net/lib/coap/
         - samples/net/sockets/coap_*/
@@ -1150,6 +1186,20 @@ Networking:
         - samples/net/mqtt_publisher/
     labels:
         - "area: Networking"
+
+"Networking: OpenThread":
+    status: maintained
+    maintainers:
+        - rlubos
+    collaborators:
+        - pdgendt
+    files:
+        - subsys/net/l2/openthread/
+        - subsys/net/lib/openthread/
+        - samples/net/openthread/
+    labels:
+        - "area: Networking"
+        - "area: OpenThread"
 
 NIOS-2 arch:
     status: maintained
@@ -1190,6 +1240,7 @@ Power management:
     collaborators:
         - nashif
         - mengxianglinx
+        - gmarull
     files:
         - include/pm/pm.h
         - samples/subsys/pm/
@@ -1199,10 +1250,16 @@ Power management:
         - "area: Power Management"
 
 RISCV arch:
-    status: orphaned
+    status: maintained
+    maintainers:
+        - kgugala
+        - pgielda
+        - tgorochowik
     collaborators:
+        - fkokosinski
         - mgielda
         - katsuster
+        - henrikbrixandersen
     files:
         - arch/riscv/
         - boards/riscv/
@@ -1280,7 +1337,7 @@ SPARC arch:
 Synopsys Platforms:
     status: maintained
     maintainers:
-        - ruudw
+        - ruuddw
     collaborators:
         - abrodkin
         - evgeniy-paltsev
@@ -1311,7 +1368,7 @@ Nuvoton_NPCX Platforms:
         - boards/arm/npcx*/
         - dts/arm/nuvoton/
         - dts/bindings/*/*npcx*
-        - drivers/*/*_npcx*
+        - drivers/*/*_npcx*.c
     labels:
         - "platform: Nuvoton_NPCX"
 
@@ -1344,7 +1401,7 @@ SiLabs Platforms:
 Intel Platforms (X86):
     status: maintained
     maintainers:
-        - jenmwms
+        - enjiamai
     collaborators:
         - jhedberg
         - aasthagr
@@ -1371,19 +1428,18 @@ Intel Platforms (Xtensa):
 NXP Platforms:
   status: maintained
   maintainers:
-    - MaureenHelm
+    - dleach02
   collaborators:
     - mmahadevan108
-    - dleach02
   files:
     - boards/arm/mimx*/
     - boards/arm/frdm_k*/
     - boards/arm/lpcxpress*/
-    - boards/arm/twr_*
+    - boards/arm/twr_*/
     - soc/arm/nxp_*/
     - drivers/*/*imx*
-    - drivers/*/*lpc*
-    - drivers/*/*mcux*
+    - drivers/*/*lpc*.c
+    - drivers/*/*mcux*.c
     - dts/arm/nxp/
     - dts/bindings/*/nxp*
   labels:
@@ -1400,7 +1456,7 @@ Microchip Platforms:
     - boards/arm/mec*/
     - dts/arm/microchip/
     - soc/arm/microchip_mec/
-    - drivers/*/*mchp*
+    - drivers/*/*mchp*.c
   labels:
     - "platform: Microchip"
 
@@ -1410,7 +1466,7 @@ nRF Platforms:
         - ioannisg
     files:
         - boards/arm/*nrf*/
-        - drivers/*/*nrfx*
+        - drivers/*/*nrfx*.c
         - soc/arm/nordic_nrf/
         - samples/boards/nrf/
         - dts/arm/nordic/
@@ -1424,13 +1480,15 @@ STM32 Platforms:
     collaborators:
         - ABOSTM
         - FRASTM
+        - gmarull
     files:
         - boards/arm/nucleo_*/
         - boards/arm/stm32*_disco/
         - boards/arm/stm32*_dk*/
         - boards/arm/stm32*_eval/
         - drivers/*/*stm32*/
-        - drivers/*/*stm32*
+        - drivers/*/*stm32*.c
+        - drivers/*/*stm32*.h
         - drivers/*/*/*stm32*
         - dts/arm/st/
         - dts/bindings/*/*stm32*
@@ -1448,7 +1506,7 @@ Espressif Platforms:
         - glaubermaroto
         - ulipe
     files:
-        - drivers/*/*esp32*
+        - drivers/*/*esp32*.c
         - boards/xtensa/esp32*/
         - soc/xtensa/esp32*/
         - boards/riscv/esp32*/
@@ -1456,7 +1514,7 @@ Espressif Platforms:
         - dts/xtensa/espressif/
         - dts/riscv/espressif/
         - dts/bindings/*/*esp32*
-        - samples/boards/esp32*
+        - samples/boards/esp32*/
     labels:
         - "platform: ESP32"
 
@@ -1515,7 +1573,7 @@ Tracing:
         - include/tracing/
         - subsys/timing/
         - samples/subsys/tracing/
-        - doc/guides/tracing/
+        - doc/guides/debug_tools/tracing/
         - tests/subsys/tracing/
     labels:
         - "area: tracing"
@@ -1610,7 +1668,7 @@ x86 arch:
         - nashif
         - dcpleung
         - ceolin
-        - jenmwms
+        - enjiamai
         - aasthagr
     files:
         - arch/x86/

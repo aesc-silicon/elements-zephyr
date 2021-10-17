@@ -23,8 +23,6 @@ extern "C" {
  * @}
  */
 
-#ifdef CONFIG_PM
-
 /**
  * @brief System Power Management API
  *
@@ -65,6 +63,7 @@ struct pm_notifier {
 	void (*state_exit)(enum pm_state state);
 };
 
+#ifdef CONFIG_PM
 /**
  * @brief Force usage of given power state.
  *
@@ -77,18 +76,6 @@ struct pm_notifier {
  *	suspend operation.
  */
 void pm_power_state_force(struct pm_state_info info);
-
-#ifdef CONFIG_PM_DEBUG
-/**
- * @brief Dump Low Power states related debug info
- *
- * Dump Low Power states debug info like LPS entry count and residencies.
- */
-void pm_dump_debug_info(void);
-#else
-static inline void pm_dump_debug_info(void) { }
-
-#endif /* CONFIG_PM_DEBUG */
 
 /**
  * @brief Register a power management notifier
@@ -200,9 +187,21 @@ void pm_power_state_exit_post_ops(struct pm_state_info info);
  * @}
  */
 
+#else  /* CONFIG_PM */
+
+#define pm_notifier_register(notifier)
+#define pm_notifier_unregister(notifier) (-ENOSYS)
+
+#define pm_constraint_set(pm_state)
+#define pm_constraint_release(pm_state)
+#define pm_constraint_get(pm_state) (true)
+
+#define pm_power_state_set(info)
+#define pm_power_state_exit_post_ops(info)
+
+#endif /* CONFIG_PM */
 
 void z_pm_save_idle_exit(int32_t ticks);
-#endif /* CONFIG_PM */
 
 #ifdef __cplusplus
 }
