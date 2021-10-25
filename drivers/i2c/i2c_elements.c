@@ -4,10 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT elements_i2c
 #define LOG_LEVEL CONFIG_I2C_LOG_LEVEL
-#include <logging/log.h>
-LOG_MODULE_REGISTER(i2c_elements);
 
+#include <logging/log.h>
+LOG_MODULE_REGISTER(DT_DRV_COMPAT);
 #include <kernel.h>
 #include <device.h>
 #include <drivers/i2c.h>
@@ -56,7 +57,7 @@ struct i2c_elements_regs {
 #define DEV_I2C_DATA(dev)						     \
 	((struct i2c_elements_data *)(dev)->data)
 
-#define I2C(no)								     \
+#define ELEMENTS_I2C_INIT(no)						     \
 	static struct i2c_elements_data i2c_elements_dev_data_##no;	     \
 	static struct i2c_elements_config i2c_elements_dev_cfg_##no = {	     \
 		.regs = DT_REG_ADDR(DT_INST(no, elements_i2c)),		     \
@@ -65,15 +66,14 @@ struct i2c_elements_regs {
 		.bus_clk_freq =						     \
 			DT_PROP(DT_INST(no, elements_i2c), clock_frequency), \
 	};								     \
-	DEVICE_DEFINE(i2c_elements_##no,				     \
-		      DT_PROP(DT_INST(no, elements_i2c), label),	     \
-		      i2c_elements_init,				     \
-		      NULL,						     \
-		      &i2c_elements_dev_data_##no,			     \
-		      &i2c_elements_dev_cfg_##no,			     \
-		      PRE_KERNEL_1,					     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&i2c_elements_driver_api);
+	DEVICE_DT_INST_DEFINE(no,					     \
+			      i2c_elements_init,			     \
+			      NULL,					     \
+			      &i2c_elements_dev_data_##no,		     \
+			      &i2c_elements_dev_cfg_##no,		     \
+			      PRE_KERNEL_1,				     \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
+			      (void *)&i2c_elements_driver_api);
 
 
 /* Wait for a previous transfer to complete */
@@ -298,22 +298,4 @@ static const struct i2c_driver_api i2c_elements_driver_api = {
 };
 
 
-#if DT_NODE_EXISTS(DT_INST(0, elements_i2c))
-	I2C(0)
-#endif
-
-#if DT_NODE_EXISTS(DT_INST(1, elements_i2c))
-	I2C(1)
-#endif
-
-#if DT_NODE_EXISTS(DT_INST(2, elements_i2c))
-	I2C(2)
-#endif
-
-#if DT_NODE_EXISTS(DT_INST(3, elements_i2c))
-	I2C(3)
-#endif
-
-#if DT_NODE_EXISTS(DT_INST(4, elements_i2c))
-	I2C(4)
-#endif
+DT_INST_FOREACH_STATUS_OKAY(ELEMENTS_I2C_INIT)

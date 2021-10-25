@@ -8,6 +8,10 @@
  * @file GPIO driver for the Elements
  */
 
+#define DT_DRV_COMPAT elements_gpio
+
+#include <logging/log.h>
+LOG_MODULE_REGISTER(DT_DRV_COMPAT);
 #include <errno.h>
 #include <kernel.h>
 #include <device.h>
@@ -55,7 +59,7 @@ struct gpio_elements_data {
 #define DEV_GPIO_DATA(dev) ((struct gpio_elements_data *)(dev)->data)
 
 #ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT
-#define GPIO(no)							     \
+#define ELEMENTS_GPIO_INIT(no)						     \
 	static struct gpio_elements_data gpio_elements_dev_data_##no;	     \
 	static void gpio_elements_irq_cfg_func_##no(void);		     \
 	static struct gpio_elements_config gpio_elements_dev_cfg_##no = {    \
@@ -63,38 +67,36 @@ struct gpio_elements_data {
 		.cfg_func = gpio_elements_irq_cfg_func_##no,		     \
 		.irq_no = DT_IRQN(DT_INST(no, elements_gpio)),		     \
 	};								     \
-	DEVICE_DEFINE(gpio_elements_##no,				     \
-		      DT_PROP(DT_INST(no, elements_gpio), label),	     \
-		      gpio_elements_init,				     \
-		      NULL,						     \
-		      &gpio_elements_dev_data_##no,			     \
-		      &gpio_elements_dev_cfg_##no,			     \
-		      PRE_KERNEL_1,					     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&gpio_elements_driver_api);		     \
+	DEVICE_DT_INST_DEFINE(no,					     \
+			      gpio_elements_init,			     \
+			      NULL,					     \
+			      &gpio_elements_dev_data_##no,		     \
+			      &gpio_elements_dev_cfg_##no,		     \
+			      PRE_KERNEL_1,				     \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
+			      (void *)&gpio_elements_driver_api);	     \
 	static void gpio_elements_irq_cfg_func_##no(void) {		     \
 	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
 		    DT_IRQN(DT_INST(no, elements_gpio)),		     \
 		    0,							     \
 		    gpio_elements_irq_handler,				     \
-		    DEVICE_GET(gpio_elements_##no),			     \
+		    DEVICE_DT_INST_GET(no),				     \
 		    0);							     \
 	}
 #else
-#define GPIO(no)							     \
+#define ELEMENTS_GPIO_INIT(no)						     \
 	static struct gpio_elements_data gpio_elements_dev_data_##no;	     \
 	static struct gpio_elements_config gpio_elements_dev_cfg_##no = {    \
 		.regs = DT_REG_ADDR(DT_INST(no, elements_gpio)),	     \
 	};								     \
-	DEVICE_DEFINE(gpio_elements_##no,				     \
-		      DT_PROP(DT_INST(no, elements_gpio), label),	     \
-		      gpio_elements_init,				     \
-		      NULL,						     \
-		      &gpio_elements_dev_data_##no,			     \
-		      &gpio_elements_dev_cfg_##no,			     \
-		      PRE_KERNEL_1,					     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&gpio_elements_driver_api);
+	DEVICE_DT_INST_DEFINE(no,					     \
+			      gpio_elements_init,			     \
+			      NULL,					     \
+			      &gpio_elements_dev_data_##no,		     \
+			      &gpio_elements_dev_cfg_##no,		     \
+			      PRE_KERNEL_1,				     \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
+			      (void *)&gpio_elements_driver_api);
 #endif
 
 
@@ -317,18 +319,4 @@ static const struct gpio_driver_api gpio_elements_driver_api = {
 #endif
 };
 
-#if DT_NODE_EXISTS(DT_INST(0, elements_gpio))
-	GPIO(0)
-#endif
-#if DT_NODE_EXISTS(DT_INST(1, elements_gpio))
-	GPIO(1)
-#endif
-#if DT_NODE_EXISTS(DT_INST(2, elements_gpio))
-	GPIO(2)
-#endif
-#if DT_NODE_EXISTS(DT_INST(3, elements_gpio))
-	GPIO(3)
-#endif
-#if DT_NODE_EXISTS(DT_INST(4, elements_gpio))
-	GPIO(4)
-#endif
+DT_INST_FOREACH_STATUS_OKAY(ELEMENTS_GPIO_INIT)
