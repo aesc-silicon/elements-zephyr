@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT elements_uart
+
+#include <logging/log.h>
+LOG_MODULE_REGISTER(DT_DRV_COMPAT);
 #include <kernel.h>
 #include <irq.h>
 #include <arch/cpu.h>
@@ -50,7 +54,7 @@ struct uart_elements_regs {
 	((struct uart_elements_data *)(dev)->data)
 
 #ifdef CONFIG_UART_INTERRUPT_DRIVEN
-#define UART(no)							     \
+#define ELEMENTS_UART_INIT(no)						     \
 	static struct uart_elements_data uart_elements_dev_data_##no;	     \
 	static void uart_elements_irq_cfg_func_##no(void);		     \
 	static struct uart_elements_config uart_elements_dev_cfg_##no = {    \
@@ -62,25 +66,24 @@ struct uart_elements_regs {
 		.cfg_func = uart_elements_irq_cfg_func_##no,		     \
 		.irq_no = DT_IRQN(DT_INST(no, elements_uart)),		     \
 	};								     \
-	DEVICE_DEFINE(uart_elements_##no,				     \
-		      DT_PROP(DT_INST(no, elements_uart), label),	     \
-		      uart_elements_init,				     \
-		      NULL,						     \
-		      &uart_elements_dev_data_##no,			     \
-		      &uart_elements_dev_cfg_##no,			     \
-		      PRE_KERNEL_1,					     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&uart_elements_driver_api);		     \
+	DEVICE_DT_INST_DEFINE(no,					     \
+			      uart_elements_init,			     \
+			      NULL,					     \
+			      &uart_elements_dev_data_##no,		     \
+			      &uart_elements_dev_cfg_##no,		     \
+			      PRE_KERNEL_1,				     \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
+			      (void *)&uart_elements_driver_api);	     \
 	static void uart_elements_irq_cfg_func_##no(void) {		     \
 	IRQ_CONNECT(CONFIG_2ND_LVL_ISR_TBL_OFFSET +			     \
-		     DT_IRQN(DT_INST(no, elements_uart)),		     \
+		    DT_IRQN(DT_INST(no, elements_uart)),		     \
 		    0,							     \
 		    uart_elements_irq_handler,				     \
-		    DEVICE_GET(uart_elements_##no),			     \
+		    DEVICE_DT_INST_GET(no),				     \
 		    0);							     \
 	}
 #else
-#define UART(no)							     \
+#define ELEMENTS_UART_INIT(no)						     \
 	static struct uart_elements_data uart_elements_dev_data_##no;	     \
 	static struct uart_elements_config uart_elements_dev_cfg_##no = {    \
 		.regs = DT_REG_ADDR(DT_INST(no, elements_uart)),	     \
@@ -89,15 +92,14 @@ struct uart_elements_regs {
 		.current_speed =					     \
 			DT_PROP(DT_INST(no, elements_uart), current_speed),  \
 	};								     \
-	DEVICE_DEFINE(uart_elements_##no,				     \
-		      DT_PROP(DT_INST(no, elements_uart), label),	     \
-		      uart_elements_init,				     \
-		      NULL,						     \
-		      &uart_elements_dev_data_##no,			     \
-		      &uart_elements_dev_cfg_##no,			     \
-		      PRE_KERNEL_1,					     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&uart_elements_driver_api);
+	DEVICE_DT_INST_DEFINE(no,					     \
+			      uart_elements_init,			     \
+			      NULL,					     \
+			      &uart_elements_dev_data_##no,		     \
+			      &uart_elements_dev_cfg_##no,		     \
+			      PRE_KERNEL_1,				     \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
+			      (void *)&uart_elements_driver_api);
 #endif
 
 
@@ -319,18 +321,4 @@ static const struct uart_driver_api uart_elements_driver_api = {
 };
 
 
-#if DT_NODE_EXISTS(DT_INST(0, elements_uart))
-	UART(0)
-#endif
-#if DT_NODE_EXISTS(DT_INST(1, elements_uart))
-	UART(1)
-#endif
-#if DT_NODE_EXISTS(DT_INST(2, elements_uart))
-	UART(2)
-#endif
-#if DT_NODE_EXISTS(DT_INST(3, elements_uart))
-	UART(3)
-#endif
-#if DT_NODE_EXISTS(DT_INST(4, elements_uart))
-	UART(4)
-#endif
+DT_INST_FOREACH_STATUS_OKAY(ELEMENTS_UART_INIT)

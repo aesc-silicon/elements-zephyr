@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT elements_spi
+
+#include <logging/log.h>
+LOG_MODULE_REGISTER(DT_DRV_COMPAT);
 #include <kernel.h>
 #include <arch/cpu.h>
 #include <drivers/spi.h>
@@ -67,20 +71,19 @@ struct spi_elements_regs {
 #define DEV_SPI_DATA(dev)						     \
 	((struct spi_elements_data *)(dev)->driver_data)
 
-#define SPI(no)								     \
+#define ELEMENTS_SPI_INIT(no)						     \
 	static struct spi_elements_data spi_elements_dev_data_##no;	     \
 	static struct spi_elements_config spi_elements_dev_cfg_##no = {	     \
 		.regs = DT_REG_ADDR(DT_INST(no, elements_spi)),		     \
 	};								     \
-	DEVICE_DEFINE(spi_elements_##no,				     \
-		      DT_PROP(DT_INST(no, elements_spi), label),	     \
-		      spi_elements_init,				     \
-		      NULL,						     \
-		      &spi_elements_dev_data_##no,			     \
-		      &spi_elements_dev_cfg_##no,			     \
-		      PRE_KERNEL_1,					     \
-		      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,		     \
-		      (void *)&spi_elements_driver_api);
+	DEVICE_DT_INST_DEFINE(no,					     \
+			      spi_elements_init,			     \
+			      NULL,					     \
+			      &spi_elements_dev_data_##no,		     \
+			      &spi_elements_dev_cfg_##no,		     \
+			      PRE_KERNEL_1,				     \
+			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
+			      (void *)&spi_elements_driver_api);
 
 
 /*
@@ -240,19 +243,4 @@ static const struct spi_driver_api spi_elements_driver_api = {
 	.release = spi_elements_release,
 };
 
-
-#if DT_NODE_EXISTS(DT_INST(0, elements_spi))
-	SPI(0)
-#endif
-#if DT_NODE_EXISTS(DT_INST(1, elements_spi))
-	SPI(1)
-#endif
-#if DT_NODE_EXISTS(DT_INST(2, elements_spi))
-	SPI(2)
-#endif
-#if DT_NODE_EXISTS(DT_INST(3, elements_spi))
-	SPI(3)
-#endif
-#if DT_NODE_EXISTS(DT_INST(4, elements_spi))
-	SPI(4)
-#endif
+DT_INST_FOREACH_STATUS_OKAY(ELEMENTS_SPI_INIT)
