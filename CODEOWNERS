@@ -230,6 +230,7 @@
 /drivers/entropy/*litex*                  @mateusz-holenko @kgugala @pgielda
 /drivers/espi/                            @albertofloyd @franciscomunoz @scottwcpg
 /drivers/ethernet/                        @tbursztyka @pfalcon
+/drivers/ethernet/*dwmac*                 @npitre
 /drivers/ethernet/*stm32*                 @Nukersson @lochej
 /drivers/ethernet/*w5500*                 @parthitce
 /drivers/ethernet/*xlnx_gem*              @ibirnbaum
@@ -283,6 +284,7 @@
 /drivers/led/                             @Mani-Sadhasivam
 /drivers/led_strip/                       @mbolivar-nordic
 /drivers/lora/                            @Mani-Sadhasivam
+/drivers/mbox/                            @carlocaione
 /drivers/memc/                            @gmarull
 /drivers/misc/                            @tejlmand
 /drivers/misc/ft8xx/                      @hubertmis
@@ -563,6 +565,7 @@
 /lib/libc/                                @nashif
 /lib/libc/arcmwdt/                        @abrodkin @ruuddw @evgeniy-paltsev
 /modules/                                 @nashif
+/modules/canopennode/                     @henrikbrixandersen
 /modules/mbedtls/                         @ceolin @d3zd3z
 /modules/trusted-firmware-m/              @ioannisg @microbuilder
 /kernel/device.c                          @andyross @nashif
@@ -581,6 +584,7 @@
 /samples/drivers/ht16k33/                 @henrikbrixandersen
 /samples/drivers/lora/                    @Mani-Sadhasivam
 /samples/subsys/lorawan/                  @Mani-Sadhasivam
+/samples/modules/canopennode/             @henrikbrixandersen
 /samples/net/                             @rlubos @tbursztyka @pfalcon
 /samples/net/cloud/tagoio_http_post/      @nandojve
 /samples/net/dns_resolve/                 @rlubos @tbursztyka @pfalcon
