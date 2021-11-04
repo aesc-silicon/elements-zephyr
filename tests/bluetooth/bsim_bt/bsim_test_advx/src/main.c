@@ -341,6 +341,8 @@ static void test_advx_main(void)
 	printk("success.\n");
 
 	printk("Start advertising...");
+	ext_adv_param.timeout = 0;
+	ext_adv_param.num_events = 0;
 	err = bt_le_ext_adv_start(adv, &ext_adv_param);
 	if (err) {
 		goto exit;
@@ -631,6 +633,25 @@ static void test_advx_main(void)
 	printk("success.\n");
 
 	k_sleep(K_MSEC(400));
+
+	printk("Starting directed advertising...");
+	const bt_addr_le_t direct_addr = {
+		.type = BT_ADDR_LE_RANDOM,
+		.a = {
+			.val = {0x11, 0x22, 0x33, 0x44, 0x55, 0xC6}
+		}
+	};
+	const struct bt_le_adv_param adv_param = {
+		.options = BT_LE_ADV_OPT_CONNECTABLE,
+		.peer = &direct_addr,
+	};
+	err = bt_le_adv_start(&adv_param, NULL, 0, NULL, 0);
+	if (err) {
+		goto exit;
+	}
+	printk("success.\n");
+
+	k_sleep(K_MSEC(2000));
 
 	printk("Disabling...");
 	err = ll_adv_enable(handle, 0, 0, 0);
@@ -1418,6 +1439,8 @@ static void test_scanx_main(void)
 	printk("done.\n");
 
 	scan_param.timeout = 0;
+
+	k_sleep(K_MSEC(2000));
 
 	printk("Start scanning for Periodic Advertisements...");
 	is_periodic = false;

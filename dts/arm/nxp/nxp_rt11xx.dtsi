@@ -144,23 +144,11 @@
 			#gpio-cells = <2>;
 		};
 
-		gpio2: gpio@40130000 {
-			compatible = "nxp,imx-gpio";
-			reg = <0x40130000 0x4000>;
-			interrupts = <102 0>, <103 0>;
-			label = "GPIO_2";
-			gpio-controller;
-			#gpio-cells = <2>;
-		};
-
-		gpio3: gpio@40134000 {
-			compatible = "nxp,imx-gpio";
-			reg = <0x40134000 0x4000>;
-			interrupts = <104 0>, <105 0>;
-			label = "GPIO_3";
-			gpio-controller;
-			#gpio-cells = <2>;
-		};
+		/*
+		 * Note that CM7 and CM4 cores do not have the same memory addresses
+		 * for GPIO2 and GPIO3, so those periperals are defined in the SOC
+		 * specific DTS files
+		 */
 
 		gpio4: gpio@40138000 {
 			compatible = "nxp,imx-gpio";
@@ -703,18 +691,16 @@
 			label = "CSI";
 		};
 
-		flexcan1: can@40c40000 {
+		flexcan1: can@400c4000 {
 			compatible = "nxp,kinetis-flexcan";
-			reg = <0x40c40000 0x1000>;
+			reg = <0x400c4000 0x1000>;
 			interrupts = <44 0>, <45 0>;
 			interrupt-names = "common", "error";
 			clocks = <&ccm IMX_CCM_CAN1_CLK 0x68 14>;
 			clk-source = <2>;
 			label = "CAN_1";
 			sjw = <1>;
-			prop-seg = <1>;
-			phase-seg1 = <3>;
-			phase-seg2 = <2>;
+			sample-point = <875>;
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -729,9 +715,7 @@
 			clk-source = <2>;
 			label = "CAN_2";
 			sjw = <1>;
-			prop-seg = <1>;
-			phase-seg1 = <3>;
-			phase-seg2 = <2>;
+			sample-point = <875>;
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -746,28 +730,18 @@
 			clk-source = <2>;
 			label = "CAN_3";
 			sjw = <1>;
-			prop-seg = <1>;
-			phase-seg1 = <3>;
-			phase-seg2 = <2>;
+			sample-point = <875>;
 			status = "disabled";
 			#address-cells = <1>;
 			#size-cells = <0>;
 		};
 
-		wdog1: wdog@40038000 {
+		wdog1: wdog@40030000 {
 			compatible = "nxp,imx-wdog";
-			reg = <0x40038000 0xA>;
+			reg = <0x40030000 0xA>;
 			status = "disabled";
 			interrupts = <112 0>;
 			label = "WDOG1";
-		};
-
-		wdog2: wdog@40034000 {
-			compatible = "nxp,imx-wdog";
-			reg = <0x40034000 0xA>;
-			status = "disabled";
-			interrupts = <65 0>;
-			label = "WDOG2";
 		};
 
 		ocram: ocram@20200000 {

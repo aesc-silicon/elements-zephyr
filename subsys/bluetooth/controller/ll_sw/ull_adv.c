@@ -560,7 +560,8 @@ uint8_t ll_adv_params_set(uint16_t interval, uint8_t adv_type,
 			pri_dptr_prev -= sizeof(struct pdu_adv_aux_ptr);
 		}
 		if (pri_hdr->aux_ptr) {
-			ull_adv_aux_ptr_fill(&pri_dptr, phy_s);
+			pri_dptr -= sizeof(struct pdu_adv_aux_ptr);
+			ull_adv_aux_ptr_fill((void *)pri_dptr, 0U, phy_s);
 		}
 		adv->lll.phy_s = phy_s;
 #endif /* (CONFIG_BT_CTLR_ADV_AUX_SET > 0) */
@@ -2044,6 +2045,11 @@ static uint16_t adv_time_get(struct pdu_adv *pdu, struct pdu_adv *pdu_scan,
 			     uint8_t phy_flags)
 {
 	uint16_t time_us = EVENT_OVERHEAD_START_US + EVENT_OVERHEAD_END_US;
+
+	/* NOTE: 16-bit value is sufficient to calculate the maximum radio
+	 *       event time reservation for PDUs on primary advertising
+	 *       channels (37, 38, and 39 channel indices of 1M and Coded PHY).
+	 */
 
 	/* Calculate the PDU Tx Time and hence the radio event length */
 #if defined(CONFIG_BT_CTLR_ADV_EXT)
