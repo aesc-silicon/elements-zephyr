@@ -99,4 +99,6 @@ source "drivers/spi/Kconfig.npcx_fiu"
 
 source "drivers/spi/Kconfig.bitbang"
 
+source "drivers/spi/Kconfig.xec_qmspi_ldma"
+
 endif # SPI
