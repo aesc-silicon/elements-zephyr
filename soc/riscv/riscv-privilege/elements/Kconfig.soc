@@ -2,12 +2,22 @@ choice
 prompt "Elements implementations"
 depends on SOC_SERIES_RISCV32_ELEMENTS
 
+config SOC_RISCV32_ELEMENTS
+	bool "Elements RISC-V implementation"
+	select ATOMIC_OPERATIONS_C
+	select INCLUDE_RESET_VECTOR
+
+endchoice
+
+if SOC_SERIES_RISCV32_ELEMENTS
+
 config SOC_RISCV32_ELEMENTS_ISA_C
 	bool "RISC-V ISA Extension \"C\""
+	default n
 	select RISCV
 	select COMPRESSED_ISA
 	help
 	  Enable this if the Elements CPU implementation supports the RISC-V ISA
 	  "C" extension (Compressed Instructions).
 
-endchoice
+endif # SOC_SERIES_RISCV32_ELEMENTS
