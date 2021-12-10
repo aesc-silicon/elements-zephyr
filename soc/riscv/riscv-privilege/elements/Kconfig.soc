@@ -13,6 +13,7 @@ if SOC_SERIES_RISCV32_ELEMENTS
 
 config SOC_RISCV32_ELEMENTS_ISA_C
 	bool "RISC-V ISA Extension \"C\""
+	default n
 	select RISCV
 	select COMPRESSED_ISA
 	help
