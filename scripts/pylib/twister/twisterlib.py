@@ -723,8 +723,10 @@ class DeviceHandler(Handler):
     def run_custom_script(script, timeout):
         with subprocess.Popen(script, stderr=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
             try:
-                stdout, _ = proc.communicate(timeout=timeout)
+                stdout, stderr = proc.communicate(timeout=timeout)
                 logger.debug(stdout.decode())
+                if proc.returncode != 0:
+                    logger.error(f"Custom script failure: {stderr.decode(errors='ignore')}")
 
             except subprocess.TimeoutExpired:
                 proc.kill()
@@ -1977,7 +1979,7 @@ class TestInstance(DisablePyTestCollectionMixin):
 
         target_ready = bool(self.testcase.type == "unit" or \
                         self.platform.type == "native" or \
-                        self.platform.simulation in ["mdb-nsim", "nsim", "renode", "qemu", "tsim", "armfvp"] or \
+                        self.platform.simulation in ["mdb-nsim", "nsim", "renode", "qemu", "tsim", "armfvp", "xt-sim"] or \
                         filter == 'runnable')
 
         if self.platform.simulation == "nsim":
@@ -2441,6 +2443,9 @@ class ProjectBuilder(FilterBuilder):
                 instance.handler.call_make_run = True
         elif instance.platform.simulation == "armfvp":
             instance.handler = BinaryHandler(instance, "armfvp")
+            instance.handler.call_make_run = True
+        elif instance.platform.simulation == "xt-sim":
+            instance.handler = BinaryHandler(instance, "xt-sim")
             instance.handler.call_make_run = True
 
         if instance.handler:
@@ -3050,7 +3055,7 @@ class TestSuite(DisablePyTestCollectionMixin):
 
     @staticmethod
     def get_toolchain():
-        toolchain_script = Path(ZEPHYR_BASE) / Path('cmake/verify-toolchain.cmake')
+        toolchain_script = Path(ZEPHYR_BASE) / Path('cmake/modules/verify-toolchain.cmake')
         result = CMake.run_cmake_script([toolchain_script, "FORMAT=json"])
 
         try:
