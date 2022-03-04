@@ -5,7 +5,7 @@
 
 /* Timer configuration */
 #define RISCV_MTIME_BASE		DT_REG_ADDR(DT_NODELABEL(mtimer))
-#define RISCV_MTIMECMP_BASE		RISCV_MTIME_BASE + 0x2
+#define RISCV_MTIMECMP_BASE		RISCV_MTIME_BASE + 0x8
 
 /* lib-c hooks required RAM defined variables */
 #define RISCV_RAM_BASE			DT_REG_ADDR(DT_INST(0, mmio_sram))
