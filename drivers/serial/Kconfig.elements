@@ -7,7 +7,7 @@
 
 menuconfig UART_ELEMENTS
 	bool "Elements UART driver"
-	depends on SOC_SERIES_RISCV32_ELEMENTS
+	depends on SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
 	select SERIAL_HAS_DRIVER
 	select SERIAL_SUPPORT_INTERRUPT
 	help

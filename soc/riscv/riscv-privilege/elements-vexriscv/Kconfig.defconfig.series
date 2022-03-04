@@ -1,7 +1,7 @@
-if SOC_SERIES_RISCV32_ELEMENTS
+if SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
 
 config SOC_SERIES
-	default "elements"
+	default "elements-vexriscv"
 
 config SYS_CLOCK_HW_CYCLES_PER_SEC
 	default 100000000
@@ -33,4 +33,4 @@ config GEN_ISR_TABLES
 config XIP
 	default n
 
-endif # SOC_SERIES_RISCV32_ELEMENTS
+endif # SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV

@@ -1,4 +1,4 @@
-config SOC_SERIES_RISCV32_ELEMENTS
+config SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
 	bool "Elements implementation"
 	select SOC_FAMILY_RISCV_PRIVILEGE
 	select HAS_DTS

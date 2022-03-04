@@ -7,7 +7,7 @@
 
 menuconfig GPIO_ELEMENTS
 	bool "Elements GPIO driver"
-	depends on GPIO && SOC_SERIES_RISCV32_ELEMENTS
+	depends on GPIO && SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
 	select HAS_DTS_GPIO
 	help
 	  Enable driver for the Elements GPIO controller.

@@ -7,6 +7,6 @@
 
 menuconfig I2C_ELEMENTS
 	bool "Elements I2C controller driver"
-	depends on SOC_SERIES_RISCV32_ELEMENTS
+	depends on SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
 	help
 	  Enable the Elements I2C controller driver.
