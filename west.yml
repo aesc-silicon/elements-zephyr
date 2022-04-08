@@ -213,7 +213,7 @@ manifest:
       path: modules/lib/tflite-micro
       repo-path: tflite-micro
     - name: tinycbor
-      revision: 40daca97b478989884bffb5226e9ab73ca54b8c4
+      revision: 9e1f34bc08123aaad7666d3652aaa839e8178b3b
       path: modules/lib/tinycbor
     - name: tinycrypt
       revision: 3e9a49d2672ec01435ffbf0d788db6d95ef28de0
@@ -236,12 +236,12 @@ manifest:
       groups:
         - tee
     - name: psa-arch-tests
-      revision: 0aab24602cbef30f6422e7ef1066a8473073e586
+      revision: 4f45df539d3d98b6e38e112be9936be4a2b8a97c
       path: modules/tee/tf-m/psa-arch-tests
       groups:
         - tee
     - name: zcbor
-      revision: 317d3c6cd6dee23a151a3e7982d8564e7e19b2e2
+      revision: 882c489a7d9fdfff31d27666914a78a9eb6976d7
       path: modules/lib/zcbor
     - name: zscilib
       path: modules/lib/zscilib

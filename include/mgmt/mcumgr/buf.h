@@ -8,18 +8,21 @@
 #define ZEPHYR_INCLUDE_MGMT_BUF_H_
 
 #include <inttypes.h>
-#include "tinycbor/cbor.h"
-#include "tinycbor/cbor_buf_writer.h"
+#include <zcbor_common.h>
+#include <zcbor_encode.h>
 struct net_buf;
 
 struct cbor_nb_reader {
-	struct cbor_decoder_reader r;
 	struct net_buf *nb;
+	/* CONFIG_MGMT_MAX_DECODING_LEVELS + 2 translates to minimal
+	 * zcbor backup states.
+	 */
+	zcbor_state_t zs[CONFIG_MGMT_MAX_DECODING_LEVELS + 2];
 };
 
 struct cbor_nb_writer {
-	struct cbor_encoder_writer enc;
 	struct net_buf *nb;
+	zcbor_state_t zs[2];
 };
 
 /**

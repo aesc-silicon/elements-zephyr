@@ -53,6 +53,14 @@ choice OS_MGMT_TASKSTAT_THREAD_NAME_CHOICE
 
 endchoice
 
+config OS_MGMT_TASKSTAT_MAX_NUM_THREADS
+	int "Predicted maximum number of threads to return on taskstat list"
+	default 50
+	help
+	  This is used for defining CBOR map holding thread info.
+	  The value does not affect memory allocation, it is used by zcbor
+	  to figure out how to encode map depending on its predicted size.
+
 config OS_MGMT_TASKSTAT_THREAD_NAME_LEN
 	int "Length of thread name to return in response"
 	default THREAD_MAX_NAME_LEN if THREAD_NAME
@@ -94,14 +102,19 @@ endif
 config OS_MGMT_ECHO
 	bool "Support for echo command"
 	default y
+	select MGMT_MIN_DECODING_LEVEL_2
 
 if OS_MGMT_ECHO
 
 config OS_MGMT_ECHO_LENGTH
-	int "Echo buffer"
+	int "Echo buffer (DEPRECATED)"
 	default 128
 	help
-	  Size of echo buffer in bytes.
+	  DEPRECATED: The echo sentence is no longer copied into intermediate
+	  buffer, instead a transport buffer is used to directly copy echo
+	  sentence to response. Echo may still respond with not enough
+	  memory error, in case when it would not be possible to fit source
+	  sentence into response buffer limited by MCUMGR_BUF_SIZE.
 
 endif
 

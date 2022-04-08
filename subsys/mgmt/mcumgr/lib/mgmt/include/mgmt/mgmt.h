@@ -8,7 +8,7 @@
 #define H_MGMT_MGMT_
 
 #include <inttypes.h>
-#include "tinycbor/cbor.h"
+#include "mgmt/mcumgr/buf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -152,27 +152,7 @@ typedef void (*mgmt_reset_buf_fn)(void *buf, void *arg);
  *
  * @return 0 on success, MGMT_ERR_[...] code on failure.
  */
-typedef int (*mgmt_write_hdr_fn)(struct cbor_encoder_writer *writer, const struct mgmt_hdr *hdr);
-
-/** @typedef mgmt_init_reader_fn
- * @brief Initializes a CBOR reader with the specified buffer.
- *
- * @param reader	The reader to initialize.
- * @param buf		The buffer to configure the reader with.
- *
- * @return 0 on success, MGMT_ERR_[...] code on failure.
- */
-typedef int (*mgmt_init_reader_fn)(struct cbor_decoder_reader *reader, void *buf);
-
-/** @typedef mgmt_init_writer_fn
- * @brief Initializes a CBOR writer with the specified buffer.
- *
- * @param writer	The writer to initialize.
- * @param buf		The buffer to configure the writer with.
- *
- * @return 0 on success, MGMT_ERR_[...] code on failure.
- */
-typedef int (*mgmt_init_writer_fn)(struct cbor_encoder_writer *writer, void *buf);
+typedef int (*mgmt_write_hdr_fn)(struct cbor_nb_writer *writer, const struct mgmt_hdr *hdr);
 
 /** @typedef mgmt_init_writer_fn
  * @brief Frees the specified buffer.
@@ -190,8 +170,6 @@ struct mgmt_streamer_cfg {
 	mgmt_trim_front_fn trim_front;
 	mgmt_reset_buf_fn reset_buf;
 	mgmt_write_hdr_fn write_hdr;
-	mgmt_init_reader_fn init_reader;
-	mgmt_init_writer_fn init_writer;
 	mgmt_free_buf_fn free_buf;
 };
 
@@ -201,8 +179,8 @@ struct mgmt_streamer_cfg {
 struct mgmt_streamer {
 	const struct mgmt_streamer_cfg *cfg;
 	void *cb_arg;
-	struct cbor_decoder_reader *reader;
-	struct cbor_encoder_writer *writer;
+	struct cbor_nb_reader *reader;
+	struct cbor_nb_writer *writer;
 };
 
 /**
@@ -210,9 +188,8 @@ struct mgmt_streamer {
  *		responses.
  */
 struct mgmt_ctxt {
-	struct CborEncoder encoder;
-	struct CborParser parser;
-	struct CborValue it;
+	struct cbor_nb_writer *cnbe;
+	struct cbor_nb_reader *cnbd;
 #ifdef CONFIG_MGMT_VERBOSE_ERR_RESPONSE
 	const char *rc_rsn;
 #endif
@@ -321,17 +298,6 @@ int mgmt_streamer_write_hdr(struct mgmt_streamer *streamer, const struct mgmt_hd
 int mgmt_streamer_init_reader(struct mgmt_streamer *streamer, void *buf);
 
 /**
- * @brief Uses the specified streamer to initializes a CBOR writer.
- *
- * @param streamer	The streamer providing the callback.
- * @param writer	The writer to initialize.
- * @param buf		The buffer to configure the writer with.
- *
- * @return 0 on success, MGMT_ERR_[...] code on failure.
- */
-int mgmt_streamer_init_writer(struct mgmt_streamer *streamer, void *buf);
-
-/**
  * @brief Uses the specified streamer to free a buffer.
  *
  * @param streamer	The streamer providing the callback.
@@ -373,25 +339,6 @@ const struct mgmt_handler *mgmt_find_handler(uint16_t group_id, uint16_t command
  * @return 0 on success, MGMT_ERR_[...] code on failure.
  */
 int mgmt_write_rsp_status(struct mgmt_ctxt *ctxt, int status);
-
-/**
- * @brief Initializes a management context object with the specified streamer.
- *
- * @param ctxt		The context object to initialize.
- * @param streamer	The streamer that will be used with the context.
- *
- * @return 0 on success, MGMT_ERR_[...] code on failure.
- */
-int mgmt_ctxt_init(struct mgmt_ctxt *ctxt, struct mgmt_streamer *streamer);
-
-/**
- * @brief Converts a CBOR status code to a MGMT_ERR_[...] code.
- *
- * @param cbor_status The CBOR status code to convert.
- *
- * @return The corresponding MGMT_ERR_[,,,] code.
- */
-int mgmt_err_from_cbor(int cbor_status);
 
 /**
  * @brief Byte-swaps an mcumgr header from network to host byte order.
