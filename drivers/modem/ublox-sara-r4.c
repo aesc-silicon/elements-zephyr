@@ -1947,16 +1947,26 @@ static const struct socket_op_vtable offload_socket_fd_op_vtable = {
 
 static bool offload_is_supported(int family, int type, int proto)
 {
-	/* TODO offloading always enabled for now. */
+	if (family != AF_INET &&
+	    family != AF_INET6) {
+		return false;
+	}
+
+	if (type != SOCK_DGRAM &&
+	    type != SOCK_STREAM) {
+		return false;
+	}
+
+	if (proto != IPPROTO_TCP &&
+	    proto != IPPROTO_UDP &&
+	    proto != IPPROTO_TLS_1_2) {
+		return false;
+	}
+
 	return true;
 }
 
-#define SARA_R4_SOCKET_PRIORITY 40
-
-BUILD_ASSERT(SARA_R4_SOCKET_PRIORITY < CONFIG_NET_SOCKETS_TLS_PRIORITY,
-	     "SARA_R4_SOCKET_PRIORITY must be < than NET_SOCKETS_TLS_PRIORITY");
-
-NET_SOCKET_REGISTER(ublox_sara_r4, SARA_R4_SOCKET_PRIORITY, AF_UNSPEC,
+NET_SOCKET_REGISTER(ublox_sara_r4, CONFIG_NET_SOCKETS_OFFLOAD_PRIORITY, AF_UNSPEC,
 		    offload_is_supported, offload_socket);
 
 #if defined(CONFIG_DNS_RESOLVER)
