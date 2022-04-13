@@ -86,9 +86,6 @@ struct bt_dev bt_dev = {
 	.ncmd_sem      = Z_SEM_INITIALIZER(bt_dev.ncmd_sem, 0, 1),
 #endif
 	.cmd_tx_queue  = Z_FIFO_INITIALIZER(bt_dev.cmd_tx_queue),
-#if !defined(CONFIG_BT_RECV_BLOCKING)
-	.rx_queue      = Z_FIFO_INITIALIZER(bt_dev.rx_queue),
-#endif
 #if defined(CONFIG_BT_DEVICE_APPEARANCE_DYNAMIC)
 	.appearance = CONFIG_BT_DEVICE_APPEARANCE,
 #endif
@@ -3420,7 +3417,7 @@ void hci_event_prio(struct net_buf *buf)
 #if !defined(CONFIG_BT_RECV_BLOCKING)
 static void rx_queue_put(struct net_buf *buf)
 {
-	net_buf_put(&bt_dev.rx_queue, buf);
+	net_buf_slist_put(&bt_dev.rx_queue, buf);
 
 #if defined(CONFIG_BT_RECV_WORKQ_SYS)
 	const int err = k_work_submit(&rx_work);
@@ -3579,8 +3576,8 @@ static void rx_work_handler(struct k_work *work)
 
 	struct net_buf *buf;
 
-	BT_DBG("calling fifo_get_wait");
-	buf = net_buf_get(&bt_dev.rx_queue, K_NO_WAIT);
+	BT_DBG("Getting net_buf from queue");
+	buf = net_buf_slist_get(&bt_dev.rx_queue);
 	if (!buf) {
 		return;
 	}
@@ -3608,20 +3605,21 @@ static void rx_work_handler(struct k_work *work)
 		break;
 	}
 
-	/* Make sure we don't hog the CPU if the rx_queue never
-	 * gets empty.
+	/* Schedule the work handler to be executed again if there are
+	 * additional items in the queue. This allows for other users of the
+	 * work queue to get a chance at running, which wouldn't be possible if
+	 * we used a while() loop with a k_yield() statement.
 	 */
-	if (k_fifo_is_empty(&bt_dev.rx_queue)) {
-		return;
-	}
+	if (!sys_slist_is_empty(&bt_dev.rx_queue)) {
 
 #if defined(CONFIG_BT_RECV_WORKQ_SYS)
-	err = k_work_submit(&rx_work);
+		err = k_work_submit(&rx_work);
 #elif defined(CONFIG_BT_RECV_WORKQ_BT)
-	err = k_work_submit_to_queue(&bt_workq, &rx_work);
+		err = k_work_submit_to_queue(&bt_workq, &rx_work);
 #endif
-	if (err < 0) {
-		BT_ERR("Could not submit rx_work: %d", err);
+		if (err < 0) {
+			BT_ERR("Could not submit rx_work: %d", err);
+		}
 	}
 }
 #endif /* !CONFIG_BT_RECV_BLOCKING */
