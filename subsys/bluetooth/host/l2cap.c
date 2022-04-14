@@ -1564,6 +1564,13 @@ static void le_ecred_conn_rsp(struct bt_l2cap *l2cap, uint8_t ident,
 			/* Cancel RTX work */
 			k_work_cancel_delayable(&chan->rtx_work);
 
+			if (buf->len < sizeof(dcid)) {
+				BT_ERR("Fewer dcid values than expected");
+				bt_l2cap_chan_remove(conn, &chan->chan);
+				bt_l2cap_chan_del(&chan->chan);
+				continue;
+			}
+
 			dcid = net_buf_pull_le16(buf);
 			attempted++;
 
@@ -2246,7 +2253,6 @@ int bt_l2cap_chan_recv_complete(struct bt_l2cap_chan *chan, struct net_buf *buf)
 {
 	struct bt_l2cap_le_chan *le_chan = BT_L2CAP_LE_CHAN(chan);
 	struct bt_conn *conn = chan->conn;
-	uint16_t credits;
 
 	__ASSERT_NO_MSG(chan);
 	__ASSERT_NO_MSG(buf);
@@ -2261,10 +2267,14 @@ int bt_l2cap_chan_recv_complete(struct bt_l2cap_chan *chan, struct net_buf *buf)
 
 	BT_DBG("chan %p buf %p", chan, buf);
 
-	/* Restore credits used by packet */
-	memcpy(&credits, net_buf_user_data(buf), sizeof(credits));
+	if (bt_l2cap_chan_get_state(&le_chan->chan) == BT_L2CAP_CONNECTED) {
+		uint16_t credits;
 
-	l2cap_chan_send_credits(le_chan, buf, credits);
+		/* Restore credits used by packet */
+		memcpy(&credits, net_buf_user_data(buf), sizeof(credits));
+
+		l2cap_chan_send_credits(le_chan, buf, credits);
+	}
 
 	net_buf_unref(buf);
 
