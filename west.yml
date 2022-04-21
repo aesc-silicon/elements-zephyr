@@ -70,7 +70,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: 3373bdddba3857d34c22c0d493da25bdb8630071
+      revision: fb57c28853fb7b3b85457bebfcce9c63ab83cac4
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -185,7 +185,7 @@ manifest:
       path: modules/debug/mipi-sys-t
       groups:
         - debug
-      revision: 2f51407b2ac68e2be41af322a42905063f009d75
+      revision: a5163c1800a5243f8b05d84c942da008df4cb666
     - name: nanopb
       revision: d148bd26718e4c10414f07a7eb1bd24c62e56c5d
       path: modules/lib/nanopb
@@ -209,7 +209,7 @@ manifest:
       groups:
         - debug
     - name: sof
-      revision: aef3a147ec296d0e70066942b7eaf36530c90f9a
+      revision: 2efc3ea41c0074c6dab5f376fafaa26f52c25c75
       path: modules/audio/sof
     - name: tflite-micro
       revision: 9156d050927012da87079064db59d07f03b8baf6
