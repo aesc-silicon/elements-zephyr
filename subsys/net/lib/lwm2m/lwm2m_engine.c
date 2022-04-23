@@ -51,6 +51,9 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #ifdef CONFIG_LWM2M_RW_JSON_SUPPORT
 #include "lwm2m_rw_json.h"
 #endif
+#ifdef CONFIG_LWM2M_RW_CBOR_SUPPORT
+#include "lwm2m_rw_cbor.h"
+#endif
 #ifdef CONFIG_LWM2M_RD_CLIENT_SUPPORT
 #include "lwm2m_rd_client.h"
 #endif
@@ -1603,6 +1606,12 @@ static int select_writer(struct lwm2m_output_context *out, uint16_t accept)
 		break;
 #endif
 
+#ifdef CONFIG_LWM2M_RW_CBOR_SUPPORT
+	case LWM2M_FORMAT_APP_CBOR:
+		out->writer = &cbor_writer;
+		break;
+#endif
+
 	default:
 		LOG_WRN("Unknown content type %u", accept);
 		return -ENOMSG;
@@ -1639,6 +1648,12 @@ static int select_reader(struct lwm2m_input_context *in, uint16_t format)
 #if defined(CONFIG_LWM2M_RW_SENML_JSON_SUPPORT)
 	case LWM2M_FORMAT_APP_SEML_JSON:
 		in->reader = &senml_json_reader;
+		break;
+#endif
+
+#ifdef CONFIG_LWM2M_RW_CBOR_SUPPORT
+	case LWM2M_FORMAT_APP_CBOR:
+		in->reader = &cbor_reader;
 		break;
 #endif
 
@@ -3706,6 +3721,11 @@ static int do_read_op(struct lwm2m_message *msg, uint16_t content_format)
 		return do_read_op_senml_json(msg);
 #endif
 
+#if defined(CONFIG_LWM2M_RW_CBOR_SUPPORT)
+	case LWM2M_FORMAT_APP_CBOR:
+		return do_read_op_cbor(msg);
+#endif
+
 	default:
 		LOG_ERR("Unsupported content-format: %u", content_format);
 		return -ENOMSG;
@@ -4252,6 +4272,11 @@ static int do_write_op(struct lwm2m_message *msg,
 		return do_write_op_senml_json(msg);
 #endif
 
+#ifdef CONFIG_LWM2M_RW_CBOR_SUPPORT
+	case LWM2M_FORMAT_APP_CBOR:
+		return do_write_op_cbor(msg);
+#endif
+
 	default:
 		LOG_ERR("Unsupported format: %u", format);
 		return -ENOMSG;
@@ -4428,8 +4453,11 @@ static int lwm2m_engine_default_content_format(uint16_t *accept_format)
 		if (IS_ENABLED(CONFIG_LWM2M_RW_SENML_JSON_SUPPORT)) {
 			LOG_DBG("No accept option given. Assume SenML Json.");
 			*accept_format = LWM2M_FORMAT_APP_SEML_JSON;
+		} else if (IS_ENABLED(CONFIG_LWM2M_RW_CBOR_SUPPORT)) {
+			LOG_DBG("No accept option given. Assume CBOR.");
+			*accept_format = LWM2M_FORMAT_APP_CBOR;
 		} else {
-			LOG_ERR("SenML CBOR or JSON is not supported");
+			LOG_ERR("CBOR, SenML CBOR or SenML JSON is not supported");
 			return -ENOTSUP;
 		}
 	} else if (IS_ENABLED(CONFIG_LWM2M_RW_OMA_TLV_SUPPORT)) {
