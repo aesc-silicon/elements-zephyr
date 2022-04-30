@@ -416,9 +416,9 @@ Devicetree:
 Disk:
     status: maintained
     maintainers:
-        - jfischer-no
-    collaborators:
         - danieldegrasse
+    collaborators:
+        - jfischer-no
     files:
         - include/zephyr/storage/disk_access.h
         - include/zephyr/drivers/disk.h
@@ -1786,6 +1786,20 @@ TF-M Integration:
         - modules/trusted-firmware-m/
     labels:
         - "area: TF-M"
+
+Toolchain Integration:
+    status: maintained
+    maintainers:
+        - tejlmand
+    collaborators:
+        - stephanosio
+    files:
+        - cmake/bintools/
+        - cmake/compiler/
+        - cmake/linker/
+        - cmake/toolchain/
+    labels:
+        - "area: Toolchains"
 
 Tracing:
     status: maintained
