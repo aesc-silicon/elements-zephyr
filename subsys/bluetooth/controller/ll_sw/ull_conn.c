@@ -41,6 +41,11 @@
 #include "ull_iso_types.h"
 #include "ull_conn_types.h"
 #include "ull_conn_iso_types.h"
+
+#if defined(CONFIG_BT_CTLR_USER_EXT)
+#include "ull_vendor.h"
+#endif /* CONFIG_BT_CTLR_USER_EXT */
+
 #include "ull_internal.h"
 #include "ull_sched_internal.h"
 #include "ull_chan_internal.h"
@@ -52,9 +57,6 @@
 #include "ull_conn_iso_internal.h"
 #include "ull_peripheral_iso_internal.h"
 
-#if defined(CONFIG_BT_CTLR_USER_EXT)
-#include "ull_vendor.h"
-#endif /* CONFIG_BT_CTLR_USER_EXT */
 
 #include "ll.h"
 #include "ll_feat.h"
@@ -1650,12 +1652,18 @@ void ull_conn_done(struct node_rx_event_done *done)
 #endif /* CONFIG_BT_CTLR_LE_PING */
 
 #if defined(CONFIG_BT_CTLR_DF_CONN_CTE_REQ)
-	if (conn->llcp.cte_req.req_expire != 0U) {
+	/* Check if the CTE_REQ procedure is periodic and counter has been started.
+	 * req_expire is set when: new CTE_REQ is started, after completion of last periodic run.
+	 */
+	if (conn->llcp.cte_req.req_interval != 0U && conn->llcp.cte_req.req_expire != 0U) {
 		if (conn->llcp.cte_req.req_expire > elapsed_event) {
 			conn->llcp.cte_req.req_expire -= elapsed_event;
 		} else {
 			uint8_t err;
 
+			/* Set req_expire to zero to mark that new periodic CTE_REQ was started.
+			 * The counter is re-started after completion of this run.
+			 */
 			conn->llcp.cte_req.req_expire = 0U;
 
 			err = ull_cp_cte_req(conn, conn->llcp.cte_req.min_cte_len,
@@ -1664,13 +1672,8 @@ void ull_conn_done(struct node_rx_event_done *done)
 			if (err == BT_HCI_ERR_CMD_DISALLOWED) {
 				/* Conditions has changed e.g. PHY was changed to CODED.
 				 * New CTE REQ is not possible. Disable the periodic requests.
-				 *
-				 * If the CTE REQ is in active state, let it complete and disable
-				 * in regular control procedure way.
 				 */
-				if (!conn->llcp.cte_req.is_active) {
-					ull_cp_cte_req_set_disable(conn);
-				}
+				ull_cp_cte_req_set_disable(conn);
 			}
 		}
 	}

@@ -64,11 +64,6 @@ manifest:
       path: modules/hal/atmel
       groups:
         - hal
-    - name: hal_cypress
-      revision: 81a059f21435bc7e315bccd720da5a9b615bbb50
-      path: modules/hal/cypress
-      groups:
-        - hal
     - name: hal_espressif
       revision: 5a334d5584d030d5773de2f1d489288a8625529c
       path: modules/hal/espressif
@@ -81,7 +76,7 @@ manifest:
       groups:
         - hal
     - name: hal_infineon
-      revision: f1fa8241f8786198ba41155413243de36ed878a5
+      revision: 4af06965f57ba1e7d170e6a97d24c33785543a8c
       path: modules/hal/infineon
       groups:
         - hal
@@ -201,7 +196,7 @@ manifest:
       revision: 8d53544871e1f300c478224faca6be8384ab0d04
       path: modules/lib/open-amp
     - name: openthread
-      revision: 59623523733fa2a18f949fb1f513cec34f0a44e7
+      revision: e2a765599aa0379d0f72f0149a9cbafec070c12d
       path: modules/lib/openthread
     - name: segger
       revision: 3a52ab222133193802d3c3b4d21730b9b1f1d2f6

@@ -307,6 +307,7 @@ CMSIS API layer:
          - samples/subsys/portability/cmsis_rtos_v*/
          - tests/subsys/portability/cmsis_rtos_v*/
     labels:
+        - "area: CMSIS API Layer"
         - "area: Portability"
 
 CMSIS-DSP integration:
@@ -1355,7 +1356,7 @@ nRF52 BSIM:
     files:
         - boards/posix/nrf52_bsim/
     labels:
-        - "platform: nrf52_bsim"
+        - "platform: nRF52 BSIM"
 
 POSIX API layer:
     status: odd fixes
@@ -1526,7 +1527,7 @@ Synopsys Platforms:
     labels:
         - "platform: Synopsys"
 
-Nuvoton_NPCX Platforms:
+Nuvoton NPCX Platforms:
     status: maintained
     maintainers:
         - MulinChao
@@ -1548,9 +1549,9 @@ Nuvoton_NPCX Platforms:
         - dts/bindings/*/*npcx*
         - drivers/*/*_npcx*.c
     labels:
-        - "platform: Nuvoton_NPCX"
+        - "platform: Nuvoton NPCX"
 
-Nuvoton_Numicro Platforms:
+Nuvoton Numicro Platforms:
     status: odd fixes
     collaborators:
         - ssekar15
@@ -1561,7 +1562,7 @@ Nuvoton_Numicro Platforms:
         - dts/bindings/*/*numicro*
         - drivers/*/*_numicro*
     labels:
-        - "platform: Nuvoton_Numicro"
+        - "platform: Nuvoton Numicro"
 
 SiLabs Platforms:
     status: odd fixes
@@ -1632,7 +1633,7 @@ NXP Platforms:
   labels:
     - "platform: NXP"
 
-Microchip Platforms:
+Microchip MEC Platforms:
   status: maintained
   maintainers:
     - jvasanth1
@@ -1645,7 +1646,23 @@ Microchip Platforms:
     - soc/arm/microchip_mec/
     - drivers/*/*mchp*.c
   labels:
-    - "platform: Microchip"
+    - "platform: Microchip MEC"
+
+Microchip SAM Platforms:
+  status: maintained
+  maintainers:
+    - nandojve
+  collaborators:
+    - mnkp
+    - stephanosio
+  files:
+    - boards/arm/atsam*/
+    - boards/arm/sam*/
+    - dts/arm/atmel/
+    - soc/arm/atmel_sam*/
+    - drivers/*/*sam*.c
+  labels:
+    - "platform: Microchip SAM"
 
 nRF Platforms:
     status: maintained
