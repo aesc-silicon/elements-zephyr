@@ -437,6 +437,8 @@ uint8_t ll_adv_sync_param_set(uint8_t handle, uint16_t interval, uint16_t flags)
 
 	lll_adv_sync_data_enqueue(lll_sync, ter_idx);
 
+	sync->is_data_cmplt = 1U;
+
 	return 0;
 }
 
@@ -453,18 +455,13 @@ uint8_t ll_adv_sync_ad_data_set(uint8_t handle, uint8_t op, uint8_t len,
 	uint8_t ter_idx;
 	uint8_t err;
 
-	/* TODO: handle other op values */
-	if (op != BT_HCI_LE_EXT_ADV_OP_COMPLETE_DATA &&
-	    op != BT_HCI_LE_EXT_ADV_OP_UNCHANGED_DATA) {
-		/* FIXME: error code */
-		return BT_HCI_ERR_CMD_DISALLOWED;
-	}
-
+	/* Check for valid advertising set */
 	adv =  ull_adv_is_created_get(handle);
 	if (!adv) {
 		return BT_HCI_ERR_UNKNOWN_ADV_IDENTIFIER;
 	}
 
+	/* Check for advertising set type */
 	if (IS_ENABLED(CONFIG_BT_CTLR_PARAM_CHECK)) {
 		uint8_t err;
 
@@ -474,9 +471,17 @@ uint8_t ll_adv_sync_ad_data_set(uint8_t handle, uint8_t op, uint8_t len,
 		}
 	}
 
+	/* Check if periodic advertising is associated with advertising set */
 	lll_sync = adv->lll.sync;
 	if (!lll_sync) {
 		return BT_HCI_ERR_UNKNOWN_ADV_IDENTIFIER;
+	}
+
+	sync = HDR_LLL2ULL(lll_sync);
+
+	/* Reject setting fragment when periodic advertising is enabled */
+	if (sync->is_enabled && (op <= BT_HCI_LE_EXT_ADV_OP_LAST_FRAG)) {
+		return BT_HCI_ERR_CMD_DISALLOWED;
 	}
 
 	err = ull_adv_sync_pdu_alloc(adv, ULL_ADV_PDU_EXTRA_DATA_ALLOC_IF_EXIST,
@@ -516,12 +521,10 @@ uint8_t ll_adv_sync_ad_data_set(uint8_t handle, uint8_t op, uint8_t len,
 		return err;
 	}
 
-	sync = HDR_LLL2ULL(lll_sync);
-
 	/* Parameter validation, if operation is 0x04 (unchanged data)
 	 * - periodic advertising is disabled, or
 	 * - periodic advertising contains no data, or
-	 * - Advertising Data Length is zero
+	 * - Advertising Data Length is not zero
 	 */
 	if (IS_ENABLED(CONFIG_BT_CTLR_PARAM_CHECK) &&
 	    (op == BT_HCI_LE_EXT_ADV_OP_UNCHANGED_DATA) &&
@@ -548,6 +551,7 @@ uint8_t ll_adv_sync_ad_data_set(uint8_t handle, uint8_t op, uint8_t len,
 	 */
 	adv_sync_pdu_chain_check_and_duplicate(pdu, pdu_prev);
 
+	/* Update time reservation if Periodic Advertising events are active */
 	if (sync->is_started) {
 		err = ull_adv_sync_time_update(sync, pdu);
 		if (err) {
@@ -555,9 +559,13 @@ uint8_t ll_adv_sync_ad_data_set(uint8_t handle, uint8_t op, uint8_t len,
 		}
 	}
 
+	/* Commit the updated Periodic Advertising Data */
 	lll_adv_sync_data_enqueue(lll_sync, ter_idx);
 
-	return err;
+	/* Check if Periodic Advertising Data is complete */
+	sync->is_data_cmplt = (op >= BT_HCI_LE_EXT_ADV_OP_LAST_FRAG);
+
+	return 0;
 }
 
 uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
@@ -572,16 +580,19 @@ uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
 	uint8_t ter_idx;
 	uint8_t err;
 
+	/* Check for valid advertising set */
 	adv = ull_adv_is_created_get(handle);
 	if (!adv) {
 		return BT_HCI_ERR_UNKNOWN_ADV_IDENTIFIER;
 	}
 
+	/* Check if periodic advertising is associated with advertising set */
 	lll_sync = adv->lll.sync;
 	if (!lll_sync) {
 		return BT_HCI_ERR_CMD_DISALLOWED;
 	}
 
+	/* Check for invalid enable bit fields */
 	if ((enable > (BT_HCI_LE_SET_PER_ADV_ENABLE_ENABLE |
 		       BT_HCI_LE_SET_PER_ADV_ENABLE_ADI)) ||
 	    (!IS_ENABLED(CONFIG_BT_CTLR_ADV_PERIODIC_ADI_SUPPORT) &&
@@ -591,6 +602,7 @@ uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
 
 	sync = HDR_LLL2ULL(lll_sync);
 
+	/* Handle periodic advertising being disable */
 	if (!(enable & BT_HCI_LE_SET_PER_ADV_ENABLE_ENABLE)) {
 		if (!sync->is_enabled) {
 			return BT_HCI_ERR_CMD_DISALLOWED;
@@ -606,6 +618,7 @@ uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
 		return err;
 	}
 
+	/* Check for advertising set type */
 	if (IS_ENABLED(CONFIG_BT_CTLR_PARAM_CHECK)) {
 		uint8_t err;
 
@@ -615,10 +628,14 @@ uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
 		}
 	}
 
-	/* TODO: Check for periodic data being complete */
+	/* Check for periodic data being complete */
+	if (!sync->is_data_cmplt) {
+		return BT_HCI_ERR_CMD_DISALLOWED;
+	}
 
 	/* TODO: Check packet too long */
 
+	/* Check for already enabled periodic advertising set */
 	sync_got_enabled = 0U;
 	if (sync->is_enabled) {
 		/* TODO: Enabling an already enabled advertising changes its
@@ -671,6 +688,9 @@ uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
 		adv_sync_pdu_chain_check_and_duplicate(pdu, pdu_prev);
 	}
 
+	/* Start Periodic Advertising events if Extended Advertising events are
+	 * active.
+	 */
 	if (adv->is_enabled && !sync->is_started) {
 		struct pdu_adv_sync_info *sync_info;
 		uint8_t value[1 + sizeof(sync_info)];
@@ -759,6 +779,9 @@ uint8_t ll_adv_sync_enable(uint8_t handle, uint8_t enable)
 		}
 	}
 
+	/* Commit the Periodic Advertising data if ADI supported and has been
+	 * updated.
+	 */
 	if (IS_ENABLED(CONFIG_BT_CTLR_ADV_PERIODIC_ADI_SUPPORT)) {
 		lll_adv_sync_data_enqueue(lll_sync, ter_idx);
 	}
