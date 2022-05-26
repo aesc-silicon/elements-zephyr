@@ -10,6 +10,15 @@ The following sections provide detailed lists of changes by component.
 Security Vulnerability Related
 ******************************
 
+The following CVEs are addressed by this release:
+
+More detailed information can be found in:
+https://docs.zephyrproject.org/latest/security/vulnerabilities.html
+
+* CVE-2022-1841: Under embargo until 2022-08-18
+* CVE-2022-1042: Under embargo until 2022-06-19
+* CVE-2022-1041: Under embargo until 2022-06-19
+
 Known issues
 ************
 
@@ -71,9 +80,15 @@ Changes in this release
     * The previous ``CAN_SILENT_LOOPBACK_MODE`` can be set using the bitmask ``(CAN_MODE_LISTENONLY |
       CAN_MODE_LOOPBACK)``.
 
-* STM32H7 The `CONFIG_NOCACHE_MEMORY` no longer is responsible for disabling
-  data cache when defined. Now the newly introduced `CONFIG_DCACHE=n` explicitly
-  does that.
+  * STM32H7 The `CONFIG_NOCACHE_MEMORY` no longer is responsible for disabling
+    data cache when defined. Now the newly introduced `CONFIG_DCACHE=n` explicitly
+    does that.
+
+  * Converted the STM32F1 pin nodes configuration names to include remap information (in
+    cases other than NO_REMAP/REMAP_0)
+    For instance:
+
+    * ``i2c1_scl_pb8`` renamed to ``i2c1_scl_remap1_pb8``
 
 Removed APIs in this release
 ============================
