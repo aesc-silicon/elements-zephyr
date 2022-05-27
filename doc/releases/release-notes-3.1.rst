@@ -224,6 +224,8 @@ Boards & SoC Support
 
 * Made these changes in other SoC series:
 
+  * Added Atmel SAM UPLL clock support
+
 * Changes for ARC boards:
 
 * Added support for these ARM boards:
@@ -236,7 +238,15 @@ Boards & SoC Support
 
 * Added support for these RISC-V boards:
 
+  * GigaDevice GD32VF103C-EVAL
+
 * Made these changes in other boards:
+
+  * sam4s_xplained: Add support for HWINFO
+  * sam_e70_xlained: Add support for HWINFO and CAN-FD
+  * sam_v71_xult: Add support for HWINFO and CAN-FD
+  * gd32e103v_eval: Add prescaler to timer
+  * longan_nano: Add support for TF-Card slot
 
 * Added support for these following shields:
 
@@ -245,6 +255,8 @@ Drivers and Sensors
 *******************
 
 * ADC
+
+  * Atmel SAM0: Fixed adc voltage reference
 
 * CAN
 
@@ -275,6 +287,10 @@ Drivers and Sensors
 
 * GPIO
 
+* HWINFO
+
+  * Atmel SAM: Added RSTC support
+
 * I2C
 
 * I2S
@@ -287,12 +303,20 @@ Drivers and Sensors
 
 * Pin control
 
+  * New platforms added to ``pinctrl`` state-based API:
+
+    * Atmel SAM/SAM0
+
 * PWM
 
   * Added :c:struct:`pwm_dt_spec` and associated helpers, e.g.
     :c:macro:`PWM_DT_SPEC_GET` or :c:func:`pwm_set_dt`. This addition makes it
     easier to use the PWM API when the PWM channel, period and flags are taken
     from a Devicetree PWM cell.
+
+* Reset
+
+  * Added reset controller driver API.
 
 * Sensor
 
@@ -360,11 +384,28 @@ Libraries / Subsystems
 HALs
 ****
 
+* Atmel
+
+  * Added dt-bindings, documentation and scripts to support state-based pin
+    control (``pinctrl``) API.
+  * Imported new SoCs header files:
+
+    * SAML21
+    * SAMR34
+    * SAMR35
+
+* GigaDevice
+
+  * Fixed GD32_REMAP_MSK macro
+  * Fixed gd32f403z pc3 missing pincodes
+
 MCUboot
 *******
 
 Trusted Firmware-m
 ******************
+
+* Updated to TF-M 1.6.0
 
 Documentation
 *************
