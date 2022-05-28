@@ -320,6 +320,21 @@ Drivers and Sensors
 
 * Sensor
 
+  * Added NCPX ADC comparator driver.
+  * Enhanced the BME680 driver to support SPI.
+  * Enhanced the LIS2DW12 driver to support additional filtering and interrupt
+    modes.
+  * Added ICM42670 6-axis accelerometer driver.
+  * Enhanced the VL53L0X driver to support reprogramming its I2C address.
+  * Enhanced the Microchip XEC TACH driver to support pin control and MEC172x.
+  * Added ITE IT8XXX2 voltage comparator driver.
+  * Fixed register definitions in the LSM6DSL driver.
+  * Fixed argument passing bug in the ICM42605 driver.
+  * Removed redundant DEV_NAME helpers in various drivers.
+  * Enhanced the LIS2DH driver to support device power management.
+  * Fixed overflow issue in sensor_value_from_double().
+  * Added MAX31875 temperature sensor driver.
+
 * Serial
 
 * SPI
@@ -373,6 +388,11 @@ Libraries / Subsystems
     allowed or declined.
   * Made the img mgmt ``img_mgmt_vercmp`` function public to allow application-
     level comparison of image versions.
+  * mcumgr will now only return `MGMT_ERR_ENOMEM` when it fails to allocate
+    a memory buffer for request processing, when previously it would wrongly
+    report this error when the SMP response failed to fit into a buffer;
+    now when encoding of response fails `MGMT_ERR_EMSGSIZE` will be
+    reported. This addresses issue :github:`44535`.
 
 * SD Subsystem
 
