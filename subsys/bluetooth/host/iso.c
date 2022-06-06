@@ -52,7 +52,11 @@ struct bt_iso_cig cigs[CONFIG_BT_ISO_MAX_CIG];
 
 static struct bt_iso_cig *get_cig(const struct bt_iso_chan *iso_chan);
 static void bt_iso_remove_data_path(struct bt_conn *iso);
+static int hci_le_create_cis(const struct bt_iso_connect_param *param,
+			     size_t count);
+
 #endif /* CONFIG_BT_ISO_CENTRAL */
+
 #if defined(CONFIG_BT_ISO_PERIPHERAL)
 static struct bt_iso_server *iso_server;
 
@@ -460,6 +464,8 @@ const char *bt_iso_chan_state_str(uint8_t state)
 		return "disconnected";
 	case BT_ISO_STATE_CONNECTING:
 		return "connecting";
+	case BT_ISO_STATE_ENCRYPT_PENDING:
+		return "encryption pending";
 	case BT_ISO_STATE_CONNECTED:
 		return "connected";
 	case BT_ISO_STATE_DISCONNECTING:
@@ -482,6 +488,8 @@ void bt_iso_chan_set_state_debug(struct bt_iso_chan *chan,
 	case BT_ISO_STATE_DISCONNECTED:
 		/* regardless of old state always allows this states */
 		break;
+	case BT_ISO_STATE_ENCRYPT_PENDING:
+		__fallthrough;
 	case BT_ISO_STATE_CONNECTING:
 		if (chan->state != BT_ISO_STATE_DISCONNECTED) {
 			BT_WARN("%s()%d: invalid transition", func, line);
@@ -919,12 +927,14 @@ int bt_iso_server_register(struct bt_iso_server *server)
 		return -EINVAL;
 	}
 
+#if defined(CONFIG_BT_SMP)
 	if (server->sec_level > BT_SECURITY_L3) {
 		return -EINVAL;
 	} else if (server->sec_level < BT_SECURITY_L1) {
 		/* Level 0 is only applicable for BR/EDR */
 		server->sec_level = BT_SECURITY_L1;
 	}
+#endif /* CONFIG_BT_SMP */
 
 	BT_DBG("%p", server);
 
@@ -947,10 +957,6 @@ static int iso_accept(struct bt_conn *acl, struct bt_conn *iso)
 
 	BT_DBG("%p", iso);
 
-	if (!iso_server) {
-		return -ENOMEM;
-	}
-
 	accept_info.acl = acl;
 	accept_info.cig_id = iso->iso.cig_id;
 	accept_info.cis_id = iso->iso.cis_id;
@@ -960,6 +966,10 @@ static int iso_accept(struct bt_conn *acl, struct bt_conn *iso)
 		BT_ERR("Server failed to accept: %d", err);
 		return err;
 	}
+
+#if defined(CONFIG_BT_SMP)
+	chan->required_sec_level = iso_server->sec_level;
+#endif /* CONFIG_BT_SMP */
 
 	bt_iso_chan_add(iso, chan);
 	bt_iso_chan_set_state(chan, BT_ISO_STATE_CONNECTING);
@@ -1012,16 +1022,40 @@ static int hci_le_accept_cis(uint16_t handle)
 	return 0;
 }
 
+static uint8_t iso_server_check_security(struct bt_conn *conn)
+{
+	if (IS_ENABLED(CONFIG_BT_CONN_DISABLE_SECURITY)) {
+		return BT_HCI_ERR_SUCCESS;
+	}
+
+#if defined(CONFIG_BT_SMP)
+	if (conn->sec_level >= iso_server->sec_level) {
+		return BT_HCI_ERR_SUCCESS;
+	}
+
+	return BT_HCI_ERR_INSUFFICIENT_SECURITY;
+#else
+	return BT_HCI_ERR_SUCCESS;
+#endif /* CONFIG_BT_SMP */
+}
+
 void hci_le_cis_req(struct net_buf *buf)
 {
 	struct bt_hci_evt_le_cis_req *evt = (void *)buf->data;
 	uint16_t acl_handle = sys_le16_to_cpu(evt->acl_handle);
 	uint16_t cis_handle = sys_le16_to_cpu(evt->cis_handle);
 	struct bt_conn *acl, *iso;
+	uint8_t sec_err;
 	int err;
 
 	BT_DBG("acl_handle %u cis_handle %u cig_id %u cis %u",
 		acl_handle, cis_handle, evt->cig_id, evt->cis_id);
+
+	if (iso_server == NULL) {
+		BT_DBG("No ISO server registered");
+		hci_le_reject_cis(cis_handle, BT_HCI_ERR_UNSPECIFIED);
+		return;
+	}
 
 	/* Lookup existing connection with same handle */
 	iso = bt_conn_lookup_handle(cis_handle);
@@ -1037,6 +1071,16 @@ void hci_le_cis_req(struct net_buf *buf)
 	if (!acl) {
 		BT_ERR("Invalid ACL handle %u", acl_handle);
 		hci_le_reject_cis(cis_handle, BT_HCI_ERR_UNKNOWN_CONN_ID);
+		return;
+	}
+
+	sec_err = iso_server_check_security(acl);
+	if (sec_err != BT_HCI_ERR_SUCCESS) {
+		BT_DBG("Insufficient security %u", sec_err);
+		err = hci_le_reject_cis(cis_handle, sec_err);
+		if (err != 0) {
+			BT_ERR("Failed to reject CIS");
+		}
 		return;
 	}
 
@@ -1647,6 +1691,94 @@ int bt_iso_cig_terminate(struct bt_iso_cig *cig)
 	return 0;
 }
 
+void bt_iso_security_changed(struct bt_conn *acl, uint8_t hci_status)
+{
+	struct bt_iso_connect_param param[CONFIG_BT_ISO_MAX_CHAN];
+	size_t param_count;
+	int err;
+
+	/* The peripheral does not accept any ISO requests if security is
+	 * insufficient, so we only need to handle central here.
+	 * BT_ISO_STATE_ENCRYPT_PENDING is only set by the central.
+	 */
+	if (!IS_ENABLED(CONFIG_BT_CENTRAL) ||
+	    acl->role != BT_CONN_ROLE_CENTRAL) {
+		return;
+	}
+
+	param_count = 0;
+	for (size_t i = 0; i < ARRAY_SIZE(iso_conns); i++) {
+		struct bt_conn *iso = &iso_conns[i];
+		struct bt_iso_chan *iso_chan;
+
+		if (iso == NULL || iso->iso.acl != acl) {
+			continue;
+		}
+
+		iso_chan = iso_chan(iso);
+		if (iso_chan->state != BT_ISO_STATE_ENCRYPT_PENDING) {
+			continue;
+		}
+
+		bt_iso_chan_set_state(iso_chan, BT_ISO_STATE_DISCONNECTED);
+
+		if (hci_status == BT_HCI_ERR_SUCCESS) {
+			param[param_count].acl = acl;
+			param[param_count].iso_chan = iso_chan;
+			param_count++;
+		} else {
+			BT_DBG("Failed to encrypt ACL %p for ISO %p: %u",
+			       acl, iso, hci_status);
+
+			/* We utilize the disconnected callback to make the
+			 * upper layers aware of the error
+			 */
+			if (iso_chan->ops->disconnected) {
+				iso_chan->ops->disconnected(iso_chan,
+							    hci_status);
+			}
+		}
+	}
+
+	if (param_count == 0) {
+		/* Nothing to do for ISO. This happens if security is changed,
+		 * but no ISO channels were pending encryption.
+		 */
+		return;
+	}
+
+	err = hci_le_create_cis(param, param_count);
+	if (err != 0) {
+		BT_ERR("Failed to connect CISes: %d", err);
+
+		for (size_t i = 0; i < param_count; i++) {
+			struct bt_iso_chan *iso_chan = param[i].iso_chan;
+
+			/* We utilize the disconnected callback to make the
+			 * upper layers aware of the error
+			 */
+			if (iso_chan->ops->disconnected) {
+				iso_chan->ops->disconnected(iso_chan,
+							    hci_status);
+			}
+		}
+
+		return;
+	}
+
+	/* Set connection states */
+	for (size_t i = 0; i < param_count; i++) {
+		struct bt_iso_chan *iso_chan = param[i].iso_chan;
+		struct bt_iso_cig *cig = get_cig(iso_chan);
+
+		__ASSERT(cig != NULL, "CIG was NULL");
+		cig->state = BT_ISO_CIG_STATE_ACTIVE;
+
+		bt_conn_set_state(iso_chan->iso, BT_CONN_CONNECTING);
+		bt_iso_chan_set_state(iso_chan, BT_ISO_STATE_CONNECTING);
+	}
+}
+
 static int hci_le_create_cis(const struct bt_iso_connect_param *param,
 			     size_t count)
 {
@@ -1664,20 +1796,85 @@ static int hci_le_create_cis(const struct bt_iso_connect_param *param,
 
 	memset(req, 0, sizeof(*req));
 
-	req->num_cis = count;
-
 	/* Program the cis parameters */
 	for (size_t i = 0; i < count; i++) {
+		struct bt_iso_chan *iso_chan = param[i].iso_chan;
+
+		if (iso_chan->state == BT_ISO_STATE_ENCRYPT_PENDING) {
+			continue;
+		}
+
 		cis = net_buf_add(buf, sizeof(*cis));
 
 		memset(cis, 0, sizeof(*cis));
 
 		cis->cis_handle = sys_cpu_to_le16(param[i].iso_chan->iso->handle);
 		cis->acl_handle = sys_cpu_to_le16(param[i].acl->handle);
+		req->num_cis++;
+	}
+
+	/* If all CIS are pending for security, do nothing,
+	 * but return a recognizable return value
+	 */
+	if (req->num_cis == 0) {
+		net_buf_unref(buf);
+
+		return -ECANCELED;
 	}
 
 	return bt_hci_cmd_send_sync(BT_HCI_OP_LE_CREATE_CIS, buf, NULL);
 }
+
+#if defined(CONFIG_BT_SMP)
+static int iso_chan_connect_security(const struct bt_iso_connect_param *param,
+				     size_t count)
+{
+	/* conn_idx_handled is an array of booleans for which conn indexes
+	 * already have been used to call bt_conn_set_security.
+	 * Using indexes avoids looping the array when checking if it has been
+	 * handled.
+	 */
+	bool conn_idx_handled[CONFIG_BT_MAX_CONN];
+
+	memset(conn_idx_handled, false, sizeof(conn_idx_handled));
+	for (size_t i = 0; i < count; i++) {
+		struct bt_iso_chan *iso_chan = param[i].iso_chan;
+		struct bt_conn *acl = param[i].acl;
+		uint8_t conn_idx = bt_conn_index(acl);
+
+		if (acl->sec_level < iso_chan->required_sec_level) {
+			if (!conn_idx_handled[conn_idx]) {
+				int err;
+
+				err = bt_conn_set_security(acl,
+							   iso_chan->required_sec_level);
+				if (err != 0) {
+					BT_DBG("[%zu]: Failed to set security: %d",
+					       i, err);
+
+					/* Restore states */
+					for (size_t j = 0; j < i; j++) {
+						iso_chan = param[j].iso_chan;
+
+						bt_iso_cleanup_acl(iso_chan->iso);
+						bt_iso_chan_set_state(iso_chan,
+								      BT_ISO_STATE_DISCONNECTED);
+					}
+
+					return err;
+				}
+
+				conn_idx_handled[conn_idx] = true;
+			}
+
+			iso_chan->iso->iso.acl = bt_conn_ref(acl);
+			bt_iso_chan_set_state(iso_chan, BT_ISO_STATE_ENCRYPT_PENDING);
+		}
+	}
+
+	return 0;
+}
+#endif /* CONFIG_BT_SMP */
 
 int bt_iso_chan_connect(const struct bt_iso_connect_param *param, size_t count)
 {
@@ -1728,9 +1925,25 @@ int bt_iso_chan_connect(const struct bt_iso_connect_param *param, size_t count)
 		}
 	}
 
+#if defined(CONFIG_BT_SMP)
+	/* Check for and initiate security for all channels that have
+	 * requested encryption if the ACL link is not already secured
+	 */
+	err = iso_chan_connect_security(param, count);
+	if (err != 0) {
+		BT_DBG("Failed to initate security for all CIS: %d", err);
+		return err;
+	}
+#endif /* CONFIG_BT_SMP */
+
 	err = hci_le_create_cis(param, count);
-	if (err) {
+	if (err == -ECANCELED) {
+		BT_DBG("All channels are pending on security");
+
+		return 0;
+	} else if (err != 0) {
 		BT_DBG("Failed to connect CISes: %d", err);
+
 		return err;
 	}
 
@@ -1738,6 +1951,10 @@ int bt_iso_chan_connect(const struct bt_iso_connect_param *param, size_t count)
 	for (size_t i = 0; i < count; i++) {
 		struct bt_iso_chan *iso_chan = param[i].iso_chan;
 		struct bt_iso_cig *cig;
+
+		if (iso_chan->state == BT_ISO_STATE_ENCRYPT_PENDING) {
+			continue;
+		}
 
 		iso_chan->iso->iso.acl = bt_conn_ref(param[i].acl);
 		bt_conn_set_state(iso_chan->iso, BT_CONN_CONNECTING);
