@@ -4,10 +4,9 @@
  */
 
 #include <zephyr/init.h>
-#include <fsl_iopctl.h>
-#include <soc.h>
+#include <fsl_device_registers.h>
 
-static int mimxrt685_evk_pinmux_init(const struct device *dev)
+static int mimxrt685_evk_init(const struct device *dev)
 {
 	ARG_UNUSED(dev);
 
@@ -43,31 +42,7 @@ static int mimxrt685_evk_pinmux_init(const struct device *dev)
 #endif
 
 #endif
-
-#if DT_NODE_HAS_STATUS(DT_NODELABEL(red_pwm_led), okay)
-	uint32_t port0_pin31_config = (
-			IOPCTL_PIO_FUNC3 |
-			/* Disable pull-up / pull-down function */
-			IOPCTL_PIO_PUPD_DI |
-			/* Enable pull-down function */
-			IOPCTL_PIO_PULLDOWN_EN |
-			/* Disable input buffer function */
-			IOPCTL_PIO_INBUF_DI |
-			/* Normal mode */
-			IOPCTL_PIO_SLEW_RATE_NORMAL |
-			/* Normal drive */
-			IOPCTL_PIO_FULLDRIVE_DI |
-			/* Analog mux is disabled */
-			IOPCTL_PIO_ANAMUX_DI |
-			/* Pseudo Output Drain is disabled */
-			IOPCTL_PIO_PSEDRAIN_DI |
-			/* Input function is not inverted */
-			IOPCTL_PIO_INV_DI);
-	/* PORT0 PIN31 (coords: B3) is configured as SCT0_OUT6 */
-	IOPCTL_PinMuxSet(IOPCTL, 0U, 31U, port0_pin31_config);
-#endif
 	return 0;
 }
 
-/* priority set to CONFIG_PINMUX_INIT_PRIORITY value */
-SYS_INIT(mimxrt685_evk_pinmux_init, PRE_KERNEL_1, 45);
+SYS_INIT(mimxrt685_evk_init, PRE_KERNEL_1, CONFIG_BOARD_INIT_PRIORITY);
