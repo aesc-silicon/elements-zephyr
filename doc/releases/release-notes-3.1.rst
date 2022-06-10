@@ -110,6 +110,8 @@ Deprecated in this release
 ==========================
 
 * :c:func:`nvs_init` is deprecated in favor of utilizing :c:func:`nvs_mount`.
+* :c:func:`lwm2m_engine_set_res_data` is deprecated in favor of :c:func:`lwm2m_engine_set_res_buf`
+* :c:func:`lwm2m_engine_get_res_data` is deprecated in favor of :c:func:`lwm2m_engine_get_res_buf`
 * The TinyCBOR module has been deprecated in favor of the new zcbor CBOR
   library, included with Zephyr in this release.
 
@@ -1220,7 +1222,7 @@ Known bugs
 - :github:`45675` - testing.ztest.customized_output: mismatch twister results in json/xml file
 - :github:`45678` - Lorawan: Devnonce has already been used
 - :github:`45760` - Running twister on new board files
-- :github:`45774` - drivers: gpio: pca9555: Driver is writting to output port despite all pins been configured as input
+- :github:`45774` - drivers: gpio: pca9555: Driver is writing to output port despite all pins having been configured as input
 - :github:`45802` - Some tests reported as PASSED (device) but they were only build
 - :github:`45807` - CivetWeb doesn't build for CC3232SF
 - :github:`45814` - Armclang build fails due to missing source file
