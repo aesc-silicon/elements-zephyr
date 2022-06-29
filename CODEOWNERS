@@ -229,7 +229,7 @@
 /drivers/clock_control/*agilex*           @siclim
 /drivers/clock_control/*nrf*              @nordic-krch
 /drivers/clock_control/*esp32*            @extremegtx @glaubermaroto
-/drivers/clock_control/*rcar*             @aaillet
+/drivers/clock_control/*cpg_mssr*         @aaillet
 /drivers/counter/                         @nordic-krch
 /drivers/console/ipm_console.c            @finikorg
 /drivers/console/semihost_console.c       @luozhongyao
@@ -615,6 +615,7 @@
 /include/zephyr/posix/                           @pfalcon
 /include/zephyr/pm/pm.h                          @nashif @ceolin
 /include/zephyr/drivers/ptp_clock.h              @tbursztyka
+/include/zephyr/rtio/                            @teburd
 /include/zephyr/shared_irq.h                     @dcpleung @nashif @andyross
 /include/zephyr/shell/                           @jakub-uC @nordic-krch
 /include/zephyr/shell/shell_mqtt.h               @ycsin
@@ -815,6 +816,7 @@ scripts/gen_image_info.py                 @tejlmand
 /tests/subsys/debug/coredump/             @dcpleung
 /tests/subsys/fs/                         @nashif @nvlsianpu @de-nordic
 /tests/subsys/sd/                         @danieldegrasse
+/tests/subsys/rtio/                       @teburd
 /tests/subsys/settings/                   @nvlsianpu
 /tests/subsys/shell/                      @jakub-uC @nordic-krch
 # Get all docs reviewed
