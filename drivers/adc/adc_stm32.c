@@ -405,6 +405,7 @@ static void adc_stm32_oversampling_scope(ADC_TypeDef *adc, uint32_t ovs_scope)
 	LL_ADC_SetOverSamplingScope(adc, ovs_scope);
 }
 
+#if !defined(CONFIG_SOC_SERIES_STM32H7X)
 /*
  * Function to configure the oversampling ratio and shift. It is basically a
  * wrapper over LL_ADC_SetOverSamplingRatioShift() which in addition stops the
@@ -426,6 +427,7 @@ static void adc_stm32_oversampling_ratioshift(ADC_TypeDef *adc, uint32_t ratio, 
 #endif
 	LL_ADC_ConfigOverSamplingRatioShift(adc, ratio, shift);
 }
+#endif
 
 	/*
 	 * Function to configure the oversampling ratio and shit using stm32 LL
@@ -835,6 +837,10 @@ static void adc_stm32_setup_speed(const struct device *dev, uint8_t id,
 	LL_ADC_SetSamplingTimeCommonChannels(adc,
 		table_samp_time[acq_time_index]);
 #elif defined(CONFIG_SOC_SERIES_STM32G0X)
+	/* Errata ES0418 and more: ADC sampling time might be one cycle longer */
+	if (acq_time_index  < 2) {
+		acq_time_index = 2;
+	}
 	LL_ADC_SetSamplingTimeCommonChannels(adc, LL_ADC_SAMPLINGTIME_COMMON_1,
 		table_samp_time[acq_time_index]);
 #else

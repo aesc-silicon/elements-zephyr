@@ -295,6 +295,7 @@ C library:
          - enjiamai
          - KangJianX
          - keith-packard
+         - cfriedt
     files:
          - lib/libc/
          - tests/lib/c_lib/
@@ -1555,6 +1556,7 @@ GD32 Platforms:
         - gmarull
     collaborators:
         - soburi
+        - cameled
     files:
         - boards/arm/gd32*/
         - boards/riscv/gd32*/

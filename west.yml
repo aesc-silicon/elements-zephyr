@@ -57,7 +57,7 @@ manifest:
       groups:
         - hal
     - name: hal_atmel
-      revision: 78c5567c05b6b434dd7d98f49156319df4217bac
+      revision: a48627169e6897a504d0ee1410a886551bb2bbf2
       path: modules/hal/atmel
       groups:
         - hal
@@ -68,7 +68,7 @@ manifest:
       groups:
         - hal
     - name: hal_gigadevice
-      revision: cc8bc14c612e5ecfcb0435f6da53f3302e25014a
+      revision: 7f15468b07807ae6a913e0e9cbabfaa23a206bc6
       path: modules/hal/gigadevice
       groups:
         - hal
@@ -114,7 +114,7 @@ manifest:
       groups:
         - hal
     - name: hal_silabs
-      revision: be39d4eebeddac6e18e9c0c3ba1b31ad1e82eaed
+      revision: 08dd39f1a20a2aaec596b909c31e9b23d7fef09d
       path: modules/hal/silabs
       groups:
         - hal
@@ -183,7 +183,7 @@ manifest:
       revision: d148bd26718e4c10414f07a7eb1bd24c62e56c5d
       path: modules/lib/nanopb
     - name: net-tools
-      revision: f49bd1354616fae4093bf36e5eaee43c51a55127
+      revision: e0828aa9629b533644dc96ff6d1295c939bd713c
       path: tools/net-tools
       groups:
         - tools
@@ -220,7 +220,7 @@ manifest:
       groups:
         - crypto
     - name: TraceRecorderSource
-      revision: e8ca3b6a83d19b2fc4738a0d9607190436e5e452
+      revision: 9893bf1cf649a2c4ee2e27293f887994f3d0da5b
       path: modules/debug/TraceRecorder
       groups:
         - debug
@@ -240,7 +240,7 @@ manifest:
       groups:
         - tee
     - name: zcbor
-      revision: 882c489a7d9fdfff31d27666914a78a9eb6976d7
+      revision: a0d6981f14d4001d6f0d608d1a427f9bc6bb6d02
       path: modules/lib/zcbor
     - name: zscilib
       path: modules/lib/zscilib
