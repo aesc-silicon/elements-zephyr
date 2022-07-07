@@ -7,21 +7,31 @@
 #include <zephyr/drivers/timer/system_timer.h>
 #include <zephyr/sys_clock.h>
 #include <zephyr/spinlock.h>
+#include <zephyr/drivers/interrupt_controller/dw_ace_v1x.h>
+
 #include <cavs-idc.h>
 #include <cavs-shim.h>
 
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
+#include <ace_v1x-regs.h>
+#endif
+
 /**
  * @file
- * @brief CAVS DSP Wall Clock Timer driver
+ * @brief Intel Audio DSP Wall Clock Timer driver
  *
- * The CAVS DSP on Intel SoC has a timer with one counter and two compare
+ * The Audio DSP on Intel SoC has a timer with one counter and two compare
  * registers that is external to the CPUs. This timer is accessible from
  * all available CPU cores and provides a synchronized timer under SMP.
  */
 
 #define COMPARATOR_IDX  0 /* 0 or 1 */
 
-#define TIMER_IRQ	DSP_WCT_IRQ(COMPARATOR_IDX)
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
+#define TIMER_IRQ MTL_IRQ_TO_ZEPHYR(MTL_INTL_TTS)
+#else
+#define TIMER_IRQ DSP_WCT_IRQ(COMPARATOR_IDX)
+#endif
 
 #define CYC_PER_TICK	(CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC	\
 			/ CONFIG_SYS_CLOCK_TICKS_PER_SEC)
@@ -32,11 +42,21 @@
 BUILD_ASSERT(MIN_DELAY < CYC_PER_TICK);
 BUILD_ASSERT(COMPARATOR_IDX >= 0 && COMPARATOR_IDX <= 1);
 
-#define WCTCS      (&CAVS_SHIM.dspwctcs)
-#define COUNTER_HI (&CAVS_SHIM.dspwc_hi)
-#define COUNTER_LO (&CAVS_SHIM.dspwc_lo)
-#define COMPARE_HI (&CAVS_SHIM.UTIL_CAT(UTIL_CAT(dspwct, COMPARATOR_IDX), c_hi))
-#define COMPARE_LO (&CAVS_SHIM.UTIL_CAT(UTIL_CAT(dspwct, COMPARATOR_IDX), c_lo))
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
+#define WCTCS_TTIE(c) BIT(8 + (c))
+/* Basically identical register interface, very slightly different layout */
+# define WCTCS      (&MTL_TTS.wctcs)
+# define COUNTER_HI (&MTL_TTS.wc.hi)
+# define COUNTER_LO (&MTL_TTS.wc.lo)
+# define COMPARE_HI (&MTL_TTS.wctc[COMPARATOR_IDX].hi)
+# define COMPARE_LO (&MTL_TTS.wctc[COMPARATOR_IDX].lo)
+#else
+# define WCTCS      (&CAVS_SHIM.dspwctcs)
+# define COUNTER_HI (&CAVS_SHIM.dspwc_hi)
+# define COUNTER_LO (&CAVS_SHIM.dspwc_lo)
+# define COMPARE_HI (&CAVS_SHIM.UTIL_CAT(UTIL_CAT(dspwct, COMPARATOR_IDX), c_hi))
+# define COMPARE_LO (&CAVS_SHIM.UTIL_CAT(UTIL_CAT(dspwct, COMPARATOR_IDX), c_lo))
+#endif
 
 static struct k_spinlock lock;
 static uint64_t last_count;
@@ -174,7 +194,16 @@ static void irq_init(void)
 {
 	int cpu = arch_curr_cpu()->id;
 
+	/* These platforms have an extra layer of interrupt masking
+	 * (for per-core control) above the interrupt controller.
+	 * Drivers need to do that part.
+	 */
+#ifdef CONFIG_SOC_SERIES_INTEL_ACE1X
+	MTL_DINT[cpu].ie[MTL_INTL_TTS] |= BIT(COMPARATOR_IDX + 1);
+	*WCTCS |= WCTCS_TTIE(COMPARATOR_IDX);
+#else
 	CAVS_INTCTRL[cpu].l2.clear = CAVS_L2_DWCT0;
+#endif
 	irq_enable(TIMER_IRQ);
 }
 

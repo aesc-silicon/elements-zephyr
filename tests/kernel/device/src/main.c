@@ -236,6 +236,24 @@ ZTEST(device, test_device_list)
 	zassert_false((devcount == 0), NULL);
 }
 
+static int sys_init_counter;
+
+static int init_fn(const struct device *dev)
+{
+	sys_init_counter++;
+	return 0;
+}
+
+SYS_INIT(init_fn, APPLICATION, 0);
+SYS_INIT_NAMED(init1, init_fn, APPLICATION, 1);
+SYS_INIT_NAMED(init2, init_fn, APPLICATION, 2);
+SYS_INIT_NAMED(init3, init_fn, APPLICATION, 2);
+
+ZTEST(device, test_sys_init_multiple)
+{
+	zassert_equal(sys_init_counter, 4, "");
+}
+
 /* this is for storing sequence during initialization */
 extern int init_level_sequence[4];
 extern int init_priority_sequence[4];
@@ -260,8 +278,9 @@ ZTEST(device, test_device_init_level)
 	 * correct, and it should be 1, 2, 3, 4
 	 */
 	for (int i = 0; i < 4; i++) {
-		if (init_level_sequence[i] != (i+1))
+		if (init_level_sequence[i] != (i + 1)) {
 			seq_correct = false;
+		}
 	}
 
 	zassert_true((seq_correct == true),
@@ -286,8 +305,9 @@ ZTEST(device, test_device_init_priority)
 	 * and it should be 1, 2, 3, 4
 	 */
 	for (int i = 0; i < 4; i++) {
-		if (init_priority_sequence[i] != (i+1))
+		if (init_priority_sequence[i] != (i + 1)) {
 			sequence_correct = false;
+		}
 	}
 
 	zassert_true((sequence_correct == true),
