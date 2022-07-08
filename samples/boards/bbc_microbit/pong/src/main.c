@@ -110,13 +110,19 @@ static int64_t b_timestamp;
 #define SOUND_PERIOD_PADDLE  200
 #define SOUND_PERIOD_WALL    1000
 
-static const struct device *pwm;
+static const struct device *pwm = DEVICE_DT_GET(DT_INST(0, nordic_nrf_sw_pwm));
 
 static enum sound_state {
 	SOUND_IDLE,    /* No sound */
 	SOUND_PADDLE,  /* Ball has hit the paddle */
 	SOUND_WALL,    /* Ball has hit a wall */
 } sound_state;
+
+static const struct gpio_dt_spec sw0_gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
+static const struct gpio_dt_spec sw1_gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
+
+/* ensure SW0 & SW1 are on same gpio controller */
+BUILD_ASSERT(DT_SAME_NODE(DT_GPIO_CTLR(DT_ALIAS(sw0), gpios), DT_GPIO_CTLR(DT_ALIAS(sw1), gpios)));
 
 static inline void beep(int period)
 {
@@ -395,7 +401,7 @@ static void button_pressed(const struct device *dev, struct gpio_callback *cb,
 			   uint32_t pins)
 {
 	/* Filter out spurious presses */
-	if (pins & BIT(DT_GPIO_PIN(DT_ALIAS(sw0), gpios))) {
+	if (pins & BIT(sw0_gpio.pin)) {
 		printk("A pressed\n");
 		if (k_uptime_delta(&a_timestamp) < 100) {
 			printk("Too quick A presses\n");
@@ -428,7 +434,7 @@ static void button_pressed(const struct device *dev, struct gpio_callback *cb,
 		return;
 	}
 
-	if (pins & BIT(DT_GPIO_PIN(DT_ALIAS(sw0), gpios))) {
+	if (pins & BIT(sw0_gpio.pin)) {
 		if (select) {
 			pong_select_change();
 			return;
@@ -489,26 +495,23 @@ void pong_remote_lost(void)
 static void configure_buttons(void)
 {
 	static struct gpio_callback button_cb_data;
-	const struct device *gpio;
 
-	gpio = device_get_binding(DT_GPIO_LABEL(DT_ALIAS(sw0), gpios));
+	/* since sw0_gpio.port == sw1_gpio.port, we only need to check ready once */
+	if (!device_is_ready(sw0_gpio.port)) {
+		printk("%s: device not ready.\n", sw0_gpio.port->name);
+		return;
+	}
 
-	gpio_pin_configure(gpio, DT_GPIO_PIN(DT_ALIAS(sw0), gpios),
-			   DT_GPIO_FLAGS(DT_ALIAS(sw0), gpios) | GPIO_INPUT);
-	gpio_pin_configure(gpio, DT_GPIO_PIN(DT_ALIAS(sw1), gpios),
-			   DT_GPIO_FLAGS(DT_ALIAS(sw1), gpios) | GPIO_INPUT);
+	gpio_pin_configure_dt(&sw0_gpio, GPIO_INPUT);
+	gpio_pin_configure_dt(&sw1_gpio, GPIO_INPUT);
 
-	gpio_pin_interrupt_configure(gpio, DT_GPIO_PIN(DT_ALIAS(sw0), gpios),
-				     GPIO_INT_EDGE_TO_ACTIVE);
-
-	gpio_pin_interrupt_configure(gpio, DT_GPIO_PIN(DT_ALIAS(sw1), gpios),
-				     GPIO_INT_EDGE_TO_ACTIVE);
+	gpio_pin_interrupt_configure_dt(&sw0_gpio, GPIO_INT_EDGE_TO_ACTIVE);
+	gpio_pin_interrupt_configure_dt(&sw1_gpio, GPIO_INT_EDGE_TO_ACTIVE);
 
 	gpio_init_callback(&button_cb_data, button_pressed,
-			   BIT(DT_GPIO_PIN(DT_ALIAS(sw0), gpios)) |
-			   BIT(DT_GPIO_PIN(DT_ALIAS(sw1), gpios)));
+			   BIT(sw0_gpio.pin) | BIT(sw1_gpio.pin));
 
-	gpio_add_callback(gpio, &button_cb_data);
+	gpio_add_callback(sw0_gpio.port, &button_cb_data);
 }
 
 void main(void)
@@ -519,7 +522,10 @@ void main(void)
 
 	k_work_init_delayable(&refresh, game_refresh);
 
-	pwm = device_get_binding(DT_LABEL(DT_INST(0, nordic_nrf_sw_pwm)));
+	if (!device_is_ready(pwm)) {
+		printk("%s: device not ready.\n", pwm->name);
+		return;
+	}
 
 	ble_init();
 

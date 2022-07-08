@@ -136,9 +136,18 @@ void ztest_run_all(const void *state);
  * @param state The current state of the machine as it relates to the test executable.
  * @return The number of tests that ran.
  */
-__syscall int ztest_run_test_suites(const void *state);
 
+#ifdef ZTEST_UNITTEST
+int z_impl_ztest_run_test_suites(const void *state);
+static inline int ztest_run_test_suites(const void *state)
+{
+	return z_impl_ztest_run_test_suites(state);
+}
+
+#else
+__syscall int ztest_run_test_suites(const void *state);
 #include <syscalls/ztest_test_new.h>
+#endif
 
 /**
  * @brief Fails the test if any of the registered tests did not run.
@@ -247,6 +256,17 @@ static inline void unit_test_noop(void)
  * @param config The Kconfig option used to skip the test.
  */
 #define Z_TEST_SKIP_IFDEF(config) COND_CODE_1(config, (ztest_test_skip()), ())
+
+/**
+ * @brief Skips the test if config is not enabled
+ *
+ * Use this macro at the start of your test case, to skip it when
+ * config is not enabled.  Useful when your need to skip test if some
+ * conifiguration option is not enabled.
+ *
+ * @param config The Kconfig option used to skip the test (if not enabled).
+ */
+#define Z_TEST_SKIP_IFNDEF(config) COND_CODE_1(config, (), (ztest_test_skip()))
 
 /**
  * @brief Create and register a new unit test.
@@ -389,7 +409,5 @@ struct ztest_arch_api {
 #ifdef __cplusplus
 }
 #endif
-
-#include <syscalls/ztest_test_new.h>
 
 #endif /* ZEPHYR_TESTSUITE_ZTEST_TEST_H_ */
