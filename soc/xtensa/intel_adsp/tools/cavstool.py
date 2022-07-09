@@ -230,10 +230,10 @@ def map_regs():
         else:
             log.warning(found_msg + ", unloading module")
             runx(f"rmmod -f {mod}")
-
-    # Disengage runtime power management so the kernel doesn't put it to sleep
-    with open(f"{pcidir}/power/control", "w") as ctrl:
-        ctrl.write("on")
+            # Disengage runtime power management so the kernel doesn't put it to sleep
+            log.info(f"Forcing {pcidir}/power/control to always 'on'")
+            with open(f"{pcidir}/power/control", "w") as ctrl:
+                ctrl.write("on")
 
     # Make sure PCI memory space access and busmastering are enabled.
     # Also disable interrupts so as not to confuse the kernel.
@@ -482,16 +482,29 @@ def load_firmware(fw_file):
     sd.CTL |= 1
     log.info(f"cAVS firmware load complete")
 
+def fw_is_alive():
+    return dsp.SRAM_FW_STATUS & ((1 << 28) - 1) == 5 # "FW_ENTERED"
 
-def wait_fw_entered():
-    log.info("Waiting for firmware handoff, FW_STATUS = 0x%x", dsp.SRAM_FW_STATUS)
-    for _ in range(200):
-        alive = dsp.SRAM_FW_STATUS & ((1 << 28) - 1) == 5 # "FW_ENTERED"
+def wait_fw_entered(timeout_s=2):
+    log.info("Waiting %s for firmware handoff, FW_STATUS = 0x%x",
+             "forever" if timeout_s is None else f"{timeout_s} seconds",
+             dsp.SRAM_FW_STATUS)
+    hertz = 100
+    attempts = None if timeout_s is None else timeout_s * hertz
+    while True:
+        alive = fw_is_alive()
         if alive:
             break
-        time.sleep(0.01)
+        if attempts is not None:
+            attempts -= 1
+            if attempts < 0:
+                break
+        time.sleep(1 / hertz)
+
     if not alive:
         log.warning("Load failed?  FW_STATUS = 0x%x", dsp.SRAM_FW_STATUS)
+    else:
+        log.info("FW alive, FW_STATUS = 0x%x", dsp.SRAM_FW_STATUS)
 
 
 # This SHOULD be just "mem[start:start+length]", but slicing an mmap
@@ -620,6 +633,15 @@ def ipc_command(data, ext_data):
             hda_str.mem.seek(0)
     else:
         log.warning(f"cavstool: Unrecognized IPC command 0x{data:x} ext 0x{ext_data:x}")
+        if not fw_is_alive():
+            if args.log_only:
+                log.info("DSP power seems off")
+                wait_fw_entered(timeout_s=None)
+            else:
+                log.warning("DSP power seems off?!")
+                time.sleep(2) # potential spam reduction
+
+            return
 
     dsp.HIPCTDR = 1<<31 # Ack local interrupt, also signals DONE on v1.5
     if cavs18:
@@ -645,7 +667,7 @@ async def _main(server):
     log.info(f"Detected cAVS {'1.5' if cavs15 else '1.8+'} hardware")
 
     if args.log_only:
-        wait_fw_entered()
+        wait_fw_entered(timeout_s=None)
     else:
         if not fw_file:
             log.error("Firmware file argument missing")
