@@ -114,6 +114,22 @@ struct bt_le_ext_adv_cb {
 	 */
 	void (*scanned)(struct bt_le_ext_adv *adv,
 			struct bt_le_ext_adv_scanned_info *info);
+
+#if defined(CONFIG_BT_PRIVACY)
+	/**
+	 * @brief The RPA validity of the advertising set has expired.
+	 *
+	 * This callback notifies the application that the RPA validity of
+	 * the advertising set has expired. The user can use this callback
+	 * to synchronize the advertising payload update with the RPA rotation.
+	 *
+	 * @param adv  The advertising set object.
+	 *
+	 * @return true to rotate the current RPA, or false to use it for the
+	 *         next rotation period.
+	 */
+	bool (*rpa_expired)(struct bt_le_ext_adv *adv);
+#endif /* defined(CONFIG_BT_PRIVACY) */
 };
 
 /**
@@ -2004,6 +2020,26 @@ static inline int bt_le_whitelist_clear(void)
  *         protocol error or negative (POSIX) in case of stack internal error.
  */
 int bt_le_set_chan_map(uint8_t chan_map[5]);
+
+/**
+ * @brief Set the Resolvable Private Address timeout in runtime
+ *
+ * The new RPA timeout value will be used for the next RPA rotation
+ * and all subsequent rotations until another override is scheduled
+ * with this API.
+ *
+ * Initially, the if @kconfig{CONFIG_BT_RPA_TIMEOUT} is used as the
+ * RPA timeout.
+ *
+ * This symbol is linkable if @kconfig{CONFIG_BT_RPA_TIMEOUT_DYNAMIC}
+ * is enabled.
+ *
+ * @param new_rpa_timeout Resolvable Private Address timeout in seconds
+ *
+ * @retval 0 Success.
+ * @retval -EINVAL RPA timeout value is invalid. Valid range is 1s - 3600s.
+ */
+int bt_le_set_rpa_timeout(uint16_t new_rpa_timeout);
 
 /**
  * @brief Helper for parsing advertising (or EIR or OOB) data.
