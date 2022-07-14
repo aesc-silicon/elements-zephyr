@@ -513,11 +513,14 @@ Documentation:
     files:
         - doc/hardware/peripherals/canbus/
         - drivers/can/
+        - drivers/net/canbus.c
         - dts/bindings/can/
         - include/zephyr/canbus/
         - include/zephyr/devicetree/can.h
         - include/zephyr/drivers/can.h
         - include/zephyr/drivers/can/
+        - include/zephyr/net/canbus.h
+        - include/zephyr/net/socket_can.h
         - samples/drivers/can/
         - samples/modules/canopennode/
         - samples/net/sockets/can/
@@ -1055,6 +1058,22 @@ Documentation:
 
     labels:
         - "area: Wifi"
+
+"Drivers: Memory Management":
+    status: maintained
+    maintainers:
+      - dcpleung
+    collaborators:
+      - ceolin
+      - edersondisouza
+      - jxstelter
+    files:
+      - include/zephyr/drivers/mm/
+      - drivers/mm/
+      - tests/boards/intel_adsp/mm/
+      - dts/bindings/mm/
+    labels:
+      - "area: Memory Management"
 
 Xen Platform:
     status: maintained
@@ -1682,11 +1701,13 @@ Intel Platforms (Xtensa):
         - marc-hb
         - kv2019i
         - MaureenHelm
+        - ceolin
     files:
         - boards/xtensa/intel_*/
         - soc/xtensa/intel_*/
+        - dts/xtensa/intel/
     labels:
-        - "platform: Intel CAVS"
+        - "platform: Intel ADSP"
 
 NXP Platforms:
   status: maintained
