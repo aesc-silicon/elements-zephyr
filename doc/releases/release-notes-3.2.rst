@@ -52,6 +52,17 @@ Removed APIs in this release
 Deprecated in this release
 ==========================
 
+* :c:macro:`DT_SPI_DEV_CS_GPIOS_LABEL` and
+  :c:macro:`DT_INST_SPI_DEV_CS_GPIOS_LABEL` are deprecated in favor of
+  utilizing :c:macro:`DT_SPI_DEV_CS_GPIOS_CTLR` and variants.
+
+* :c:macro:`DT_GPIO_LABEL`, :c:macro:`DT_INST_GPIO_LABEL`,
+  :c:macro:`DT_GPIO_LABEL_BY_IDX`, and :c:macro:`DT_INST_GPIO_LABEL_BY_IDX`,
+  are deprecated in favor of utilizing :c:macro:`DT_GPIO_CTLR` and variants.
+
+* :c:macro:`DT_BUS_LABEL`, and :c:macro:`DT_INST_BUS_LABEL`, are deprecated
+  in favor of utilizing :c:macro:`DT_BUS` and variants.
+
 Stable API changes in this release
 ==================================
 
