@@ -1,0 +1,47 @@
+config SOC_RISCV32_ELEMENTS_VEXRISCV
+	bool "Elements RISC-V implementation"
+        select RISCV_PRIVILEGED
+	select INCLUDE_RESET_VECTOR
+	select ATOMIC_OPERATIONS_C
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+
+if SOC_RISCV32_ELEMENTS_VEXRISCV
+
+config SOC
+	default "elements-vexriscv"
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 100000000
+
+config RISCV_SOC_INTERRUPT_INIT
+	default y
+
+config RISCV_MACHINE_TIMER
+	default y
+
+config RISCV_HAS_PLIC
+	default y
+
+config 2ND_LEVEL_INTERRUPTS
+	default y
+
+config 2ND_LVL_ISR_TBL_OFFSET
+	default 12
+
+config 2ND_LVL_INTR_00_OFFSET
+	default 12
+
+config NUM_IRQS
+	default 32
+
+config GEN_ISR_TABLES
+	default y
+
+config XIP
+	default n
+
+endif # SOC_RISCV32_ELEMENTS_VEXRISCV
