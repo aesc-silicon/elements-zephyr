@@ -1,0 +1,12 @@
+# Kconfig.elements - Elements SPI configuration option
+#
+# Copyright (c) 2023 aesc silicon
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig SPI_ELEMENTS
+	bool "Elements SPI controller driver"
+	depends on SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+	help
+	  Enable the Elements SPI driver.
