@@ -1,0 +1,6 @@
+family:
+- name: elements_vexriscv
+  series:
+  - name: helium
+    socs:
+    - name: helium1
