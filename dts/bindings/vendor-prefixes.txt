@@ -179,6 +179,7 @@ efinix	Efinix Inc
 einfochips	Einfochips
 elan	Elan Microelectronic Corp.
 element14	Element14 (A Premier Farnell Company)
+elements	Elements Project
 elgin	Elgin S/A.
 elida	Shenzhen Elida Technology Co., Ltd.
 elimo	Elimo Engineering Ltd.
