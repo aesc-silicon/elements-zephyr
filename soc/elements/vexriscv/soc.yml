@@ -1,0 +1,6 @@
+family:
+- name: elements_vexriscv
+  series:
+  - name: nitrogen
+    socs:
+    - name: elemrv-n
