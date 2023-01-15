@@ -1,0 +1,39 @@
+if SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+
+config SOC_SERIES
+	default "elements-vexriscv"
+
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	default 100000000
+
+config RISCV_SOC_INTERRUPT_INIT
+	default y
+
+config RISCV_HAS_CPU_IDLE
+	default n
+
+config RISCV_MACHINE_TIMER
+	default y
+
+config RISCV_HAS_PLIC
+	default y
+
+config 2ND_LEVEL_INTERRUPTS
+	default y
+
+config 2ND_LVL_ISR_TBL_OFFSET
+	default 12
+
+config 2ND_LVL_INTR_00_OFFSET
+	default 11
+
+config NUM_IRQS
+	default 32
+
+config GEN_ISR_TABLES
+	default y
+
+config XIP
+	default n
+
+endif # SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
