@@ -1,0 +1,8 @@
+# Copyright (c) 2024 aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+if SOC_FAMILY_ELEMENTS_VEXRISCV
+
+rsource "*/Kconfig.defconfig"
+
+endif # SOC_FAMILY_ELEMENTS_VEXRISCV

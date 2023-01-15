@@ -1,0 +1,17 @@
+# Copyright (c) 2024 aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HELIUM
+	select RISCV
+	select RISCV_PRIVILEGED
+	select INCLUDE_RESET_VECTOR
+	select ATOMIC_OPERATIONS_C
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	select RISCV_ISA_EXT_ZIFENCEI
+
+config SOC_PART_NUMBER
+	default "helium1" if SOC_HELIUM1
+	default "helium2" if SOC_HELIUM2
