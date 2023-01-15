@@ -1,0 +1,7 @@
+config SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+	bool "Elements implementation"
+	select SOC_FAMILY_RISCV_PRIVILEGED
+	select HAS_DTS
+	select INCLUDE_RESET_VECTOR
+	help
+	  Enable support for Elements SOCs
