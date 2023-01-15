@@ -1,0 +1,16 @@
+# Copyright (c) 2018, SiFive Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Copy of elements,plic-1.0.0.yaml
+
+description: Elements RISCV-V platform-local interrupt controller
+
+compatible: "elements,plic-0"
+
+include: riscv,plic0.yaml
+
+properties:
+    riscv,ndev:
+        type: int
+        description: Number of external interrupts supported
+        required: true

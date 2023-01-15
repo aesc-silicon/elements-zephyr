@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#define DT_DRV_COMPAT sifive_plic_1_0_0
+#define DT_DRV_COMPAT elements_plic_0
 
 /**
  * @brief Platform Level Interrupt Controller (PLIC) driver
