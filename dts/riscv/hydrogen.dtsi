@@ -1,0 +1,59 @@
+/*
+ * Copyright (c) 2023 aesc silicon
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			compatible = "vexriscv", "riscv";
+			reg = <0>;
+			device_type = "cpu";
+			riscv,isa = "rv32i";
+		};
+	};
+
+	memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		ram0: memory@80000000 {
+			device_type = "memory";
+			compatible = "mmio-sram";
+			reg = <0x80000000 0x00020000>;
+		};
+	};
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "elements,elements-soc", "simple-bus";
+		ranges;
+
+		plic: interrupt-controller@f00f0000 {
+			compatible = "elements,plic-0";
+			#interrupt-cells = <2>;
+			interrupt-controller;
+			reg = <0xF00F0000 0x2000
+			       0xF00F2000 0xF000
+			       0xF00FF000 0x10000>;
+			reg-names = "prio", "irq_en", "reg";
+			riscv,max-priority = <7>;
+			riscv,ndev = <0>;
+		};
+
+		mtimer: machine-timer0@f0020000 {
+			reg = <0xF0020000 0x1000>;
+			status = "okay";
+		};
+	};
+};
