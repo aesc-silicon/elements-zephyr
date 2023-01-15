@@ -1,0 +1,15 @@
+choice
+prompt "Elements implementations"
+depends on SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+
+config SOC_RISCV32_ELEMENTS_VEXRISCV
+	bool "Elements RISC-V implementation"
+	select INCLUDE_RESET_VECTOR
+	select ATOMIC_OPERATIONS_C
+	select RISCV_ISA_RV32I
+	select RISCV_ISA_EXT_M
+	select RISCV_ISA_EXT_C
+	select RISCV_ISA_EXT_ZICSR
+	#select RISCV_ISA_EXT_ZIFENCEI
+
+endchoice
