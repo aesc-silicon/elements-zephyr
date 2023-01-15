@@ -1,0 +1,10 @@
+identifier: hydrogen1-nexys4ddr
+name: Elements Hydrogen1 / Nexys4DDR
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - gpio
+  - uart
