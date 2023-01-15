@@ -1,0 +1,5 @@
+config BOARD_HELIUM1_NEXYSA7
+    bool "Helium1 Nexys A7 board"
+    depends on SOC_RISCV32_ELEMENTS_VEXRISCV
+    select HAS_DTS
+    select RISCV
