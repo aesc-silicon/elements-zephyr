@@ -3,6 +3,7 @@
 zephyr_syscall_header(${ZEPHYR_BASE}/include/zephyr/drivers/uart.h)
 
 zephyr_library()
+<<<<<<< HEAD
 
 # zephyr-keep-sorted-start
 zephyr_library_sources_ifdef(CONFIG_SERIAL_TEST serial_test.c)
@@ -17,6 +18,7 @@ zephyr_library_sources_ifdef(CONFIG_USB_CDC_ACM ${ZEPHYR_BASE}/misc/empty_file.c
 zephyr_library_sources_ifdef(CONFIG_LEUART_GECKO leuart_gecko.c)
 zephyr_library_sources_ifdef(CONFIG_LPUART_ESP32 lpuart_esp32.c)
 zephyr_library_sources_ifdef(CONFIG_SERIAL_ESP32_USB serial_esp32_usb.c)
+zephyr_library_sources_ifdef(CONFIG_UART_ALTERA_JTAG uart_altera_jtag.c)
 zephyr_library_sources_ifdef(CONFIG_UART_ALTERA uart_altera.c)
 zephyr_library_sources_ifdef(CONFIG_UART_ALTERA_JTAG uart_altera_jtag.c)
 zephyr_library_sources_ifdef(CONFIG_UART_APBUART uart_apbuart.c)
@@ -29,6 +31,7 @@ zephyr_library_sources_ifdef(CONFIG_UART_CC32XX uart_cc32xx.c)
 zephyr_library_sources_ifdef(CONFIG_UART_CDNS uart_cdns.c)
 zephyr_library_sources_ifdef(CONFIG_UART_CMSDK_APB uart_cmsdk_apb.c)
 zephyr_library_sources_ifdef(CONFIG_UART_EFINIX_SAPPIHIRE uart_efinix_sapphire.c)
+zephyr_library_sources_ifdef(CONFIG_UART_ELEMENTS uart_elements.c)
 zephyr_library_sources_ifdef(CONFIG_UART_EMUL uart_emul.c)
 zephyr_library_sources_ifdef(CONFIG_UART_ENE_KB1200 uart_ene_kb1200.c)
 zephyr_library_sources_ifdef(CONFIG_UART_ESP32 uart_esp32.c)
