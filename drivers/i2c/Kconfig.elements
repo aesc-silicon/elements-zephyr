@@ -1,0 +1,12 @@
+# Kconfig.elements - Elements I2C configuration option
+#
+# Copyright (c) 2023 aesc silicon
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig I2C_ELEMENTS
+	bool "Elements I2C controller driver"
+	depends on SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+	help
+	  Enable the Elements I2C controller driver.
