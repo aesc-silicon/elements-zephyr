@@ -1,0 +1,16 @@
+# Copyright (c) 2025 aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_HYDROGEN
+	bool
+	select SOC_FAMILY_ELEMENTS_VEXRISCV
+
+config SOC_ELEMRV1
+	bool
+	select SOC_SERIES_HYDROGEN
+
+config SOC_SERIES
+	default "hydrogen" if SOC_SERIES_HYDROGEN
+
+config SOC
+	default "elemrv1" if SOC_ELEMRV1

@@ -1,0 +1,6 @@
+family:
+- name: elements_vexriscv
+  series:
+  - name: hydrogen
+    socs:
+    - name: elemrv1
