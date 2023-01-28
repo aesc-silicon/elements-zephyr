@@ -59,6 +59,8 @@ config GPIO_HOGS_INIT_PRIORITY
 	  GPIO hogs initialization priority. GPIO hogs must be initialized after the
 	  GPIO controller drivers.
 
+source "drivers/gpio/Kconfig.elements"
+
 source "drivers/gpio/Kconfig.b91"
 
 source "drivers/gpio/Kconfig.dw"
