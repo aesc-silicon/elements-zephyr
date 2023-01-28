@@ -1,0 +1,23 @@
+# Kconfig.elements - Elements GPIO configuration option
+#
+# Copyright (c) 2023 aesc silicon
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+menuconfig GPIO_ELEMENTS
+	bool "Elements GPIO driver"
+	depends on GPIO && SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+	select HAS_DTS_GPIO
+	help
+	  Enable driver for the Elements GPIO controller.
+
+	  Says n if not sure.
+
+
+if GPIO_ELEMENTS
+
+config GPIO_ELEMENTS_INTERRUPT
+	bool "Enable interrupt support"
+
+endif # GPIO_ELEMENTS
