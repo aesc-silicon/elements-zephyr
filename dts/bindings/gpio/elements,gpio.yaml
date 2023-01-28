@@ -1,0 +1,25 @@
+#
+# Copyright (c) 2021 Phytec Messtechnik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+compatible: "elements,gpio"
+
+description: Elements GPIO - This is a representation of the Elements GPIO nodes
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+    reg:
+      required: true
+
+    interrupts:
+      required: true
+
+    "#gpio-cells":
+      const: 2
+
+gpio-cells:
+  - pin
+  - flags
