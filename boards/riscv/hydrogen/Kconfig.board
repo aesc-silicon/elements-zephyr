@@ -1,0 +1,5 @@
+config BOARD_HYDROGEN1_NEXYS4DDR
+    bool "Hydrogen1 Nexys4DDR board"
+    depends on SOC_RISCV32_ELEMENTS_VEXRISCV
+    select HAS_DTS
+    select RISCV
