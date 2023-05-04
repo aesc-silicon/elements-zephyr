@@ -52,6 +52,7 @@ _names = [
     'spi_burn',
     'stm32cubeprogrammer',
     'stm32flash',
+    'openfpgaloader',
     'trace32',
     'uf2',
     'xtensa',
