@@ -1,0 +1,4 @@
+if BOARD_HELIUM1_NEXYS4DDR
+config BOARD
+    default "helium1-nexys4ddr"
+endif
