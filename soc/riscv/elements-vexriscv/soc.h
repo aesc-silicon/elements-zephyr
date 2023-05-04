@@ -2,10 +2,4 @@
 #define __RISCV32_ELEMENTS_VEXRISCV_SOC_H_
 
 
-/* Timer configuration */
-#define RISCV_MTIME_BASE		DT_REG_ADDR(DT_NODELABEL(mtimer))
-#define MTIME_REG			RISCV_MTIME_BASE
-#define MTIMECMP_REG			RISCV_MTIME_BASE + 0x8
-#define TIMER_IRQN			1
-
 #endif /* __RISCV32_ELEMENTS_VEXRISCV_SOC_H_ */
