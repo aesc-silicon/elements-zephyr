@@ -27,6 +27,13 @@
 #define MTIME_REG	DT_INST_REG_ADDR(0)
 #define MTIMECMP_REG	(DT_INST_REG_ADDR(0) + 8)
 #define TIMER_IRQN	DT_INST_IRQN(0)
+/* elements-machine-timer */
+#elif DT_HAS_COMPAT_STATUS_OKAY(elements_machine_timer)
+#define DT_DRV_COMPAT elements_machine_timer
+
+#define MTIME_REG	DT_INST_REG_ADDR(0)
+#define MTIMECMP_REG	(DT_INST_REG_ADDR(0) + 8)
+#define TIMER_IRQN	DT_INST_IRQN(0)
 /* nuclei,systimer */
 #elif DT_HAS_COMPAT_STATUS_OKAY(nuclei_systimer)
 #define DT_DRV_COMPAT nuclei_systimer
