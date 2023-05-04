@@ -1,0 +1,28 @@
+# The west manifest file for Elements SDK
+#
+# See ../west.yml
+
+manifest:
+  defaults:
+    remote: aesc-silicon
+    revision: release-v23.1
+
+  remotes:
+    - name: aesc-silicon
+      url-base: https://github.com/aesc-silicon
+    - name: spinalhdl
+      url-base: https://github.com/spinalhdl
+
+  projects:
+    - name: elements-zibal
+      path: modules/elements/zibal
+    - name: elements-nafarr
+      path: modules/elements/nafarr
+    - name: elements-vexriscv
+      path: modules/elements/vexriscv
+    - name: SpinalCrypto
+      revision: master
+      path: modules/elements/SpinalCrypto
+      remote: spinalhdl
+    - name: elements-zephyr-samples
+      path: elements-zephyr-samples
