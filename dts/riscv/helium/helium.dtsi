@@ -19,6 +19,13 @@
 			reg = <0>;
 			device_type = "cpu";
 			riscv,isa = "rv32i";
+
+			cpu0_intc: interrupt-controller {
+				compatible = "riscv,cpu-intc";
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+				interrupt-controller;
+			};
 		};
 	};
 
@@ -41,6 +48,7 @@
 
 		plic: interrupt-controller@f00f0000 {
 			compatible = "elements,plic-0";
+			#address-cells = <0>;
 			#interrupt-cells = <2>;
 			interrupt-controller;
 			reg = <0xF00F0000 0x2000
@@ -52,8 +60,10 @@
 		};
 
 		mtimer: machine-timer0@f0020000 {
+			compatible = "elements-machine-timer";
 			reg = <0xF0020000 0x1000>;
-			status = "okay";
+			interrupt-parent = <&cpu0_intc>;
+			interrupts = <7 1>;
 		};
 	};
 };
