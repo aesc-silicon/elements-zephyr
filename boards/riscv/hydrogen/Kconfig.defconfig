@@ -1,0 +1,4 @@
+if BOARD_HYDROGEN1_NEXYS4DDR
+config BOARD
+    default "hydrogen1-nexys4ddr"
+endif
