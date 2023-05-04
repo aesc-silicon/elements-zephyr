@@ -60,6 +60,7 @@ _names = [
     'stm32cubeprogrammer',
     'stm32flash',
     'teensy',
+    'openfpgaloader',
     'trace32',
     'uf2',
     'xsdb',
