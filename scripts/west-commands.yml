@@ -30,6 +30,20 @@ west-commands:
       - name: sign
         class: Sign
         help: sign a Zephyr binary for bootloader chain-loading
+  - file: scripts/west_commands/elements.py
+    commands:
+      - name: elements-generate
+        class: Generate
+        help: generate a RISC-V MCU design
+      - name: elements-synthesize
+        class: Synthesize
+        help: syntesize a RISC-V MCU design
+      - name: elements-simulate
+        class: Simulate
+        help: simulate a RISC-V MCU design
+      - name: elements-test
+        class: Test
+        help: runts a test application
   - file: scripts/west_commands/flash.py
     commands:
       - name: flash
