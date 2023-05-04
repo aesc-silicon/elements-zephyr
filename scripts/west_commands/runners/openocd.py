@@ -77,7 +77,7 @@ class OpenOcdBinaryRunner(ZephyrBinaryRunner):
         self.gdb_port = gdb_port
         self.gdb_cmd = [cfg.gdb] if cfg.gdb else None
         self.tui_arg = ['-tui'] if tui else []
-        self.halt_arg = [] if no_halt else ['-c halt']
+        self.halt_arg = [] if no_halt else ['-c soft_reset_halt']
         self.init_arg = [] if no_init else ['-c init']
         self.targets_arg = [] if no_targets else ['-c targets']
         self.serial = ['-c set _ZEPHYR_BOARD_SERIAL ' + serial] if serial else []
@@ -348,6 +348,8 @@ class OpenOcdBinaryRunner(ZephyrBinaryRunner):
 
         self.require(gdb_cmd[0])
         self.print_gdbserver_message()
+        self.logger.warn("BUG: OpenOCD does not work with F4PGA synthesized designs.\n" \
+                         "Use the vendor toolchain if debugging is required.")
         self.run_server_and_client(server_cmd, gdb_cmd)
 
     def do_debugserver(self, **kwargs):
