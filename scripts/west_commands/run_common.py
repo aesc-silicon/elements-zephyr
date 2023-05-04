@@ -41,6 +41,8 @@ from runners import get_runner_cls, ZephyrBinaryRunner, MissingProgram
 from runners.core import RunnerConfig
 import zcmake
 
+from elements_base import Elements
+
 # Context-sensitive help indentation.
 # Don't change this, or output from argparse won't match up.
 INDENT = ' ' * 2
@@ -246,6 +248,7 @@ def do_run_common(command, user_args, user_runner_args, domain_file=None):
     build_dir = get_build_dir(user_args)
     if not user_args.skip_rebuild:
         rebuild(command, build_dir, user_args)
+        regenerate(command, build_dir, user_args)
 
     domains = get_domains_to_process(build_dir, user_args, domain_file)
 
@@ -567,6 +570,13 @@ def load_cmake_cache(build_dir, args):
     except FileNotFoundError:
         log.die(f'no CMake cache found (expected one at {cache_file})')
 
+def regenerate(command, build_dir, args):
+    _banner(f'west {command.name}: regenerating')
+    cache = load_cmake_cache(build_dir, args)
+    board = cache['CACHED_BOARD']
+    elements = Elements(build_dir, board, False)
+    elements.generate()
+
 def rebuild(command, build_dir, args):
     _banner(f'west {command.name}: rebuilding')
     try:
@@ -725,6 +735,7 @@ def dump_context(command, args, unknown_args):
     # Re-build unless asked not to, to make sure the output is up to date.
     if build_dir and not args.skip_rebuild:
         rebuild(command, build_dir, args)
+        regenerate(command, build_dir, args)
 
     domains = get_domains_to_process(build_dir, args, None, get_all_domain)
 
