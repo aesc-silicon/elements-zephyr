@@ -1,0 +1,10 @@
+identifier: hydrogen1-ecpix5
+name: Elements Hydrogen1 / ECPIX-5 Board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - gpio
+  - uart

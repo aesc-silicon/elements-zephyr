@@ -2,3 +2,8 @@ if BOARD_HYDROGEN1_NEXYSA7
 config BOARD
     default "hydrogen1-nexysa7"
 endif
+
+if BOARD_HYDROGEN1_ECPIX5
+config BOARD
+    default "hydrogen1-ecpix5"
+endif
