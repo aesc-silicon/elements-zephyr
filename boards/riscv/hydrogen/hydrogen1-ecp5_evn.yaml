@@ -1,0 +1,10 @@
+identifier: hydrogen1-ecp5evaluationboard
+name: Elements Hydrogen1 / ECP5 Evaluation Board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - gpio
+  - uart
