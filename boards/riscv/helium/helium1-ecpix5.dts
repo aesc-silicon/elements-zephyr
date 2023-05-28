@@ -1,0 +1,31 @@
+/dts-v1/;
+#include <helium/helium1.dtsi>
+
+/ {
+	model = "helium1_ecpix5";
+	compatible = "elements,helium1_ecpix5";
+
+	chosen {
+		zephyr,console = &uartStdCtrl;
+		zephyr,shell-uart = &uartStdCtrl;
+		zephyr,sram = &ram0;
+	};
+	leds {
+		compatible = "gpio-leds";
+		heartbeat: HEARTBEAT {
+			gpios = <&gpioStatusCtrl 0 GPIO_ACTIVE_HIGH>;
+			label = "Heartbeat LED";
+		};
+	};
+	keys {
+		compatible = "gpio-keys";
+		sw0: SW0 {
+			gpios = <&gpioStatusCtrl 1 GPIO_ACTIVE_HIGH>;
+			label = "Software 0 Button";
+		};
+	};
+};
+
+&uartStdCtrl {
+	clock-frequency = <100000000>;
+};

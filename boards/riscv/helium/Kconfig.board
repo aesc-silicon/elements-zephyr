@@ -3,3 +3,9 @@ config BOARD_HELIUM1_NEXYS4DDR
     depends on SOC_RISCV32_ELEMENTS_VEXRISCV
     select HAS_DTS
     select RISCV
+
+config BOARD_HELIUM1_ECPIX5
+    bool "Helium1 ECPIX-5 board"
+    depends on SOC_RISCV32_ELEMENTS_VEXRISCV
+    select HAS_DTS
+    select RISCV

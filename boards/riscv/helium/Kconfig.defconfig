@@ -2,3 +2,8 @@ if BOARD_HELIUM1_NEXYS4DDR
 config BOARD
     default "helium1-nexys4ddr"
 endif
+
+if BOARD_HELIUM1_ECPIX5
+config BOARD
+    default "helium1-ecpix5"
+endif
