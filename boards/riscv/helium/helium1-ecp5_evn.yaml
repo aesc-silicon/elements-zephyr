@@ -1,0 +1,10 @@
+identifier: helium1-ecp5_evn
+name: Elements Helium1 / ECP5 Evaluation Board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 128
+supported:
+  - gpio
+  - uart
