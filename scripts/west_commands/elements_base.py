@@ -67,6 +67,7 @@ class Elements:
             env['FPGA_FAM'] = self.meta['f4pga']['family']
             env['FPGA_DEVICE'] = str(self.meta['f4pga'].get('device', None))
             env['FPGA_PACKAGE'] = str(self.meta['f4pga'].get('package', None))
+            env['FPGA_FREQUENCY'] = str(self.meta['f4pga'].get('frequency', None))
         env['BUILD_ROOT'] = self.build_dir
         env['NAFARR_BASE'] = NAFARR_ROOT_DIR
         env['ZIBAL_BASE'] = ZIBAL_ROOT_DIR
