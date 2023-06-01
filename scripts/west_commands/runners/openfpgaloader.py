@@ -63,11 +63,20 @@ class OpenFPGALoaderBinaryRunner(ZephyrBinaryRunner):
     def do_run(self, command, **kwargs):
         self.logger.info("Board: %s", self.board)
 
-        board = self.meta['openfpgaloader']['board']
-        flash = '' if self.sram_only else '-f'
+        board = ''
+        cable = ''
+        frequency = ''
+        if 'board' in self.meta['openfpgaloader']:
+            board = f" -b {self.meta['openfpgaloader']['board']}"
+        if 'cable' in self.meta['openfpgaloader']:
+            cable = f" -c {self.meta['openfpgaloader']['cable']}"
+        if 'frequency' in self.meta['openfpgaloader']:
+            frequency = f" --freq {self.meta['openfpgaloader']['frequency']}"
+        assert board or cable, "Define a board, cable, or both in the meta file."
+        flash = '' if self.sram_only else ' -f'
         bitstream = Path(self.build_dir) / self.meta['soc'] / self.meta['board'] / \
             f"{self.meta['board']}Top.bit"
-        command = f"openFPGALoader -b {board} {flash} {bitstream}"
+        command = f"openFPGALoader{board}{cable}{frequency}{flash} {bitstream}"
 
         env = self.get_env()
         self.check_call(shlex.split(command), env=env)
