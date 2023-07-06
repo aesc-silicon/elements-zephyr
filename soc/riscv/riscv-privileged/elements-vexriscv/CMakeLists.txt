@@ -1,1 +1,1 @@
-zephyr_sources()
+zephyr_sources(soc.c)
