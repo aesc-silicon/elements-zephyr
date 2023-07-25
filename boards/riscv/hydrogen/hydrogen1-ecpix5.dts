@@ -2,8 +2,8 @@
 #include <hydrogen/hydrogen1.dtsi>
 
 / {
-	model = "hydrogen1_ecp5_evn";
-	compatible = "elements,hydrogen1_ecp5_evn";
+	model = "hydrogen1_ecpix5";
+	compatible = "elements,hydrogen1_ecpix5";
 
 	chosen {
 		zephyr,console = &uartStdCtrl;
@@ -27,5 +27,5 @@
 };
 
 &uartStdCtrl {
-	clock-frequency = <100000000>;
+	clock-frequency = <90000000>;
 };

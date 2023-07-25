@@ -4,8 +4,8 @@ config BOARD_HYDROGEN1_NEXYS4DDR
     select HAS_DTS
     select RISCV
 
-config BOARD_HYDROGEN1_ECP5EVN
-    bool "Hydrogen1 ECP5 Evaluation Board"
+config BOARD_HYDROGEN1_ECPIX5
+    bool "Hydrogen1 ECPIX-5 Board"
     depends on SOC_RISCV32_ELEMENTS_VEXRISCV
     select HAS_DTS
     select RISCV
