@@ -2,8 +2,8 @@
 #include <helium/helium1.dtsi>
 
 / {
-	model = "helium1_ecp5_evn";
-	compatible = "elements,helium1_ecp5_evn";
+	model = "helium1_ecpix5";
+	compatible = "elements,helium1_ecpix5";
 
 	chosen {
 		zephyr,console = &uartStdCtrl;
@@ -27,5 +27,5 @@
 };
 
 &uartStdCtrl {
-	clock-frequency = <100000000>;
+	clock-frequency = <90000000>;
 };
