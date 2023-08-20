@@ -27,5 +27,5 @@
 };
 
 &uartStdCtrl {
-	clock-frequency = <90000000>;
+	clock-frequency = <100000000>;
 };
