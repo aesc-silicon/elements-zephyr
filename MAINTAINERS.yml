@@ -709,16 +709,18 @@ Release Notes:
     - martinjaeger
     - str4t0m
   files:
+    - boards/shields/mcp2515/
     - doc/hardware/peripherals/canbus/
     - drivers/can/
     - drivers/net/canbus.c
     - dts/bindings/can/
+    - dts/bindings/phy/can-transceiver*
     - include/zephyr/canbus/
     - include/zephyr/devicetree/can.h
     - include/zephyr/drivers/can.h
     - include/zephyr/drivers/can/
     - include/zephyr/net/canbus.h
-    - include/zephyr/net/socketcan.h
+    - include/zephyr/net/socketcan*.h
     - samples/drivers/can/
     - samples/modules/canopennode/
     - samples/net/sockets/can/
@@ -1418,7 +1420,7 @@ Release Notes:
   labels:
     - "area: Watchdog"
 
-"Drivers: WiFi":
+"Drivers: Wi-Fi":
   status: maintained
   maintainers:
     - tbursztyka
@@ -1429,9 +1431,9 @@ Release Notes:
   files:
     - drivers/wifi/
   labels:
-    - "area: Wifi"
+    - "area: Wi-Fi"
 
-"Drivers: WiFi es-WiFi":
+"Drivers: Wi-Fi es-WiFi":
   status: odd fixes
   collaborators:
     - loicpoulain
@@ -1441,7 +1443,7 @@ Release Notes:
     Inventek es-WiFi
 
   labels:
-    - "area: Wifi"
+    - "area: Wi-Fi"
 
 "Drivers: Memory Management":
   status: maintained
@@ -1850,15 +1852,20 @@ Networking:
     - tests/net/
   files-exclude:
     - doc/connectivity/networking/api/ieee802154.rst
+    - doc/connectivity/networking/api/wifi.rst
     - include/zephyr/net/ieee802154*.h
+    - include/zephyr/net/wifi*.h
     - samples/net/sockets/coap_*/
     - samples/net/lwm2m_client/
+    - samples/net/wifi/
     - subsys/net/l2/ieee802154/
+    - subsys/net/l2/wifi/
     - subsys/net/lib/coap/
     - subsys/net/lib/config/ieee802154*
     - subsys/net/lib/lwm2m/
     - subsys/net/lib/tls_credentials/
     - tests/net/ieee802154/
+    - tests/net/wifi/
   labels:
     - "area: Networking"
 
@@ -1989,6 +1996,22 @@ Networking:
   labels:
     - "area: Networking"
     - "area: OpenThread"
+
+"Networking: Wi-Fi":
+  status: maintained
+  maintainers:
+    - jukkar
+  collaborators:
+    - rlubos
+  files:
+    - doc/connectivity/networking/api/wifi.rst
+    - include/zephyr/net/wifi*.h
+    - subsys/net/l2/wifi/
+    - samples/net/wifi/
+    - tests/net/wifi/
+  labels:
+    - "area: Networking"
+    - "area: Wi-Fi"
 
 NIOS-2 arch:
   status: maintained
