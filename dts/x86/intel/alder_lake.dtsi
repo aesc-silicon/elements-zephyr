@@ -80,6 +80,18 @@
 			interrupt-parent = <&intc>;
 			status = "disabled";
 		};
+
+		uart2: uart2 {
+			compatible = "ns16550";
+			vendor-id = <0x8086>;
+			device-id = <0x54C7>;
+			clock-frequency = <1843200>;
+			current-speed = <115200>;
+			reg-shift = <2>;
+			interrupts = <PCIE_IRQ_DETECT IRQ_TYPE_LOWEST_LEVEL_LOW 3>;
+			interrupt-parent = <&intc>;
+			status = "disabled";
+		};
 	};
 
 	soc {
@@ -118,6 +130,16 @@
 			compatible = "intel,tco-wdt";
 			reg = <0x0400 0x20>;
 			status = "disabled";
+		};
+
+		pwm0: pwm0@fd6d0000 {
+			compatible = "intel,blinky-pwm";
+			reg = <0xfd6d0000 0x400>;
+			reg-offset = <0x204>;
+			clock-frequency = <32768>;
+			max-pins = <1>;
+			#pwm-cells = <2>;
+			status = "okay";
 		};
 	};
 };
