@@ -193,7 +193,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: b0274481021b6343740f1970ef167d65ea67d30b
+      revision: 0ef57e8ee40f02f1dce4b4ad666c55885f941703
       path: modules/hal/nxp
       groups:
         - hal
@@ -267,7 +267,7 @@ manifest:
         - fs
       revision: ca583fd297ceb48bced3c2548600dc615d67af24
     - name: loramac-node
-      revision: 3029c9f304bf46a6e5205f3c8455dbc23108efec
+      revision: 466089c8726397e3fb68ee611d82712f6e14aa55
       path: modules/lib/loramac-node
     - name: lvgl
       revision: 8a6a2d1d29d17d1e4bdc94c243c146a39d635fdd
@@ -281,7 +281,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 11ecbf639d826c084973beed709a63d51d9b684e
+      revision: 9bf7ce8c5fe8152836a6e00bd4444153bd950342
       path: bootloader/mcuboot
     - name: mipi-sys-t
       path: modules/debug/mipi-sys-t
@@ -314,7 +314,7 @@ manifest:
       groups:
         - debug
     - name: sof
-      revision: ee40f61b5725b6615f1abea4a78cc4d90ce144b8
+      revision: e32b825cd6447342b9a308284ccea33b5d249e9f
       path: modules/audio/sof
     - name: tflite-micro
       revision: 9156d050927012da87079064db59d07f03b8baf6
@@ -331,7 +331,7 @@ manifest:
       groups:
         - debug
     - name: trusted-firmware-m
-      revision: 8b6146261fe2c0ad61154e20c7e338601eae2208
+      revision: b168d92c7ed3c77c94d7ce3362bdde5dbffe8424
       path: modules/tee/tf-m/trusted-firmware-m
       groups:
         - tee
