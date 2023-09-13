@@ -1394,7 +1394,7 @@ Release Notes:
   maintainers:
     - str4t0m
   collaborators:
-    - dp7hgh7
+    - casparfriedrich
   files:
     - doc/hardware/peripherals/w1.rst
     - drivers/w1/
@@ -3012,10 +3012,9 @@ West:
   status: maintained
   maintainers:
     - sylvioalves
-    - glaubermaroto
-    - uLipe
   collaborators:
     - LucasTambor
+    - marekmatej
   files: []
   labels:
     - "platform: ESP32"
@@ -3377,6 +3376,16 @@ West:
   labels:
     - "area: OpenThread"
 
+"West project: percepio":
+  status: maintained
+  maintainers:
+    - eriktamlin
+    - aronlander-pe
+  files:
+    - modules/percepio/
+  labels:
+    - "area: Tracing"
+
 "West project: picolibc":
   status: maintained
   maintainers:
@@ -3440,15 +3449,6 @@ West:
     - modules/Kconfig.tinycrypt
   labels:
     - "area: Crypto / RNG"
-
-"West project: TraceRecorderSource":
-  status: maintained
-  maintainers:
-    - eriktamlin
-  files:
-    - modules/TraceRecorder/
-  labels:
-    - "area: Tracing"
 
 "West project: trusted-firmware-m":
   status: maintained
