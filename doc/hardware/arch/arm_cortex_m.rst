@@ -169,7 +169,7 @@ PendSV exception return sequence restores the new thread's caller-saved register
 return address, as part of unstacking the exception stack frame.
 
 The implementation of the context-switch mechanism is present in
-:file:`arch/arm/core/aarch32/swap_helper.S`.
+:file:`arch/arm/core/swap_helper.S`.
 
 Stack limit checking (Arm v8-M)
 -------------------------------
@@ -262,7 +262,7 @@ interrupt. If the ZLI feature is enabled in Mainline Cortex-M builds (see
 * Regular HW interrupts are assigned priority levels lower than SVC.
 
 The priority level configuration in Cortex-M is implemented in
-:file:`include/arch/arm/aarch32/exc.h`.
+:file:`include/arch/arm/exc.h`.
 
 Locking and unlocking IRQs
 --------------------------
@@ -337,7 +337,7 @@ CPU Idling
 
 The Cortex-M architecture port implements both k_cpu_idle()
 and k_cpu_atomic_idle(). The implementation is present in
-:file:`arch/arm/core/aarch32/cpu_idle.S`.
+:file:`arch/arm/core/cpu_idle.S`.
 
 In both implementations, the processor
 will attempt to put the core to low power mode.
@@ -624,7 +624,7 @@ Linking Cortex-M applications
 *****************************
 
 Most Cortex-M platforms make use of the default Cortex-M
-GCC linker script in :file:`include/arch/arm/aarch32/cortex-m/scripts/linked.ld`,
+GCC linker script in :file:`include/arch/arm/cortex-m/scripts/linked.ld`,
 although it is possible for platforms to use a custom linker
 script as well.
 
