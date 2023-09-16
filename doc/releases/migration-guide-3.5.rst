@@ -34,6 +34,19 @@ Required changes
   SMP version 2 error code defines for in-tree modules have been updated to
   replace the ``*_RET_RC_*`` parts with ``*_ERR_*``.
 
+* ``zephyr,memory-region-mpu`` was renamed ``zephyr,memory-attr`` and its type
+  moved from 'enum' to 'int'. To have a seamless conversion this is the
+  required change in the DT:
+
+  .. code-block:: none
+
+     - "RAM"         -> <( DT_MEM_ARM(ATTR_MPU_RAM) )>
+     - "RAM_NOCACHE" -> <( DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE) )>
+     - "FLASH"       -> <( DT_MEM_ARM(ATTR_MPU_FLASH) )>
+     - "PPB"         -> <( DT_MEM_ARM(ATTR_MPU_PPB) )>
+     - "IO"          -> <( DT_MEM_ARM(ATTR_MPU_IO) )>
+     - "EXTMEM"      -> <( DT_MEM_ARM(ATTR_MPU_EXTMEM) )>
+
 Recommended Changes
 *******************
 
@@ -42,6 +55,17 @@ Recommended Changes
   :kconfig:option:`CONFIG_GIC_V3` directly in Kconfig has been deprecated.
   The GIC version should now be specified by adding the appropriate compatible, for
   example :dtcompatible:`arm,gic-v2`, to the GIC node in the device tree.
+
+* Nordic nRF based boards using :kconfig:option:`CONFIG_NFCT_PINS_AS_GPIOS`
+  to configure NFCT pins as GPIOs, should instead set the new UICR
+  ``nfct-pins-as-gpios`` property in devicetree. It can be set like this in the
+  board devicetree files:
+
+  .. code-block:: devicetree
+
+     &uicr {
+         nfct-pins-as-gpios;
+     };
 
 Picolibc-related Changes
 ************************
