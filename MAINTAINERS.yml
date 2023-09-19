@@ -2085,7 +2085,6 @@ Power management:
     - ceolin
   collaborators:
     - nashif
-    - gmarull
     - teburd
     - tmleman
     - JordanYates
@@ -3023,6 +3022,7 @@ West:
   maintainers:
     - kristofer-jonsson-arm
   files:
+    - drivers/misc/ethos_u/
     - modules/hal_ethos_u/
   labels:
     - manifest-hal_ethos_u

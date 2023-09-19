@@ -194,8 +194,11 @@ class TestPlan:
             raise TwisterRuntimeError("No quarantine list given to be verified")
         if ql:
             for quarantine_file in ql:
-                # validate quarantine yaml file against the provided schema
-                scl.yaml_load_verify(quarantine_file, self.quarantine_schema)
+                try:
+                    # validate quarantine yaml file against the provided schema
+                    scl.yaml_load_verify(quarantine_file, self.quarantine_schema)
+                except scl.EmptyYamlFileException:
+                    logger.debug(f'Quarantine file {quarantine_file} is empty')
             self.quarantine = Quarantine(ql)
 
     def load(self):
@@ -216,11 +219,16 @@ class TestPlan:
             # in cases where no platform was specified when running the tests.
             # If the platform does not exist in the hardware map, just skip it.
             connected_list = []
-            if not self.options.platform:
+            if self.options.platform:
+                connected_list = self.options.platform
+            else:
                 for connected in self.hwm.duts:
                     if connected['connected']:
                         connected_list.append(connected['platform'])
-
+            if self.options.exclude_platform:
+                for excluded in self.options.exclude_platform:
+                    if excluded in connected_list:
+                        connected_list.remove(excluded)
             self.load_from_file(last_run, filter_platform=connected_list)
             self.selected_platforms = set(p.platform.name for p in self.instances.values())
         else:
@@ -449,7 +457,7 @@ class TestPlan:
                     # if there is already an existed <board>_<revision>.yaml, then use it to
                     # load platform directly, otherwise, iterate the directory to
                     # get all valid board revision based on each <board>_<revision>.conf.
-                    if not "@" in platform.name:
+                    if '@' not in platform.name:
                         tmp_dir = os.listdir(os.path.dirname(file))
                         for item in tmp_dir:
                             # Need to make sure the revision matches
