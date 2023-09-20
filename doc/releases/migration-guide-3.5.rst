@@ -47,6 +47,16 @@ Required changes
      - "IO"          -> <( DT_MEM_ARM(ATTR_MPU_IO) )>
      - "EXTMEM"      -> <( DT_MEM_ARM(ATTR_MPU_EXTMEM) )>
 
+* A new networking Kconfig option :kconfig:option:`CONFIG_NET_INTERFACE_NAME`
+  defaults to ``y``. The option allows user to set a name to a network interface.
+  During system startup a default name is assigned to the network interface like
+  ``eth0`` to the first Ethernet network interface. The option affects the behavior
+  of ``SO_BINDTODEVICE`` BSD socket option. If the Kconfig option is set to ``n``,
+  which is how the system worked earlier, then the name of the device assigned
+  to the network interface is used by the ``SO_BINDTODEVICE`` socket option.
+  If the Kconfig option is set to ``y`` (current default), then the network
+  interface name is used by the ``SO_BINDTODEVICE`` socket option.
+
 Recommended Changes
 *******************
 
@@ -77,6 +87,12 @@ Recommended Changes
      &uicr {
          gpio-as-nreset;
      };
+
+* The :kconfig:option:`CONFIG_MODEM_GSM_PPP` modem driver is obsolete.
+  Instead the new :kconfig:option:`CONFIG_MODEM_CELLULAR` driver should be used.
+  As part of this :kconfig:option:`CONFIG_GSM_MUX` and :kconfig:option:`CONFIG_UART_MUX` are being
+  marked as deprecated as well. The new modem subsystem :kconfig:option:`CONFIG_MODEM_CMUX`
+  and :kconfig:option:`CONFIG_MODEM_PPP`` should be used instead.
 
 Picolibc-related Changes
 ************************

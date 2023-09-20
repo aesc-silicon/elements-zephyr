@@ -50,6 +50,8 @@ sys.path.insert(0, os.path.join(ZEPHYR_BASE, "scripts/"))
 
 import scl
 class Filters:
+    # platform keys
+    PLATFORM_KEY = 'platform key filter'
     # filters provided on command line by the user/tester
     CMD_LINE = 'command line filter'
     # filters in the testsuite yaml definition
@@ -215,16 +217,10 @@ class TestPlan:
             self.load_from_file(self.options.load_tests)
             self.selected_platforms = set(p.platform.name for p in self.instances.values())
         elif self.options.test_only:
-            # Get list of connected hardware and filter tests to only be run on connected hardware
-            # in cases where no platform was specified when running the tests.
-            # If the platform does not exist in the hardware map, just skip it.
-            connected_list = []
-            if self.options.platform:
-                connected_list = self.options.platform
-            else:
-                for connected in self.hwm.duts:
-                    if connected['connected']:
-                        connected_list.append(connected['platform'])
+            # Get list of connected hardware and filter tests to only be run on connected hardware.
+            # If the platform does not exist in the hardware map or was not specified by --platform,
+            # just skip it.
+            connected_list = self.options.platform
             if self.options.exclude_platform:
                 for excluded in self.options.exclude_platform:
                     if excluded in connected_list:
@@ -890,7 +886,7 @@ class TestPlan:
                         keyed_test = keyed_tests.get(test_key)
                         if keyed_test is not None:
                             plat_key = {key_field: getattr(keyed_test['plat'], key_field) for key_field in key_fields}
-                            instance.add_filter(f"Excluded test already covered for key {tuple(key)} by platform {keyed_test['plat'].name} having key {plat_key}", Filters.TESTSUITE)
+                            instance.add_filter(f"Excluded test already covered for key {tuple(key)} by platform {keyed_test['plat'].name} having key {plat_key}", Filters.PLATFORM_KEY)
                         else:
                             keyed_tests[test_key] = {'plat': plat, 'ts': ts}
                     else:
@@ -936,7 +932,7 @@ class TestPlan:
             elif emulation_platforms:
                 self.add_instances(instance_list)
                 for instance in list(filter(lambda inst: not inst.platform.simulation != 'na', instance_list)):
-                    instance.add_filter("Not an emulated platform", Filters.PLATFORM)
+                    instance.add_filter("Not an emulated platform", Filters.CMD_LINE)
             else:
                 self.add_instances(instance_list)
 
@@ -1024,12 +1020,13 @@ class TestPlan:
 
 
 def change_skip_to_error_if_integration(options, instance):
-    ''' If integration mode is on all skips on integration_platforms are treated as errors.'''
-    if options.integration and instance.platform.name in instance.testsuite.integration_platforms \
+    ''' All skips on integration_platforms are treated as errors.'''
+    if instance.platform.name in instance.testsuite.integration_platforms \
         and "quarantine" not in instance.reason.lower():
         # Do not treat this as error if filter type is command line
         filters = {t['type'] for t in instance.filters}
-        if Filters.CMD_LINE in filters or Filters.SKIP in filters:
+        ignore_filters ={Filters.CMD_LINE, Filters.SKIP, Filters.PLATFORM_KEY}
+        if filters.intersection(ignore_filters):
             return
         instance.status = "error"
         instance.reason += " but is one of the integration platforms"

@@ -193,7 +193,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 5331fe2ff1310b033bf01cd3a232f1e587726e3b
+      revision: a87e6a8ba3af330fc43f9ed93ce3748416e1009d
       path: modules/hal/nxp
       groups:
         - hal
@@ -219,7 +219,7 @@ manifest:
       groups:
         - hal
     - name: hal_silabs
-      revision: 267cd0bb17cf3cd431633a40b6d37a981e78dcb7
+      revision: 32f35f1b3763b4d31021c656ff7cd4e7b192a97c
       path: modules/hal/silabs
       groups:
         - hal
@@ -303,7 +303,7 @@ manifest:
       revision: 42b7c577714b8f22ce82a901e19c1814af4609a8
       path: modules/lib/open-amp
     - name: openthread
-      revision: f7690fe7e9d638341921808cba6a3e695ec0131e
+      revision: d62167ee34b091e7025c9ec2820aae71e17a3944
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio
