@@ -122,10 +122,16 @@ manifest:
       revision: b7955c27e50485b7dafdc3888d7d6afdc2ac6d96
       path: modules/lib/chre
     - name: cmsis
-      revision: 1abf29132e608826752e2edd1f4799a065db4031
+      revision: 5a00331455dd74e31e80efa383a489faea0590e3
       path: modules/hal/cmsis
       groups:
         - hal
+    - name: cmsis-dsp
+      revision: ff7b5fd1ea5f094665c090c343ec44e74dc0b193
+      path: modules/lib/cmsis-dsp
+    - name: cmsis-nn
+      revision: 0c8669d81381ccf3b1a01d699f3b68b50134a99f
+      path: modules/lib/cmsis-nn
     - name: edtt
       revision: 64e5105ad82390164fb73fc654be3f73a608209a
       path: tools/edtt
@@ -183,7 +189,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 03807f75485c97bd7b9094e0c20e40f8044da9f5
+      revision: 092eb78ed1b1551d8f480019b9c05d7371784578
       path: modules/hal/nordic
       groups:
         - hal
@@ -322,9 +328,8 @@ manifest:
       revision: c0f20b69daa44e3563f970b366e49ccfcfa1b71c
       path: modules/audio/sof
     - name: tflite-micro
-      revision: 9156d050927012da87079064db59d07f03b8baf6
+      revision: 1a34dcab41e7e0e667db72d6a40999c1ec9c510c
       path: modules/lib/tflite-micro
-      repo-path: tflite-micro
     - name: tinycrypt
       revision: 3e9a49d2672ec01435ffbf0d788db6d95ef28de0
       path: modules/crypto/tinycrypt
