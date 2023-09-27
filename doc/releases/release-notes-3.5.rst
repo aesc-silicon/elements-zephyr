@@ -13,6 +13,14 @@ The following sections provide detailed lists of changes by component.
 
 Security Vulnerability Related
 ******************************
+The following CVEs are addressed by this release:
+
+More detailed information can be found in:
+https://docs.zephyrproject.org/latest/security/vulnerabilities.html
+
+* CVE-2023-4258 `Zephyr project bug tracker GHSA-m34c-cp63-rwh7
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-m34c-cp63-rwh7>`_
+
 
 Kernel
 ******
@@ -232,6 +240,12 @@ Drivers and Sensors
 
   * Added support for Nuvoton NuMaker M46x
 
+  * NS16550: Reworked how device initialization macros.
+
+    * CONFIG_UART_NS16550_ACCESS_IOPORT and CONFIG_UART_NS16550_SIMULT_ACCESS
+      are removed. For UART using IO port access, add "io-mapped" property to
+      device tree node.
+
 * SPI
 
   * Remove npcx spi driver implemented by Flash Interface Unit (FIU) module.
@@ -352,6 +366,11 @@ HALs
 
 MCUboot
 *******
+
+  * Added :kconfig:option:`CONFIG_MCUBOOT_BOOTLOADER_NO_DOWNGRADE`
+    that allows to inform application that the on-board MCUboot has been configured
+    with downgrade  prevention enabled. This option is automatically selected for
+    DirectXIP mode and is available for both swap modes.
 
 Storage
 *******
