@@ -137,10 +137,6 @@ between major releases are available in the :ref:`zephyr_release_notes`.
      - Stable
      - 1.11
 
-   * - :ref:`gna_api`
-     - Experimental
-     - 1.14
-
    * - :ref:`gpio_api`
      - Stable
      - 1.0
@@ -204,6 +200,10 @@ between major releases are available in the :ref:`zephyr_release_notes`.
    * - :ref:`lwm2m_interface`
      - Unstable
      - 1.9
+
+   * - :ref:`llext`
+     - Experimental
+     - 3.5
 
    * - :ref:`logging_api`
      - Stable
@@ -328,6 +328,10 @@ between major releases are available in the :ref:`zephyr_release_notes`.
    * - :ref:`tcpc_api`
      - Experimental
      - 3.1
+
+   * - :ref:`tgpio_api`
+     - Experimental
+     - 3.5
 
    * - :ref:`uart_api`
      - Stable

@@ -6,22 +6,6 @@
 
 #include "s32z270dc2_r52-pinctrl-common.dtsi"
 
-&stm0 {
-	clock-frequency = <133333333>;
-};
-
-&stm1 {
-	clock-frequency = <133333333>;
-};
-
-&stm2 {
-	clock-frequency = <133333333>;
-};
-
-&stm3 {
-	clock-frequency = <133333333>;
-};
-
 &swt0 {
 	status = "okay";
 };
@@ -31,9 +15,9 @@
 	pinctrl-names = "default";
 	status = "okay";
 
-	phy0: ethernet-phy {
+	phy0: ethernet-phy@7 {
 		compatible = "ethernet-phy";
-		address = <0x7>;
+		reg = <0x7>;
 		status = "okay";
 	};
 };

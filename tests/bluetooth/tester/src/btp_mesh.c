@@ -1761,7 +1761,12 @@ static uint8_t large_comp_data_get(const void *cmd, uint16_t cmd_len,
 	struct btp_mesh_large_comp_data_get_rp *rp = rsp;
 	int err;
 
-	struct bt_mesh_large_comp_data_rsp comp;
+	NET_BUF_SIMPLE_DEFINE(data, 500);
+	net_buf_simple_init(&data, 0);
+
+	struct bt_mesh_large_comp_data_rsp comp = {
+		.data = &data,
+	};
 
 	err = bt_mesh_large_comp_data_get(sys_le16_to_cpu(cp->net_idx),
 				    sys_le16_to_cpu(cp->addr), cp->page,
@@ -1785,7 +1790,12 @@ static uint8_t models_metadata_get(const void *cmd, uint16_t cmd_len,
 	struct btp_mesh_models_metadata_get_rp *rp = rsp;
 	int err;
 
-	struct bt_mesh_large_comp_data_rsp metadata;
+	NET_BUF_SIMPLE_DEFINE(data, 500);
+	net_buf_simple_init(&data, 0);
+
+	struct bt_mesh_large_comp_data_rsp metadata = {
+		.data = &data,
+	};
 
 	err = bt_mesh_models_metadata_get(sys_le16_to_cpu(cp->net_idx),
 					  sys_le16_to_cpu(cp->addr), cp->page,
@@ -4228,6 +4238,10 @@ static uint8_t blob_transfer_start(const void *cmd, uint16_t cmd_len,
 		blob_cli_xfer.inputs.timeout_base = cp->timeout;
 	}
 
+	if (cp->ttl) {
+		blob_cli_xfer.inputs.ttl = cp->ttl;
+	}
+
 	err = bt_mesh_blob_cli_send(&blob_cli, &blob_cli_xfer.inputs,
 				    &blob_cli_xfer.xfer, &dummy_blob_io);
 
@@ -4311,13 +4325,15 @@ static uint8_t blob_srv_recv(const void *cmd, uint16_t cmd_len,
 
 	uint16_t timeout_base;
 	uint64_t id;
+	uint8_t ttl;
 
 	LOG_DBG("");
 
 	id = cp->id;
 	timeout_base = cp->timeout;
+	ttl = cp->ttl;
 
-	err = bt_mesh_blob_srv_recv(srv, id, &dummy_blob_io, BT_MESH_TTL_MAX,
+	err = bt_mesh_blob_srv_recv(srv, id, &dummy_blob_io, ttl,
 				    timeout_base);
 
 	if (err) {
