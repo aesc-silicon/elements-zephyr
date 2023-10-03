@@ -213,7 +213,7 @@ manifest:
         - hal
     - name: hal_renesas
       path: modules/hal/renesas
-      revision: 61ea3505a470b4e739cad4359ec1401cc4b85805
+      revision: a6cf2af9140e014fbbc48d2b6deb802231dd369f
       groups:
         - hal
     - name: hal_rpi_pico
@@ -304,7 +304,7 @@ manifest:
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio
-      revision: 722448367cf6c4b877eb7999c90ee52226379acc
+      revision: 79d586d592fca3e9fecd8886af6acd8c7bb66314
       groups:
         - debug
     - name: picolibc

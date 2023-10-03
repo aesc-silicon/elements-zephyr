@@ -34,6 +34,13 @@ Required changes
   SMP version 2 error code defines for in-tree modules have been updated to
   replace the ``*_RET_RC_*`` parts with ``*_ERR_*``.
 
+* MCUmgr SMP version 2 error translation (to legacy MCUmgr error code) is now
+  handled in function handlers by setting the ``mg_translate_error`` function
+  pointer of :c:struct:`mgmt_group` when registering a group. See
+  :c:type:`smp_translate_error_fn` for function details. Any SMP version 2
+  handlers made for Zephyr 3.4 need to be updated to include these translation
+  functions when the groups are registered.
+
 * ``zephyr,memory-region-mpu`` was renamed ``zephyr,memory-attr`` and its type
   moved from 'enum' to 'int'. To have a seamless conversion this is the
   required change in the DT:
@@ -138,6 +145,12 @@ Required changes
              reg = <0>;
          };
      };
+
+* The ``accept()`` callback's signature in :c:struct:`bt_l2cap_server` has
+  changed to ``int (*accept)(struct bt_conn *conn, struct bt_l2cap_server
+  *server, struct bt_l2cap_chan **chan)``,
+  adding a new ``server`` parameter pointing to the :c:struct:`bt_l2cap_server`
+  structure instance the callback relates to. :github:`60536`
 
 Recommended Changes
 *******************
