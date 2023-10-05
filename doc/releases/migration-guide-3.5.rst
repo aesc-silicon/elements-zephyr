@@ -169,6 +169,25 @@ Required changes
         };
     };
 
+* The :dtcompatible:`goodix,gt911`, :dtcompatible:`xptek,xpt2046` and
+  :dtcompatible:`hynitron,cst816s` drivers have been converted from Kscan to
+  Input, they can still be used with Kscan applications by adding a
+  :dtcompatible:`zephyr,kscan-input` node.
+
+* The ``zephyr,gpio-keys`` binding has been merged into
+  :dtcompatible:`gpio-keys` and the callback definition has been renamed from
+  ``INPUT_LISTENER_CB_DEFINE`` to :c:macro:`INPUT_CALLBACK_DEFINE`.
+
+* :c:macro:`CONTAINER_OF` now performs type checking, this was very commonly
+  misused to obtain user structure from :c:struct:`k_work` pointers without
+  passing from :c:struct:`k_work_delayable`. This would now result in a build
+  error and have to be done correctly using
+  :c:func:`k_work_delayable_from_work`.
+
+* The :dtcompatible:`ti,bq274xx` driver was using incorrect units for capacity
+  and power channels, these have been fixed and scaled by x1000 factor from the
+  previous implementation, any application using them has to be changed
+  accordingly.
 
 Recommended Changes
 *******************

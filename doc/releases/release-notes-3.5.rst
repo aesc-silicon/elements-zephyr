@@ -23,6 +23,9 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 * CVE-2023-4258 `Zephyr project bug tracker GHSA-m34c-cp63-rwh7
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-m34c-cp63-rwh7>`_
 
+* CVE-2023-4264 `Zephyr project bug tracker GHSA-rgx6-3w4j-gf5j
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-rgx6-3w4j-gf5j>`_
+
 * CVE-2023-5184 `Zephyr project bug tracker GHSA-8x3p-q3r5-xh9g
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-8x3p-q3r5-xh9g>`_
 
@@ -163,6 +166,14 @@ Build system and infrastructure
   propagated to the bootloader and target images to automatically create
   encrypted updates.
 
+* Build time priority checking: enable build time priority checking by default.
+  This fails the build if the initialization sequence in the final ELF file
+  does not match the devicetree hierarchy. It can be turned off by disabling
+  the :kconfig:option:`COFNIG_CHECK_INIT_PRIORITIES` option.
+
+* Added a new ``initlevels`` target for printing the final device and
+  :c:macro:`SYS_INIT` initialization sequence from the final ELF file.
+
 Drivers and Sensors
 *******************
 
@@ -248,6 +259,24 @@ Drivers and Sensors
 
   * GIC: Architecture version selection is now based on the device tree
 
+* Input
+
+  * New drivers: :dtcompatible:`gpio-qdec`, :dtcompatible:`st,stmpe811`.
+
+  * Drivers converted from Kscan to Input: :dtcompatible:`goodix,gt911`
+    :dtcompatible:`xptek,xpt2046` :dtcompatible:`hynitron,cst816s`
+    :dtcompatible:`microchip,cap1203`.
+
+  * Added a Kconfig option for dumping all events to the console
+    :kconfig:option:`CONFIG_INPUT_EVENT_DUMP` and new shell commands
+    :kconfig:option:`CONFIG_INPUT_SHELL`.
+
+  * Merged ``zephyr,gpio-keys`` into :dtcompatible:`gpio-keys` and added
+    ``zephyr,code`` codes to all in-tree board ``gpio-keys`` nodes.
+
+  * Renamed the callback definition macro from ``INPUT_LISTENER_CB_DEFINE`` to
+    :c:macro:`INPUT_CALLBACK_DEFINE`.
+
 * IPM
 
 * KSCAN
@@ -286,6 +315,9 @@ Drivers and Sensors
 * SDHC
 
 * Sensor
+
+  * Reworked the :dtcompatible:`ti,bq274xx` to add ``BQ27427`` support, fixed
+    units for capacity and power channels.
 
 * Serial
 
