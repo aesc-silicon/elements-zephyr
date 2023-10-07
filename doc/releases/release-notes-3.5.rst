@@ -25,6 +25,9 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 * CVE-2023-4258 `Zephyr project bug tracker GHSA-m34c-cp63-rwh7
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-m34c-cp63-rwh7>`_
 
+* CVE-2023-4260 `Zephyr project bug tracker GHSA-gj27-862r-55wh
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-gj27-862r-55wh>`_
+
 * CVE-2023-4264 `Zephyr project bug tracker GHSA-rgx6-3w4j-gf5j
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-rgx6-3w4j-gf5j>`_
 
@@ -506,6 +509,8 @@ MCUboot
 
   * Fixed issue with serial recovery use of MBEDTLS having undefined operations which led to usage
     faults when the secondary slot image was encrypted.
+
+  * Fixed issue with bootutil asserting on maximum alignment in non-swap modes.
 
   * Added error output when flash device fails to open and asserts are disabled, which will now
     panic the bootloader.
