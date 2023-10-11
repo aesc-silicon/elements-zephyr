@@ -28,6 +28,9 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 * CVE-2023-4258 `Zephyr project bug tracker GHSA-m34c-cp63-rwh7
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-m34c-cp63-rwh7>`_
 
+* CVE-2023-4259 `Zephyr project bug tracker GHSA-gghm-c696-f4j4
+  <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-gghm-c696-f4j4>`_
+
 * CVE-2023-4260 `Zephyr project bug tracker GHSA-gj27-862r-55wh
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-gj27-862r-55wh>`_
 
@@ -49,6 +52,8 @@ Kernel
 
 * Added support for dynamic thread stack allocation via :c:func:`k_thread_stack_alloc`
 * Added support for :c:func:`k_spin_trylock`
+* Added :c:func:`k_object_is_valid` to check if a kernel object is valid. This replaces
+  code that has been duplicated throughout the tree.
 
 Architectures
 *************
@@ -67,6 +72,8 @@ Architectures
 * RISC-V
 
 * Xtensa
+
+  * Added basic MMU v2 Support.
 
 * POSIX
 
@@ -99,6 +106,11 @@ Boards & SoC Support
 * Added support for these SoC series:
 
   * Nuvoton NuMaker M46x series
+  * Added support for STM32F072X8 SoC variants
+  * Added support for STM32L051X6 SoC variants
+  * Added support for STM32L451XX SoC variants
+  * Added support for STM32L4Q5XX SoC variants
+  * Added support for STM32WBA SoC series
 
 * Removed support for these SoC series:
 
@@ -109,12 +121,15 @@ Boards & SoC Support
     and CONFIG_NXP_IMX_EXTERNAL_SDRAM to enabled.
   * i.MX RT SOCs no longer support CONFIG_OCRAM_NOCACHE, as this functionality
     can be achieved using devicetree memory regions
+  * Refactored ESP32 SoC folders. So now these are a proper SoC series.
 
 * Added support for these ARC boards:
 
 * Added support for these ARM boards:
 
   * Nuvoton NuMaker Platform M467
+  * ST Nucleo U5A5ZJ Q
+  * ST Nucleo WBA52CG
 
 * Added support for these ARM64 boards:
 
@@ -123,6 +138,19 @@ Boards & SoC Support
 * Added support for these X86 boards:
 
 * Added support for these Xtensa boards:
+
+  * Added ``esp32_devkitc_wroom`` and ``esp32_devkitc_wrover``.
+
+  * Added ``esp32s3_luatos_core``.
+
+  * Added ``m5stack_core2``.
+
+  * Added ``qemu_xtensa_mmu`` utilizing Diamond DC233c SoC to support
+    testing Xtensa MMU.
+
+  * Added ``xiao_esp32s3``.
+
+  * Added ``yd_esp32``.
 
 * Added support for these POSIX boards:
 
@@ -134,6 +162,8 @@ Boards & SoC Support
 
 * Made these changes for ARM boards:
 
+  * ST morpho connector description was added on ST nucleo boards.
+
 * Made these changes for ARM64 boards:
 
 * Made these changes for RISC-V boards:
@@ -141,6 +171,12 @@ Boards & SoC Support
 * Made these changes for X86 boards:
 
 * Made these changes for Xtensa boards:
+
+  * esp32s3_devkitm:
+
+    * Added USB-CDC support.
+
+    * Added CAN support.
 
 * Made these changes for POSIX boards:
 
@@ -161,9 +197,19 @@ Boards & SoC Support
 
 * Removed support for these Xtensa boards:
 
+  * Removed ``esp32``. Use ``esp32_devkitc_*`` instead.
+
 * Made these changes in other boards:
 
 * Added support for these following shields:
+
+  * Adafruit PiCowbell CAN Bus Shield for Pico
+  * Arduino UNO click shield
+  * G1120B0MIPI MIPI Display
+  * MikroElektronika MCP2518FD Click shield (CAN-FD)
+  * RK055HDMIPI4M MIPI Display
+  * RK055HDMIPI4MA0 MIPI Display
+  * Semtech SX1276MB1MAS LoRa Shield
 
 Build system and infrastructure
 *******************************
@@ -192,10 +238,25 @@ Build system and infrastructure
 * Added a new ``initlevels`` target for printing the final device and
   :c:macro:`SYS_INIT` initialization sequence from the final ELF file.
 
+* Reworked syscall code generations so that not all marshalling functions
+  will be included in the final binary. Syscalls associated with disabled
+  subsystems no longer have their marshalling functions generated.
+
+* Partially enabled compiler warning about shadow variables for subset of
+  in-tree code. Out-of-tree code needs to be patched before we can fully
+  enable shadow variable warnings.
+
 Drivers and Sensors
 *******************
 
 * ADC
+
+  * Added support for STM32F0 HSI14 clock (dedicated ADC clock)
+  * Added support for STM32 ADC source clock and prescaler. On STM32F1 and STM32F3
+    series, ADC prescaler can be configured using dedicated RCC Clock Controller
+    option.
+  * Added support for the ADC sequencer for all STM32 series (except F1)
+  * Fixed STM32F4 ADC temperature and Vbat measurement.
 
 * Battery-backed RAM
 
@@ -214,9 +275,15 @@ Drivers and Sensors
 
 * Counter
 
+  * Added :kconfig:option:`CONFIG_COUNTER_RTC_STM32_SUBSECONDS` to enable subsecond as
+    the basic time tick on STM32 RTC based counter driver.
+
 * Crypto
 
 * DAC
+
+  * Added support for Analog Devices AD56xx
+  * Added support for NXP lpcxpresso55s36 (LPDAC)
 
 * DFU
 
@@ -234,11 +301,31 @@ Drivers and Sensors
 
 * Entropy
 
+  * Added a requirement for ``entropy_get_entropy()`` to be thread-safe because
+    of random subsystem needs.
+
 * ESPI
 
 * Ethernet
 
   * Added :kconfig:option:`CONFIG_ETH_NATIVE_POSIX_RX_TIMEOUT` to set rx timeout for native posix.
+  * Added support for adin2111.
+  * Added support for NXP S32 GMAC.
+  * Added support for promiscuous mode in eth_smsc91x.
+  * Added support for STM32H5X SOC series.
+  * Added support for MDIO Clause 45 APIs.
+  * Added support for YD-ESP32 board Ethernet.
+  * Fixed stm32 to generate more unique MAC address by using device id as a base for the MAC.
+  * Fixed mcux to increase the PTP timestamp accuracy from 20us to 200ns.
+  * Fixed Ethernet max header size when using VLAN.
+  * Removed the ``mdio`` DT property. Please use :c:macro:`DT_INST_BUS()` in the driver instead.
+  * Reworked the device node hierarchy in smsc91x.
+  * Renamed the phy-dev property with phy-handle to match the Linux ethernet-controller binding
+    and move it up to ethernet.yaml so that it can be used by other drivers.
+  * Updated Ethernet PHY to use ``reg`` property in DT bindings.
+  * Updated driver DT bindings to use ``ethernet-phy`` devicetree node name consistently.
+  * Updated esp32 and sam-gmac DT so that the phy is pointed by a phandle rather than
+    a child node, this makes the phy device a child of mdio.
 
 * Flash
 
@@ -246,6 +333,8 @@ Drivers and Sensors
     single Flash Interface Unit (FIU) module and Direct Read Access (DRA) mode
     for better performance.
   * Added support for Nuvoton NuMaker M46x embedded flash
+  * STM32 QSPI driver now supports Jedec SFDP parameter reading.
+  * STM32 OSPI driver now supports both Low and High ports of IO manager.
 
 * FPGA
 
@@ -259,9 +348,20 @@ Drivers and Sensors
 
 * I2C
 
+  * STM32 V1 driver now supports large transactions (more than 256 bytes chunks)
+  * STM32 V2 driver now supports 10-bit addressing.
+  * I2C devices can now be used as wakeup source from STOP modes on STM32.
+
 * I2S
 
 * I3C
+
+  * ``i3c_cdns``:
+
+    * Fixed build error when :kconfig:option:`CONFIG_I3C_USE_IBI` is disabled.
+
+    * Fixed transfer issue when controller is busy. Now wait for controller to
+      idle before proceeding with another transfer.
 
 * IEEE 802.15.4
 
@@ -316,6 +416,15 @@ Drivers and Sensors
 
 * PCIE
 
+  * Added support in shell to display PCIe capabilities.
+
+  * Added virtual channel support.
+
+  * Added kconfig :kconfig:option:`CONFIG_PCIE_INIT_PRIORITY` to specify
+    initialization priority for host controller.
+
+  * Added support to get IRQ from ACPI PCI Routing Table (PRT).
+
 * PECI
 
 * Pin control
@@ -323,6 +432,8 @@ Drivers and Sensors
   * Added support for Nuvoton NuMaker M46x
 
 * PWM
+
+  * Added 4 channels capture on STM32 PWM driver.
 
 * Power domain
 
@@ -353,6 +464,11 @@ Drivers and Sensors
 
   * Fixed issue with user mode support not working.
 
+* RTC
+
+  * Added support for STM32 RTC API driver. This driver is not compatible with
+    the use of RTC based implementation of COUNTER API.
+
 * SDHC
 
 * Sensor
@@ -366,9 +482,31 @@ Drivers and Sensors
 
   * NS16550: Reworked how device initialization macros.
 
-    * CONFIG_UART_NS16550_ACCESS_IOPORT and CONFIG_UART_NS16550_SIMULT_ACCESS
-      are removed. For UART using IO port access, add "io-mapped" property to
+    * ``CONFIG_UART_NS16550_ACCESS_IOPORT`` and ``CONFIG_UART_NS16550_SIMULT_ACCESS``
+      are removed. For UART using IO port access, add ``io-mapped`` property to
       device tree node.
+
+  * Added async support for ESP32S3.
+
+  * Added support for serial TTY under ``native_posix``.
+
+  * Added support for UART on Efinix Sapphire SoCs.
+
+  * Added Intel SEDI UART driver.
+
+  * Added support for UART on BCM2711.
+
+  * ``uart_stm32``:
+
+    * Added RS485 support.
+
+    * Added wide data support.
+
+  * ``uart_pl011``: added support for Ambiq SoCs.
+
+  * ``serial_test``: added support for interrupt and async APIs.
+
+  * ``uart_emul``: added support for interrupt API.
 
 * SPI
 
@@ -384,28 +522,80 @@ Drivers and Sensors
 
 * USB
 
+  * Added UDC driver for STM32 based MCU, relying on HAL/PCD. This driver is compatible
+    with UDC API (experimental).
+  * Added support for STM32H5 series on USB driver.
+
 * W1
 
 * Watchdog
 
 * WiFi
 
+  * Increased esp32 default network (TCP workq, RX and mgmt event) stack sizes to 2048 bytes.
+  * Reduced the RAM usage for esp32s2_saola in Wi-Fi samples.
+  * Fixed undefined declarations in winc1500.
+  * Fixed SPI buffer length in eswifi.
+  * Fixed esp32 data sending and channel selection in AP mode.
+  * Fixed esp_at driver init and network interface dormant state setting.
+
 Networking
 **********
 
-* Time and timestamps in the network subsystem, PTP and IEEE 802.15.4
-  were more precisely specified and all in-tree call sites updated accordingly.
-  Fields for timed TX and TX/RX timestamps have been consolidated. See
-  :c:type:`net_time_t`, :c:struct:`net_ptp_time`, :c:struct:`ieee802154_config`,
-  :c:struct:`ieee802154_radio_api` and :c:struct:`net_pkt` for extensive
-  documentation. As this is largely an internal API, existing applications will
-  most probably continue to work unchanged.
-
 * CoAP:
 
+  * Optimized CoAP client library to use only a single thread internally.
+  * Converted CoAP client library to use ``zsock_*`` API internally.
+  * Fixed a bug in CoAP client library, which resulted in an incorrect
+    retransmission timeout calculation.
   * Use 64 bit timer values for calculating transmission timeouts. This fixes potential problems for
     devices that stay on for more than 49 days when the 32 bit uptime counter might roll over and
     cause CoAP packets to not timeout at all on this event.
+  * API documentation improvements.
+  * Added new API functions:
+
+    * :c:func:`coap_has_descriptive_block_option`
+    * :c:func:`coap_remove_descriptive_block_option`
+    * :c:func:`coap_packet_remove_option`
+    * :c:func:`coap_packet_set_path`
+
+* Connection Manager:
+
+  * Added support for auto-connect and auto-down behaviors (controlled by
+    :c:enum:`CONN_MGR_IF_NO_AUTO_CONNECT` and :c:enum:`CONN_MGR_IF_NO_AUTO_DOWN`
+    flags).
+  * Split Connection Manager APIs into separate header files.
+  * Extended Connection Manager documentation to cover new functionalities.
+
+* DHCP:
+
+  * Added support for DHCPv4 unicast replies processing.
+  * Added support for DHCPv6 protocol.
+
+* Ethernet:
+
+  * Fixed ARP queueing so that the queued network packet is sent immediately
+    instead of queued 2nd time in the core network stack.
+
+* gPTP:
+
+  * Added support for detecting gPTP packets that use the default multicast destination address.
+  * Fixed Announce and Follow Up message handling.
+
+* ICMP:
+
+  * Fixed ICMPv6 error message type check.
+  * Reworked ICMP callback registration and handling, which allows to register
+    multiple handlers for the same ICMP message.
+  * Introduced an API to send ICMP Echo Request (ping).
+  * Added possibility to register offloaded ICMP ping handlers.
+  * Added support for setting packet priority for ping.
+
+* IPv6:
+
+  * Made sure that ongoing DAD procedure is cancelled when IPv6 address is removed.
+  * Fixed a bug, where Solicited-Node multicast address could be removed while
+    still in use.
 
 * LwM2M:
 
@@ -413,11 +603,125 @@ Networking
     so the engine does not constantly wake up the CPU. This can be enabled by
     :kconfig:option:`CONFIG_LWM2M_TICKLESS`.
   * Added new :c:macro:`LWM2M_RD_CLIENT_EVENT_DEREGISTER` event.
+  * Block-wise sending now supports LwM2M read and composite-read operations as well.
+    When :kconfig:option:`CONFIG_LWM2M_COAP_BLOCK_TRANSFER` is enabled, any content that is larger
+    than :kconfig:option:`CONFIG_LWM2M_COAP_MAX_MSG_SIZE` is split into a block-wise transfer.
+  * Block-wise transfers don't require tokens to match anymore as this was not in line
+    with CoAP specification (CoAP doesn't require tokens re-use).
+  * Various fixes to bootstrap. Now client ensures that Bootstrap-Finish command is sent,
+    before closing the DTLS pipe. Also allows Bootstrap server to close the DTLS pipe.
+    Added timeout when waiting for bootstrap commands.
+  * Added support for X509 certificates.
+  * Various fixes to string handling. Allow setting string to zero length.
+    Ensure string termination when using string operations on opaque resources.
+  * Added support for Connection Monitoring object version 1.3.
+  * Added protection for Security object to prevent read/writes by the server.
+  * Fixed a possible notification stall in case of observation token change.
+  * Added new shell command, ``lwm2m create``, which allows to create LwM2M object instances.
+  * Added LwM2M interoperability test-suite against Leshan server.
+  * API documentation improvements.
+  * Several other minor fixes and improvements.
 
-* Wi-Fi
+* Misc:
+
+  * Time and timestamps in the network subsystem, PTP and IEEE 802.15.4
+    were more precisely specified and all in-tree call sites updated accordingly.
+    Fields for timed TX and TX/RX timestamps have been consolidated. See
+    :c:type:`net_time_t`, :c:struct:`net_ptp_time`, :c:struct:`ieee802154_config`,
+    :c:struct:`ieee802154_radio_api` and :c:struct:`net_pkt` for extensive
+    documentation. As this is largely an internal API, existing applications will
+    most probably continue to work unchanged.
+  * Added support for additional net_pkt filter hooks:
+
+    * :kconfig:option:`CONFIG_NET_PKT_FILTER_IPV4_HOOK`
+    * :kconfig:option:`CONFIG_NET_PKT_FILTER_IPV6_HOOK`
+    * :kconfig:option:`CONFIG_NET_PKT_FILTER_LOCAL_IN_HOOK`
+
+  * Reworked several networking components to use timepoint API.
+  * Added API functions facilitate going through all IPv4/IPv6 registered on an
+    interface (:c:func:`net_if_ipv4_addr_foreach`, :c:func:`net_if_ipv6_addr_foreach`).
+  * ``NET_EVENT_IPV6_PREFIX_ADD`` and ``NET_EVENT_IPV6_PREFIX_DEL`` events now provide
+    more detailed information about the prefix (:c:struct:`net_event_ipv6_prefix`).
+  * General cleanup of the shadowed variables across the networking subsystem.
+  * Added ``qemu_cortex_a53`` networking support.
+  * Introduced new modem subsystem.
+  * Added new :zephyr:code-sample:`cellular-modem` sample.
+  * Added support for network interface names (instead of reusing underlying device name).
+  * Removed support for Google Cloud IoT sample due to service retirement.
+  * Fixed a bug where packets passed in promiscuous mode could have been modified
+    by L2 in certain cases.
+  * Added support for setting syslog server (used for networking log backend)
+    IP address at runtime.
+  * Removed no longer used ``queued`` and ``sent`` net_pkt flags.
+  * Added support for binding zperf TCP/UDP server to a specific IP address.
+
+* MQTT-SN:
+
+  * Improved thread safety of internal buffers allocation.
+  * API documentation improvements.
+
+* OpenThread:
+
+  * Reworked :c:func:`otPlatEntropyGet` to use :c:func:`sys_csrand_get` internally.
+  * Introduced ``ieee802154_radio_openthread.h`` radio driver extension interface
+    specific for OpenThread. Added new transmit mode, specific to OpenThread,
+    :c:enum:`IEEE802154_OPENTHREAD_TX_MODE_TXTIME_MULTIPLE_CCA`.
+
+* PPP:
+
+  * Fixed PPP L2 usage of the network interface carrier state.
+  * Made PPP L2 thread priority configurable (:kconfig:option:`CONFIG_NET_L2_PPP_THREAD_PRIO`).
+  * Moved PPP L2 out of experimental stage.
+  * Prevent PPP connection reestablish when carrier is down.
+
+* Sockets:
+
+  * Added support for statically allocated socketpairs (in case no heap is available).
+  * Made send timeout configurable (:kconfig:option:`CONFIG_NET_SOCKET_MAX_SEND_WAIT`).
+  * Added support for ``FIONREAD`` and ``FIONBIO`` :c:func:`ioctl` commands.
+  * Fixed input filtering for connected datagram sockets.
+  * Fixed :c:func:`getsockname` operation on unconnected sockets.
+  * Added new secure socket options for DTLS Connection ID support:
+
+    * :c:macro:`TLS_DTLS_CID`
+    * :c:macro:`TLS_DTLS_CID_VALUE`
+    * :c:macro:`TLS_DTLS_PEER_CID_VALUE`
+    * :c:macro:`TLS_DTLS_CID_STATUS`
+
+  * Added support for :c:macro:`SO_REUSEADDR` and :c:macro:`SO_REUSEPORT` socket options.
+
+* TCP:
+
+  * Fixed potential stall in data retransmission, when data was only partially acknowledged.
+  * Made TCP work queue priority configurable (:kconfig:option:`CONFIG_NET_TCP_WORKER_PRIO`).
+  * Added support for TCP new Reno collision avoidance algorithm.
+  * Fixed source address selection on bound sockets.
+  * Fixed possible memory leak in case listening socket was closed during active handshake.
+  * Fixed RST packet handling during handshake.
+  * Refactored the code responsible for connection teardown to fix found bugs and
+    simplify future maintenance.
+
+* TFTP:
+
+  * Added new :zephyr:code-sample:`tftp-client` sample.
+  * API documentation improvements.
+
+* WebSocket
+
+  * WebSocket library no longer closes underlying TCP socket automatically on disconnect.
+    This aligns with the connect behavior, where the WebSocket library expects an already
+    connected TCP socket.
+
+* Wi-Fi:
 
   * Added Passive scan support.
   * The Wi-Fi scan API updated with Wi-Fi scan parameter to allow scan mode selection.
+  * Updated TWT handling.
+  * Added support for generic network manager API.
+  * Added support for Wi-Fi mode setting and selection.
+  * Added user input validation for SSID and PSK in Wi-Fi shell.
+  * Added scan extension for specifying channels, limiting scan results, filtering SSIDs,
+    setting active and passive channel dwell times and frequency bands.
 
 USB
 ***
@@ -484,6 +788,8 @@ Libraries / Subsystems
     minimum encoding levels for in-tree groups if :kconfig:option:`CONFIG_ZCBOR_CANONICAL` is
     enabled.
 
+  * Added STM32 SPI backend for EC Host command protocol.
+
 * File systems
 
   * Added support for ext2 file system.
@@ -491,6 +797,10 @@ Libraries / Subsystems
   * Added alignment parameter to FS_LITTLEFS_DECLARE_CUSTOM_CONFIG macro, it can speed up read/write
     operation for SDMMC devices in case when we align buffers on CONFIG_SDHC_BUFFER_ALIGNMENT,
     because we can avoid extra copy of data from card bffer to read/prog buffer.
+
+* Random
+
+  * ``CONFIG_XOROSHIRO_RANDOM_GENERATOR``, deprecated a long time ago, is finally removed.
 
 * Retention
 
@@ -521,6 +831,10 @@ Libraries / Subsystems
   * Added :kconfig:option:`CONFIG_FDTABLE` to conditionally compile file descriptor table
   * Added logging to POSIX threads, mutexes, and condition variables
   * Fixed :c:func:`poll` issue with event file descriptors
+
+* LoRa/LoRaWAN
+
+  * Updated ``loramac-node`` from v4.6.0 to v4.7.0
 
 HALs
 ****
@@ -609,6 +923,20 @@ Nanopb
   * Added a separate nanopb.cmake file to be included by applications.
 
   * Added helper cmake function ``zephyr_nanopb_sources`` to simplify ``.proto`` file inclusion.
+
+LVGL
+****
+
+  * Changed project status to maintained.
+
+  * Library has been updated to release v8.3.7.
+
+  * Added ``zephyr,lvgl-{pointer,button,encoder}-input`` pseudo device bindings.
+    :kconfig:option:`CONFIG_LV_Z_KSCAN_POINTER` is still supported but touch controllers
+    need a :dtcompatible:`zephyr,kscan-input` child node to emit input events.
+
+  * LVGL shell allows for monkey testing (requires :kconfig:option:`CONFIG_LV_USE_MONKEY`)
+    and inspecting memory usage.
 
 Storage
 *******
