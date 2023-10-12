@@ -125,6 +125,16 @@ Required changes
   :c:func:`can_set_bitrate` and :c:func:`can_set_bitrate_data` now also automatically calculate a
   suitable SJW, but their SJW cannot be overwritten by the caller.
 
+* The CAN ISO-TP message configuration in :c:struct:`isotp_msg_id` is changed to use the following
+  flags instead of bit fields:
+
+  * :c:macro:`ISOTP_MSG_EXT_ADDR` to enable ISO-TP extended addressing
+  * :c:macro:`ISOTP_MSG_FIXED_ADDR` to enable ISO-TP fixed addressing
+  * :c:macro:`ISOTP_MSG_IDE` to use extended (29-bit) CAN IDs
+
+  The two new flags :c:macro:`ISOTP_MSG_FDF` and :c:macro:`ISOTP_MSG_BRS` were added for CAN FD
+  mode.
+
 * Ethernet PHY devicetree bindings were updated to use the standard ``reg``
   property for the PHY address instead of a custom ``address`` property. As a
   result, MDIO controller nodes now require ``#address-cells`` and
@@ -258,6 +268,19 @@ Required changes
        };
 
 
+* The :kconfig:option:`CONFIG_RISCV_MTVEC_VECTORED_MODE` Kconfig option was renamed to
+  :kconfig:option:`CONFIG_RISCV_VECTORED_MODE`.
+
+* ZBus runtime observers implementation now relies on the HEAP memory instead of a memory slab.
+  Thus, zbus' configuration (kconfig) related to runtime observers has changed. To keep your runtime
+  observers code working correctly, you need to:
+
+  - Replace the integer ``CONFIG_ZBUS_RUNTIME_OBSERVERS_POOL_SIZE`` with the boolean
+    :kconfig:option:`CONFIG_ZBUS_RUNTIME_OBSERVERS`;
+  - Set the HEAP size with the :kconfig:option:`CONFIG_HEAP_MEM_POOL_SIZE`.
+
+* The zbus VDED delivery sequence has changed. Check the :ref:`documentation<zbus delivery
+  sequence>` to verify if it will affect your code.
 
 Recommended Changes
 *******************
