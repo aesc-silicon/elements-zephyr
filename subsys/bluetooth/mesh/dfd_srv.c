@@ -233,11 +233,10 @@ static int handle_capabilities_get(struct bt_mesh_model *mod, struct bt_mesh_msg
 		net_buf_simple_add_mem(&rsp, srv->oob_schemes.schemes,
 				       srv->oob_schemes.count);
 	} else
-#else
+#endif
 	{
 		net_buf_simple_add_u8(&rsp, 0);
 	}
-#endif
 
 	bt_mesh_model_send(mod, ctx, &rsp, NULL, NULL);
 
@@ -413,12 +412,20 @@ static inline int set_upload_fwid(struct bt_mesh_dfd_srv *srv, struct bt_mesh_ms
 	case -EFBIG: /* Fwid too long */
 	case -EALREADY: /* Other server is in progress with this fwid */
 		bt_mesh_dfu_slot_release(srv->upload.slot);
+		srv->upload.slot = NULL;
 		upload_status_rsp(srv, ctx, BT_MESH_DFD_ERR_INTERNAL);
 		break;
 	case -EEXIST: /* Img with this fwid already is in list */
 		srv->upload.phase = BT_MESH_DFD_UPLOAD_PHASE_TRANSFER_SUCCESS;
 		bt_mesh_dfu_slot_release(srv->upload.slot);
-		upload_status_rsp_with_progress(srv, ctx, BT_MESH_DFD_SUCCESS, 100);
+
+		err = bt_mesh_dfu_slot_get(fwid, fwid_len, &srv->upload.slot);
+		if (!err) {
+			upload_status_rsp_with_progress(srv, ctx, BT_MESH_DFD_SUCCESS, 100);
+		} else {
+			srv->upload.slot = NULL;
+			upload_status_rsp(srv, ctx, BT_MESH_DFD_ERR_INTERNAL);
+		}
 		break;
 	case 0:
 		srv->upload.phase = BT_MESH_DFD_UPLOAD_PHASE_TRANSFER_ACTIVE;
