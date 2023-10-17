@@ -311,6 +311,14 @@ Drivers and Sensors
 
 * DMA
 
+  * Added support for NXP S32K to the eDMA driver
+  * Added support for NXP SMARTDMA
+  * Added support for NXP Pixel Pipeline (PXP) for display acceleration
+  * Added support for DMA get_status() to the SAM XDMAC driver
+  * Fixes for Intel HDA driver for L1 entry/exit, explicit SCS (sample container) settings
+  * Fixes for STM32U5 enables error interrupts, fixes block size and data size configuration
+  * Better Kconfig options for tuning static memory usage in NXP LPC driver
+
 * EEPROM
 
   * Added support for Fujitsu MB85RCxx series I2C FRAM (:dtcompatible:`fujitsu,mb85rcxx`).
@@ -367,6 +375,15 @@ Drivers and Sensors
   * STM32 V1 driver now supports large transactions (more than 256 bytes chunks)
   * STM32 V2 driver now supports 10-bit addressing.
   * I2C devices can now be used as wakeup source from STOP modes on STM32.
+  * Fix long ISR execution in Silicon Labs I2C target callback
+  * Fail gracefully on DMA max size for nRF52 devices in the TWIM driver
+  * Added support for Intel LPSS DMA usage in the DesignWare driver
+  * Added filtering of dumped messages for debugging using DeviceTree
+  * Added target mode to Silicon Labs Gecko driver
+  * Added Intel SEDI driver
+  * Added Infineon XMC4 driver
+  * Added Microchip PolarFire SoC driver
+  * Added Ambiq driver for Apollo4 SoCs
 
 * I2S
 
