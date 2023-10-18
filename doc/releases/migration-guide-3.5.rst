@@ -289,6 +289,9 @@ Required changes
   instead use the new driver Kconfig
   :kconfig:option:`CONFIG_DMA_MCUX_LPC_NUMBER_OF_CHANNELS_ALLOCATED`.
 
+* :c:func:`pm_state_set` and :c:func:`pm_exit_post_ops` are mandatory now
+  for any platform supporting power management.
+
 Recommended Changes
 *******************
 
@@ -350,3 +353,7 @@ Recommended Changes
   ``<zephyr/arch/arm/aarch32/cortex_m/cmsis.h>`` are now deprecated in favor of
   including ``<cmsis_core.h>`` instead. The new header is part of the CMSIS glue
   code in the ``modules`` directory.
+
+* Random API header ``<zephyr/random/rand32.h>`` is deprecated in favor of
+  ``<zephyr/random/random.h>``. The old header will be removed in future releases
+  and its usage should be avoided.
