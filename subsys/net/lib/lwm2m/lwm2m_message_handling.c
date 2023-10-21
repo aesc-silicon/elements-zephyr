@@ -1089,7 +1089,7 @@ int lwm2m_write_handler(struct lwm2m_engine_obj_inst *obj_inst, struct lwm2m_eng
 				break;
 			}
 
-			len = strlen((char *)write_buf);
+			len = strlen((char *)write_buf) + 1;
 			break;
 
 		case LWM2M_RES_TYPE_TIME:
@@ -1251,8 +1251,10 @@ static int lwm2m_read_resource_data(struct lwm2m_message *msg, void *data_ptr, s
 		break;
 
 	case LWM2M_RES_TYPE_STRING:
-		ret = engine_put_string(&msg->out, &msg->path, (uint8_t *)data_ptr,
-					strlen((uint8_t *)data_ptr));
+		if (data_len) {
+			data_len -= 1; /* Remove the '\0' */
+		}
+		ret = engine_put_string(&msg->out, &msg->path, (uint8_t *)data_ptr, data_len);
 		break;
 
 	case LWM2M_RES_TYPE_U32:
@@ -2418,7 +2420,8 @@ static int handle_request(struct coap_packet *request, struct lwm2m_message *msg
 		goto error;
 	}
 #endif
-	if (msg->path.obj_id == LWM2M_OBJECT_SECURITY_ID && !msg->ctx->bootstrap_mode) {
+	if (msg->path.level > LWM2M_PATH_LEVEL_NONE &&
+	    msg->path.obj_id == LWM2M_OBJECT_SECURITY_ID && !msg->ctx->bootstrap_mode) {
 		r = -EACCES;
 		goto error;
 	}
@@ -3302,6 +3305,16 @@ cleanup:
 int do_composite_read_op_for_parsed_list(struct lwm2m_message *msg, uint16_t content_format,
 					 sys_slist_t *path_list)
 {
+	struct lwm2m_obj_path_list *entry;
+
+	/* Check access rights */
+	SYS_SLIST_FOR_EACH_CONTAINER(path_list, entry, node) {
+		if (entry->path.level > LWM2M_PATH_LEVEL_NONE &&
+		    entry->path.obj_id == LWM2M_OBJECT_SECURITY_ID && !msg->ctx->bootstrap_mode) {
+			return -EACCES;
+		}
+	}
+
 	switch (content_format) {
 
 #if defined(CONFIG_LWM2M_RW_SENML_JSON_SUPPORT)

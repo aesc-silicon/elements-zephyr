@@ -2,8 +2,8 @@
 
 .. _migration_3.5:
 
-Migration guide to Zephyr v3.5.0 (Working Draft)
-################################################
+Migration guide to Zephyr v3.5.0
+################################
 
 This document describes the changes required or recommended when migrating your
 application from Zephyr v3.4.0 to Zephyr v3.5.0.
@@ -226,19 +226,6 @@ Device Drivers and Device Tree
   match with the source data for these SOCs. The pin names have had the
   suffix ``dig`` added. For example, ``iomuxc_snvs_wakeup_gpio13_io00`` has
   been renamed to ``iomuxc_snvs_wakeup_dig_gpio13_io00``
-
-* Ramdisk drivers are now instantiated using devicetree. Kconfig options
-  ``CONFIG_DISK_RAM_VOLUME_NAME`` and ``CONFIG_DISK_RAM_VOLUME_SIZE`` have
-  been removed. Instead, instantiate a ramdisk within devicetree like so:
-
-  .. code-block:: devicetree
-
-    ramdisk0 {
-        compatible = "zephyr,ram-disk";
-        disk-name = "RAM";
-        sector-size = <512>;
-        sector-count = <128>;
-    };
 
 Power Management
 ================

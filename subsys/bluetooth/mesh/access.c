@@ -1506,8 +1506,10 @@ int bt_mesh_model_send(struct bt_mesh_model *model, struct bt_mesh_msg_ctx *ctx,
 		       struct net_buf_simple *msg,
 		       const struct bt_mesh_send_cb *cb, void *cb_data)
 {
-	if (IS_ENABLED(CONFIG_BT_MESH_OP_AGG) && bt_mesh_op_agg_accept(ctx)) {
-		return bt_mesh_op_agg_send(model, ctx, msg, cb);
+	if (IS_ENABLED(CONFIG_BT_MESH_OP_AGG_SRV) && bt_mesh_op_agg_srv_accept(ctx, msg)) {
+		return bt_mesh_op_agg_srv_send(model, msg);
+	} else if (IS_ENABLED(CONFIG_BT_MESH_OP_AGG_CLI) && bt_mesh_op_agg_cli_accept(ctx, msg)) {
+		return bt_mesh_op_agg_cli_send(model, msg);
 	}
 
 	if (!bt_mesh_model_has_key(model, ctx->app_idx)) {
@@ -1678,7 +1680,7 @@ int bt_mesh_model_extend(struct bt_mesh_model *extending_mod, struct bt_mesh_mod
 	/* Check if a's list contains b */
 	for (it = a; (it != NULL) && (it->next != a); it = it->next) {
 		if (it == b) {
-			return 0;
+			goto register_extension;
 		}
 	}
 
@@ -1695,7 +1697,7 @@ int bt_mesh_model_extend(struct bt_mesh_model *extending_mod, struct bt_mesh_mod
 		a->next = b;
 	}
 
-
+register_extension:
 	if (IS_ENABLED(CONFIG_BT_MESH_COMP_PAGE_1)) {
 		return mod_rel_register(base_mod, extending_mod, RELATION_TYPE_EXT);
 	}
