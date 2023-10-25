@@ -186,7 +186,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 275548e2dca9e855a134d67f82375ba17b285b5d
+      revision: 2ff8ce6e6ca131d87699dba260f3c0cc4a6cc365
       path: modules/hal/nordic
       groups:
         - hal
@@ -257,7 +257,7 @@ manifest:
       groups:
         - hal
     - name: libmetal
-      revision: b91611a6f47dd29fb24c46e5621e797557f80ec6
+      revision: 03140d7f4bd9ba474ebfbb6256e84a9089248e67
       path: modules/hal/libmetal
       groups:
         - hal
@@ -294,7 +294,7 @@ manifest:
       groups:
         - tools
     - name: nrf_hw_models
-      revision: f4595802d32d103718bf50b3d390b7a450895843
+      revision: f7842d717c73aaeb0354f9e70e6d5ad275106f52
       path: modules/bsim_hw_models/nrf_hw_models
     - name: open-amp
       revision: 42b7c577714b8f22ce82a901e19c1814af4609a8
@@ -304,7 +304,7 @@ manifest:
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio
-      revision: a3728efccc47dd372f40e6313589ca4c5cc7d5e9
+      revision: 0fbc5b72aeab8a6434523a3a7bc8111c17f0bc73
       groups:
         - debug
     - name: picolibc
@@ -321,7 +321,7 @@ manifest:
       groups:
         - crypto
     - name: trusted-firmware-m
-      revision: b168d92c7ed3c77c94d7ce3362bdde5dbffe8424
+      revision: 33c0f47bcb19721a5c33e6fe1eee9225d00bb5bc
       path: modules/tee/tf-m/trusted-firmware-m
       groups:
         - tee
