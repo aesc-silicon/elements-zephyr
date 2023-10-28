@@ -158,6 +158,8 @@ config NET_IPV4_MAPPING_TO_IPV6
 config NET_SHELL
 	bool "Network shell utilities"
 	select SHELL
+	select NET_IPV4_IGMP if NET_IPV4
+	select NET_IPV6_MLD if NET_IPV6
 	help
 	  Activate shell module that provides network commands like
 	  ping to the console.
