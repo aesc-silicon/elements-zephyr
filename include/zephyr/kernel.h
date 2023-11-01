@@ -5319,7 +5319,8 @@ struct k_heap {
  * @param mem Pointer to memory.
  * @param bytes Size of memory region, in bytes
  */
-void k_heap_init(struct k_heap *h, void *mem, size_t bytes);
+void k_heap_init(struct k_heap *h, void *mem,
+		size_t bytes) __attribute_nonnull(1);
 
 /** @brief Allocate aligned memory from a k_heap
  *
@@ -5341,7 +5342,7 @@ void k_heap_init(struct k_heap *h, void *mem, size_t bytes);
  * @return Pointer to memory the caller can now use
  */
 void *k_heap_aligned_alloc(struct k_heap *h, size_t align, size_t bytes,
-			k_timeout_t timeout);
+			k_timeout_t timeout) __attribute_nonnull(1);
 
 /**
  * @brief Allocate memory from a k_heap
@@ -5365,7 +5366,7 @@ void *k_heap_aligned_alloc(struct k_heap *h, size_t align, size_t bytes,
  * @return A pointer to valid heap memory, or NULL
  */
 void *k_heap_alloc(struct k_heap *h, size_t bytes,
-				 k_timeout_t timeout);
+		k_timeout_t timeout) __attribute_nonnull(1);
 
 /**
  * @brief Free memory allocated by k_heap_alloc()
@@ -5377,7 +5378,7 @@ void *k_heap_alloc(struct k_heap *h, size_t bytes,
  * @param h Heap to which to return the memory
  * @param mem A valid memory block, or NULL
  */
-void k_heap_free(struct k_heap *h, void *mem);
+void k_heap_free(struct k_heap *h, void *mem) __attribute_nonnull(1);
 
 /* Hand-calculated minimum heap sizes needed to return a successful
  * 1-byte allocation.  See details in lib/os/heap.[ch]
