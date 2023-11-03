@@ -32,11 +32,22 @@ Bootloader
 Bluetooth
 =========
 
+* The HCI implementation for both the Host and the Controller sides has been
+  renamed for the IPC transport. The ``CONFIG_BT_RPMSG`` Kconfig option is now
+  :kconfig:option:`CONFIG_BT_HCI_IPC`, and the ``zephyr,bt-hci-rpmsg-ipc``
+  Devicetree chosen is now ``zephyr,bt-hci-ipc``. The existing sample has also
+  been renamed, from ``samples/bluetooth/hci_rpmsg`` to
+  ``samples/bluetooth/hci_ipc``.
+
 Networking
 ==========
 
 Other Subsystems
 ================
+
+* MCUmgr applications that make use of serial transports (shell or UART) must now select
+  :kconfig:option:`CONFIG_CRC`, this was previously erroneously selected if MCUmgr was enabled,
+  when for non-serial transports it was not needed.
 
 Recommended Changes
 *******************
