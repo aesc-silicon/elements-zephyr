@@ -41,6 +41,7 @@ LOG_MODULE_REGISTER(bt_driver);
 #define EVT_HEADER_TYPE		0
 #define EVT_HEADER_EVENT	1
 #define EVT_HEADER_SIZE		2
+#define EVT_LE_META_SUBEVENT	3
 #define EVT_VENDOR_CODE_LSB	3
 #define EVT_VENDOR_CODE_MSB	4
 
@@ -84,30 +85,6 @@ static K_SEM_DEFINE(sem_busy, 1, 1);
 static K_KERNEL_STACK_DEFINE(spi_rx_stack, CONFIG_BT_DRV_RX_STACK_SIZE);
 static struct k_thread spi_rx_thread_data;
 
-#if defined(CONFIG_BT_HCI_DRIVER_LOG_LEVEL_DBG)
-#include <zephyr/sys/printk.h>
-static inline void spi_dump_message(const uint8_t *pre, uint8_t *buf,
-				    uint8_t size)
-{
-	uint8_t i, c;
-
-	printk("%s (%d): ", pre, size);
-	for (i = 0U; i < size; i++) {
-		c = buf[i];
-		printk("%x ", c);
-		if (c >= 31U && c <= 126U) {
-			printk("[%c] ", c);
-		} else {
-			printk("[.] ");
-		}
-	}
-	printk("\n");
-}
-#else
-static inline
-void spi_dump_message(const uint8_t *pre, uint8_t *buf, uint8_t size) {}
-#endif
-
 #if defined(CONFIG_BT_SPI_BLUENRG)
 /* Define a limit when reading IRQ high */
 /* It can be required to be increased for */
@@ -129,17 +106,8 @@ struct bluenrg_aci_cmd_ll_param {
 static int bt_spi_send_aci_config_data_controller_mode(void);
 #endif /* CONFIG_BT_BLUENRG_ACI */
 
-#if defined(CONFIG_BT_SPI_BLUENRG)
-/* In case of BlueNRG-MS, it is necessary to prevent SPI driver to release CS,
- * and instead, let current driver manage CS release. see kick_cs()/release_cs()
- * So, add SPI_HOLD_ON_CS to operation field.
- */
-static const struct spi_dt_spec bus = SPI_DT_SPEC_INST_GET(
-	0, SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8) | SPI_HOLD_ON_CS, 0);
-#else
 static const struct spi_dt_spec bus = SPI_DT_SPEC_INST_GET(
 	0, SPI_OP_MODE_MASTER | SPI_TRANSFER_MSB | SPI_WORD_SET(8), 0);
-#endif
 
 static struct spi_buf spi_tx_buf;
 static struct spi_buf spi_rx_buf;
@@ -208,12 +176,6 @@ static bool bt_spi_handle_vendor_evt(uint8_t *msg)
  * know the amount of byte to read.
  * (See section 5.2 of BlueNRG-MS datasheet)
  */
-static int configure_cs(void)
-{
-	/* Configure pin as output and set to inactive */
-	return gpio_pin_configure_dt(&bus.config.cs.gpio, GPIO_OUTPUT_INACTIVE);
-}
-
 static void kick_cs(void)
 {
 	gpio_pin_set_dt(&bus.config.cs.gpio, 0);
@@ -253,7 +215,6 @@ static bool exit_irq_high_loop(void)
 
 #else
 
-#define configure_cs(...) 0
 #define kick_cs(...)
 #define release_cs(...)
 #define irq_pin_high(...) 0
@@ -304,8 +265,8 @@ static struct net_buf *bt_spi_rx_buf_construct(uint8_t *msg)
 			/* Event has not yet been handled */
 			__fallthrough;
 		default:
-			if (msg[1] == BT_HCI_EVT_LE_META_EVENT &&
-			    (msg[3] == BT_HCI_EVT_LE_ADVERTISING_REPORT)) {
+			if (msg[EVT_HEADER_EVENT] == BT_HCI_EVT_LE_META_EVENT &&
+			    (msg[EVT_LE_META_SUBEVENT] == BT_HCI_EVT_LE_ADVERTISING_REPORT)) {
 				discardable = true;
 				timeout = K_NO_WAIT;
 			}
@@ -404,7 +365,7 @@ static void bt_spi_rx_thread(void *p1, void *p2, void *p3)
 				continue;
 			}
 
-			spi_dump_message("RX:ed", rxmsg, size);
+			LOG_HEXDUMP_DBG(rxmsg, size, "SPI RX");
 
 			/* Construct net_buf from SPI data */
 			buf = bt_spi_rx_buf_construct(rxmsg);
@@ -480,7 +441,7 @@ static int bt_spi_send(struct net_buf *buf)
 		goto out;
 	}
 
-	spi_dump_message("TX:ed", buf->data, buf->len);
+	LOG_HEXDUMP_DBG(buf->data, buf->len, "SPI TX");
 
 #if defined(CONFIG_BT_SPI_BLUENRG)
 	/*
@@ -558,10 +519,6 @@ static int bt_spi_init(void)
 	if (!spi_is_ready_dt(&bus)) {
 		LOG_ERR("SPI device not ready");
 		return -ENODEV;
-	}
-
-	if (configure_cs()) {
-		return -EIO;
 	}
 
 	if (!gpio_is_ready_dt(&irq_gpio)) {

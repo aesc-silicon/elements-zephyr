@@ -188,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_nuvoton
-      revision: 3e0a4c4d3328b2f72b164219add19d5308b53cb5
+      revision: 584190e131655de1046088bd0d0735d83429ec7c
       path: modules/hal/nuvoton
       groups:
         - hal
@@ -282,7 +282,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 13767d0b72eb14ce42eb8aad1e5a133ef66afc54
+      revision: 4a1effbc301fc302ecbaf40d4eb2be520b53010d
       path: bootloader/mcuboot
     - name: mipi-sys-t
       path: modules/debug/mipi-sys-t

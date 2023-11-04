@@ -5,7 +5,7 @@
  */
 
 #include "mem_protect.h"
-#include <zephyr/syscall_handler.h>
+#include <zephyr/internal/syscall_handler.h>
 
 /* Kernel objects */
 
@@ -42,7 +42,7 @@ ZTEST(mem_protect_kobj, test_kobject_access_grant)
 {
 	set_fault_valid(false);
 
-	z_object_init(random_sem_type);
+	k_object_init(random_sem_type);
 	k_thread_access_grant(k_current_get(),
 			      &kobject_sem,
 			      &kobject_mutex,
@@ -481,7 +481,7 @@ ZTEST(mem_protect_kobj, test_thread_has_residual_permissions)
  * @ingroup kernel_memprotect_tests
  *
  * @see k_object_access_grant(), k_object_access_revoke(),
- * z_object_find()
+ * k_object_find()
  */
 ZTEST(mem_protect_kobj, test_kobject_access_grant_to_invalid_thread)
 {
@@ -492,7 +492,7 @@ ZTEST(mem_protect_kobj, test_kobject_access_grant_to_invalid_thread)
 	k_object_access_grant(&kobject_sem, &uninit_thread);
 	k_object_access_revoke(&kobject_sem, &uninit_thread);
 
-	zassert_not_equal(Z_SYSCALL_OBJ(&uninit_thread, K_OBJ_THREAD), 0,
+	zassert_not_equal(K_SYSCALL_OBJ(&uninit_thread, K_OBJ_THREAD), 0,
 			  "Access granted/revoked to invalid thread k_object");
 }
 
@@ -1054,7 +1054,7 @@ ZTEST(mem_protect_kobj, test_mark_thread_exit_uninitialized)
 	set_fault_valid(false);
 
 	int ret;
-	struct z_object *ko;
+	struct k_object *ko;
 
 	k_thread_access_grant(&child_thread,
 			      &child_stack);
@@ -1069,13 +1069,13 @@ ZTEST(mem_protect_kobj, test_mark_thread_exit_uninitialized)
 	k_thread_join(&child_thread, K_FOREVER);
 
 	/* check thread is uninitialized after its exit */
-	ko = z_object_find(&child_thread);
-	ret = z_object_validate(ko, K_OBJ_ANY, _OBJ_INIT_FALSE);
+	ko = k_object_find(&child_thread);
+	ret = k_object_validate(ko, K_OBJ_ANY, _OBJ_INIT_FALSE);
 	zassert_equal(ret, _OBJ_INIT_FALSE);
 
 	/* check stack is uninitialized after thread exit */
-	ko = z_object_find(child_stack);
-	ret = z_object_validate(ko, K_OBJ_ANY, _OBJ_INIT_FALSE);
+	ko = k_object_find(child_stack);
+	ret = k_object_validate(ko, K_OBJ_ANY, _OBJ_INIT_FALSE);
 	zassert_equal(ret, _OBJ_INIT_FALSE);
 }
 

@@ -1464,11 +1464,11 @@ void z_impl_nrf_qspi_nor_xip_enable(const struct device *dev, bool enable)
 }
 
 #ifdef CONFIG_USERSPACE
-#include <zephyr/syscall_handler.h>
+#include <zephyr/internal/syscall_handler.h>
 
 void z_vrfy_nrf_qspi_nor_xip_enable(const struct device *dev, bool enable)
 {
-	Z_OOPS(Z_SYSCALL_SPECIFIC_DRIVER(dev, K_OBJ_DRIVER_FLASH,
+	K_OOPS(K_SYSCALL_SPECIFIC_DRIVER(dev, K_OBJ_DRIVER_FLASH,
 					 &qspi_nor_api));
 
 	z_impl_nrf_qspi_nor_xip_enable(dev, enable);
