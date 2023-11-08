@@ -116,7 +116,7 @@ manifest:
       groups:
         - babblesim
     - name: cmsis
-      revision: 5a00331455dd74e31e80efa383a489faea0590e3
+      revision: 4b96cbb174678dcd3ca86e11e1f24bc5f8726da0
       path: modules/hal/cmsis
       groups:
         - hal
@@ -142,7 +142,7 @@ manifest:
       groups:
         - hal
     - name: hal_ambiq
-      revision: 0a7c99325aa73a1ef777501da91c2c6608661e56
+      revision: 0c5ea5749245c8ff6ce7aefbf0aa9981943c2857
       path: modules/hal/ambiq
       groups:
         - hal
