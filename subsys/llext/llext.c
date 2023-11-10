@@ -403,12 +403,16 @@ out:
 	return ret;
 }
 
+__weak void arch_elf_relocate(elf_rela_t *rel, uintptr_t opaddr, uintptr_t opval)
+{
+}
+
 static int llext_link(struct llext_loader *ldr, struct llext *ext)
 {
 	int ret = 0;
 	uintptr_t loc = 0;
 	elf_shdr_t shdr;
-	elf_rel_t rel;
+	elf_rela_t rel;
 	elf_sym_t sym;
 	size_t pos = ldr->hdr.e_shoff;
 	elf_word rel_cnt = 0;
@@ -635,7 +639,7 @@ out:
 
 int llext_load(struct llext_loader *ldr, const char *name, struct llext **ext)
 {
-	int ret = 0;
+	int ret;
 	elf_ehdr_t ehdr;
 
 	ret = llext_seek(ldr, 0);
