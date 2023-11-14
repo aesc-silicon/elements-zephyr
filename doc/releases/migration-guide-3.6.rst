@@ -73,6 +73,14 @@ Bluetooth
   been renamed, from ``samples/bluetooth/hci_rpmsg`` to
   ``samples/bluetooth/hci_ipc``.
 
+LoRaWAN
+=======
+
+* The API to register a callback to provide battery level information to the LoRaWAN stack has been
+  renamed from ``lorawan_set_battery_level_callback`` to
+  :c:func:`lorawan_register_battery_level_callback` and the return type is now ``void``. This
+  is more consistent with similar functions for downlink and data rate changed callbacks.
+
 Networking
 ==========
 
@@ -91,7 +99,7 @@ Other Subsystems
 * Touchscreen drivers :dtcompatible:`focaltech,ft5336` and
   :dtcompatible:`goodix,gt911` were using the incorrect polarity for the
   respective ``reset-gpios``. This has been fixed so those signals now have to
-  be flagged as :c:macro:`GPIO_ACTIVE_LOW` in the devicetree.`
+  be flagged as :c:macro:`GPIO_ACTIVE_LOW` in the devicetree.
 
 Recommended Changes
 *******************

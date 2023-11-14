@@ -48,4 +48,17 @@
 #define IP_STM_11_BASE          IP_SMU__STM_0_BASE
 #define IP_STM_12_BASE          IP_SMU__STM_2_BASE
 
+/* NETC */
+#define IP_NETC_EMDIO_0_BASE    IP_NETC__EMDIO_BASE_BASE
+
+/* MRU */
+#define IP_MRU_0_BASE           IP_RTU0__MRU_0_BASE
+#define IP_MRU_1_BASE           IP_RTU0__MRU_1_BASE
+#define IP_MRU_2_BASE           IP_RTU0__MRU_2_BASE
+#define IP_MRU_3_BASE           IP_RTU0__MRU_3_BASE
+#define IP_MRU_4_BASE           IP_RTU1__MRU_0_BASE
+#define IP_MRU_5_BASE           IP_RTU1__MRU_1_BASE
+#define IP_MRU_6_BASE           IP_RTU1__MRU_2_BASE
+#define IP_MRU_7_BASE           IP_RTU1__MRU_3_BASE
+
 #endif /* _NXP_S32_S32ZE_SOC_H_ */
