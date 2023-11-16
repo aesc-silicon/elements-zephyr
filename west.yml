@@ -193,7 +193,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 78d1912dbc2b5f6e114d7fd19a31053716a3b01d
+      revision: 03bd989de4d2de151470e8b6068bc5686f3fc84c
       path: modules/hal/nxp
       groups:
         - hal
@@ -274,7 +274,7 @@ manifest:
       revision: 842413c5fb98707eb5f26e619e8e792453877897
       path: modules/lib/loramac-node
     - name: lvgl
-      revision: 8a6a2d1d29d17d1e4bdc94c243c146a39d635fdd
+      revision: 7c61a4cec26402d20c845c95dcad0e39dcd319f8
       path: modules/lib/gui/lvgl
     - name: mbedtls
       revision: 7053083b0cff8462464e3cbb826e87852fc03da6
@@ -301,7 +301,7 @@ manifest:
       revision: 214f9fc1539f8e5937c0474cb6ee29b6dcb2d4b8
       path: modules/lib/open-amp
     - name: openthread
-      revision: 6edb06e4e0472411200ce2a084a783eaf3faffe3
+      revision: 193e77e40ec2387d458eaebd1e03902d86f484a5
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio

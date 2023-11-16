@@ -8,14 +8,13 @@
 
 #include <zephyr/device.h>
 #include <zephyr/input/input.h>
+#include <zephyr/input/input_kbd_matrix.h>
 #include <zephyr/kernel.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 
 #define LOG_LEVEL CONFIG_INPUT_LOG_LEVEL
 LOG_MODULE_REGISTER(input_kbd_matrix);
-
-#include "input_kbd_matrix.h"
 
 #define INPUT_KBD_MATRIX_ROW_MASK UINT8_MAX
 
@@ -74,7 +73,7 @@ static bool input_kbd_matrix_ghosting(const struct device *dev)
 static bool input_kbd_matrix_scan(const struct device *dev)
 {
 	const struct input_kbd_matrix_common_config *cfg = dev->config;
-	const struct input_kbd_matrix_api *api = &cfg->api;
+	const struct input_kbd_matrix_api *api = cfg->api;
 	int row;
 	uint8_t key_event = 0U;
 
@@ -264,7 +263,7 @@ static void input_kbd_matrix_polling_thread(void *arg1, void *unused2, void *unu
 {
 	const struct device *dev = arg1;
 	const struct input_kbd_matrix_common_config *cfg = dev->config;
-	const struct input_kbd_matrix_api *api = &cfg->api;
+	const struct input_kbd_matrix_api *api = cfg->api;
 	struct input_kbd_matrix_common_data *data = dev->data;
 
 	ARG_UNUSED(unused2);

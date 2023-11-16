@@ -4,6 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#ifndef ZEPHYR_INCLUDE_INPUT_KBD_MATRIX_H_
+#define ZEPHYR_INCLUDE_INPUT_KBD_MATRIX_H_
+
+/**
+ * @brief Keyboard Matrix API
+ * @defgroup input_kbd_matrix Keyboard Matrix API
+ * @ingroup io_interfaces
+ * @{
+ */
+
 #include <zephyr/device.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/util.h>
@@ -23,8 +33,33 @@
  * @brief Keyboard matrix internal APIs.
  */
 struct input_kbd_matrix_api {
+	/**
+	 * @brief Request to drive a specific column.
+	 *
+	 * Request to drive a specific matrix column, or none, or all.
+	 *
+	 * @param dev Pointer to the keyboard matrix device.
+	 * @param col The column to drive, or
+	 *      @ref INPUT_KBD_MATRIX_COLUMN_DRIVE_NONE or
+	 *      @ref INPUT_KBD_MATRIX_COLUMN_DRIVE_ALL.
+	 */
 	void (*drive_column)(const struct device *dev, int col);
+	/**
+	 * @brief Read the matrix row.
+	 *
+	 * @param dev Pointer to the keyboard matrix device.
+	 */
 	int (*read_row)(const struct device *dev);
+	/**
+	 * @brief Request to put the matrix in detection mode.
+	 *
+	 * Request to put the driver in detection mode, this is called after a
+	 * request to drive all the column and typically involves reenabling
+	 * interrupts row pin changes.
+	 *
+	 * @param dev Pointer to the keyboard matrix device.
+	 * @param enable Whether detection mode has to be enabled or disabled.
+	 */
 	void (*set_detect_mode)(const struct device *dev, bool enabled);
 };
 
@@ -34,7 +69,7 @@ struct input_kbd_matrix_api {
  * This structure **must** be placed first in the driver's config structure.
  */
 struct input_kbd_matrix_common_config {
-	struct input_kbd_matrix_api api;
+	const struct input_kbd_matrix_api *api;
 	uint8_t row_size;
 	uint8_t col_size;
 	uint32_t poll_period_us;
@@ -57,22 +92,35 @@ struct input_kbd_matrix_common_config {
 		_CONCAT(name, DEVICE_DT_NAME_GET(node_id)))
 
 /**
+ * @brief Defines the common keyboard matrix support data from devicetree,
+ * specify row and col count.
+ */
+#define INPUT_KBD_MATRIX_DT_DEFINE_ROW_COL(node_id, _row_size, _col_size) \
+	BUILD_ASSERT(IN_RANGE(_row_size, 1, 8), "invalid row-size"); \
+	BUILD_ASSERT(IN_RANGE(_col_size, 1, UINT8_MAX), "invalid col-size"); \
+	static uint8_t INPUT_KBD_MATRIX_DATA_NAME(node_id, stable_state)[_col_size]; \
+	static uint8_t INPUT_KBD_MATRIX_DATA_NAME(node_id, unstable_state)[_col_size]; \
+	static uint8_t INPUT_KBD_MATRIX_DATA_NAME(node_id, previous_state)[_col_size]; \
+	static uint8_t INPUT_KBD_MATRIX_DATA_NAME(node_id, new_state)[_col_size]; \
+	static uint8_t INPUT_KBD_MATRIX_DATA_NAME(node_id, scan_cycle_idx)[_row_size * _col_size];
+
+/**
  * @brief Defines the common keyboard matrix support data from devicetree.
  */
 #define INPUT_KBD_MATRIX_DT_DEFINE(node_id) \
-	BUILD_ASSERT(IN_RANGE(DT_PROP(node_id, row_size), 1, 8), "invalid row-size"); \
-	BUILD_ASSERT(IN_RANGE(DT_PROP(node_id, col_size), 1, UINT8_MAX), "invalid col-size"); \
-	static uint8_t INPUT_KBD_MATRIX_DATA_NAME( \
-			node_id, stable_state)[DT_PROP(node_id, col_size)]; \
-	static uint8_t INPUT_KBD_MATRIX_DATA_NAME( \
-			node_id, unstable_state)[DT_PROP(node_id, col_size)]; \
-	static uint8_t INPUT_KBD_MATRIX_DATA_NAME( \
-			node_id, previous_state)[DT_PROP(node_id, col_size)]; \
-	static uint8_t INPUT_KBD_MATRIX_DATA_NAME( \
-			node_id, new_state)[DT_PROP(node_id, col_size)]; \
-	static uint8_t INPUT_KBD_MATRIX_DATA_NAME( \
-			node_id, scan_cycle_idx)[DT_PROP(node_id, row_size) * \
-						 DT_PROP(node_id, col_size)];
+	INPUT_KBD_MATRIX_DT_DEFINE_ROW_COL( \
+		node_id, DT_PROP(node_id, row_size), DT_PROP(node_id, col_size))
+
+/**
+ * @brief Defines the common keyboard matrix support data from devicetree
+ * instance, specify row and col count.
+ *
+ * @param inst Instance.
+ * @param row_size The matrix row count.
+ * @param col_size The matrix column count.
+ */
+#define INPUT_KBD_MATRIX_DT_INST_DEFINE_ROW_COL(inst, row_size, col_size) \
+	INPUT_KBD_MATRIX_DT_DEFINE_ROW_COL(DT_DRV_INST(inst), row_size, col_size)
 
 /**
  * @brief Defines the common keyboard matrix support data from devicetree instance.
@@ -83,15 +131,18 @@ struct input_kbd_matrix_common_config {
 	INPUT_KBD_MATRIX_DT_DEFINE(DT_DRV_INST(inst))
 
 /**
- * @brief Initialize common keyboard matrix config from devicetree.
+ * @brief Initialize common keyboard matrix config from devicetree, specify row and col count.
  *
- * @param api Pointer to a :c:struct:`input_kbd_matrix_api` structure.
+ * @param node_id The devicetree node identifier.
+ * @param _api Pointer to a @ref input_kbd_matrix_api structure.
+ * @param _row_size The matrix row count.
+ * @param _col_size The matrix column count.
  */
-#define INPUT_KBD_MATRIX_DT_COMMON_CONFIG_INIT(node_id, _api) \
+#define INPUT_KBD_MATRIX_DT_COMMON_CONFIG_INIT_ROW_COL(node_id, _api, _row_size, _col_size) \
 	{ \
 		.api = _api, \
-		.row_size = DT_PROP(node_id, row_size), \
-		.col_size = DT_PROP(node_id, col_size), \
+		.row_size = _row_size, \
+		.col_size = _col_size, \
 		.poll_period_us = DT_PROP(node_id, poll_period_ms) * USEC_PER_MSEC, \
 		.poll_timeout_ms = DT_PROP(node_id, poll_timeout_ms), \
 		.debounce_down_ms = DT_PROP(node_id, debounce_down_ms), \
@@ -107,10 +158,32 @@ struct input_kbd_matrix_common_config {
 	}
 
 /**
+ * @brief Initialize common keyboard matrix config from devicetree.
+ *
+ * @param node_id The devicetree node identifier.
+ * @param api Pointer to a @ref input_kbd_matrix_api structure.
+ */
+#define INPUT_KBD_MATRIX_DT_COMMON_CONFIG_INIT(node_id, api) \
+	INPUT_KBD_MATRIX_DT_COMMON_CONFIG_INIT_ROW_COL( \
+		node_id, api, DT_PROP(node_id, row_size), DT_PROP(node_id, col_size))
+
+/**
+ * @brief Initialize common keyboard matrix config from devicetree instance,
+ * specify row and col count.
+ *
+ * @param inst Instance.
+ * @param api Pointer to a @ref input_kbd_matrix_api structure.
+ * @param row_size The matrix row count.
+ * @param col_size The matrix column count.
+ */
+#define INPUT_KBD_MATRIX_DT_INST_COMMON_CONFIG_INIT_ROW_COL(inst, api, row_size, col_size) \
+	INPUT_KBD_MATRIX_DT_COMMON_CONFIG_INIT_ROW_COL(DT_DRV_INST(inst), api, row_size, col_size)
+
+/**
  * @brief Initialize common keyboard matrix config from devicetree instance.
  *
  * @param inst Instance.
- * @param api Pointer to a :c:struct:`input_kbd_matrix_api` structure.
+ * @param api Pointer to a @ref input_kbd_matrix_api structure.
  */
 #define INPUT_KBD_MATRIX_DT_INST_COMMON_CONFIG_INIT(inst, api) \
 	INPUT_KBD_MATRIX_DT_COMMON_CONFIG_INIT(DT_DRV_INST(inst), api)
@@ -166,3 +239,7 @@ void input_kbd_matrix_poll_start(const struct device *dev);
  * @retval -errno Negative errno in case of failure.
  */
 int input_kbd_matrix_common_init(const struct device *dev);
+
+/** @} */
+
+#endif /* ZEPHYR_INCLUDE_INPUT_KBD_MATRIX_H_ */
