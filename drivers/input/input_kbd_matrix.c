@@ -12,9 +12,9 @@
 #include <zephyr/kernel.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
 
-#define LOG_LEVEL CONFIG_INPUT_LOG_LEVEL
-LOG_MODULE_REGISTER(input_kbd_matrix);
+LOG_MODULE_REGISTER(input_kbd_matrix, CONFIG_INPUT_LOG_LEVEL);
 
 #define INPUT_KBD_MATRIX_ROW_MASK UINT8_MAX
 
@@ -98,9 +98,11 @@ static void input_kbd_matrix_update_state(const struct device *dev)
 	const struct input_kbd_matrix_common_config *cfg = dev->config;
 	struct input_kbd_matrix_common_data *data = dev->data;
 	uint8_t *matrix_new_state = cfg->matrix_new_state;
-	uint32_t cycles_now = k_cycle_get_32();
+	uint32_t cycles_now;
 	uint8_t row_changed;
 	uint8_t deb_col;
+
+	cycles_now = k_cycle_get_32();
 
 	data->scan_clk_cycle[data->scan_cycles_idx] = cycles_now;
 
@@ -182,23 +184,21 @@ static void input_kbd_matrix_update_state(const struct device *dev)
 			input_report_key(dev, INPUT_BTN_TOUCH, row_bit, true, K_FOREVER);
 		}
 	}
+
+	data->scan_cycles_idx = (data->scan_cycles_idx + 1) % INPUT_KBD_MATRIX_SCAN_OCURRENCES;
 }
 
 static bool input_kbd_matrix_check_key_events(const struct device *dev)
 {
 	const struct input_kbd_matrix_common_config *cfg = dev->config;
-	struct input_kbd_matrix_common_data *data = dev->data;
 	bool key_pressed;
-
-	if (++data->scan_cycles_idx >= INPUT_KBD_MATRIX_SCAN_OCURRENCES) {
-		data->scan_cycles_idx = 0U;
-	}
 
 	/* Scan the matrix */
 	key_pressed = input_kbd_matrix_scan(dev);
 
 	for (int c = 0; c < cfg->col_size; c++) {
-		LOG_DBG("U%x, P%x, N%x",
+		LOG_DBG("c=%2d u=%02x p=%02x n=%02x",
+			c,
 			cfg->matrix_unstable_state[c],
 			cfg->matrix_previous_state[c],
 			cfg->matrix_new_state[c]);
@@ -217,10 +217,12 @@ static bool input_kbd_matrix_check_key_events(const struct device *dev)
 static void input_kbd_matrix_poll(const struct device *dev)
 {
 	const struct input_kbd_matrix_common_config *cfg = dev->config;
-	k_timepoint_t poll_time_end = sys_timepoint_calc(K_MSEC(cfg->poll_timeout_ms));
+	k_timepoint_t poll_time_end;
 	uint32_t current_cycles;
 	uint32_t cycles_diff;
 	uint32_t wait_period_us;
+
+	poll_time_end = sys_timepoint_calc(K_MSEC(cfg->poll_timeout_ms));
 
 	while (true) {
 		uint32_t start_period_cycles = k_cycle_get_32();
@@ -239,20 +241,10 @@ static void input_kbd_matrix_poll(const struct device *dev)
 		cycles_diff = current_cycles - start_period_cycles;
 		wait_period_us = cfg->poll_period_us - k_cyc_to_us_floor32(cycles_diff);
 
-		/* Wait for at least 1ms */
-		if (wait_period_us < USEC_PER_MSEC) {
-			wait_period_us = USEC_PER_MSEC;
-		}
+		wait_period_us = CLAMP(wait_period_us,
+				       USEC_PER_MSEC, cfg->poll_period_us);
 
-		/*
-		 * Wait period results in a larger number when current cycles
-		 * counter wrap. In this case, the whole poll period is used
-		 */
-		if (wait_period_us > cfg->poll_period_us) {
-			LOG_DBG("wait_period_us: %u", wait_period_us);
-
-			wait_period_us = cfg->poll_period_us;
-		}
+		LOG_DBG("wait_period_us: %d", wait_period_us);
 
 		/* Allow other threads to run while we sleep */
 		k_usleep(wait_period_us);
@@ -274,7 +266,7 @@ static void input_kbd_matrix_polling_thread(void *arg1, void *unused2, void *unu
 		api->set_detect_mode(dev, true);
 
 		k_sem_take(&data->poll_lock, K_FOREVER);
-		LOG_DBG("Start KB scan");
+		LOG_DBG("scan start");
 
 		/* Disable interrupt of KSI pins and start polling */
 		api->set_detect_mode(dev, false);
