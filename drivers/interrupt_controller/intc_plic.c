@@ -45,6 +45,12 @@
 #define PLIC_REG_SIZE 32
 #define PLIC_REG_MASK BIT_MASK(LOG2(PLIC_REG_SIZE))
 
+#ifdef CONFIG_TEST_INTC_PLIC
+#define INTC_PLIC_STATIC
+#else
+#define INTC_PLIC_STATIC static inline
+#endif
+
 typedef void (*riscv_plic_irq_config_func_t)(void);
 struct plic_config {
 	mem_addr_t prio;
@@ -59,26 +65,31 @@ struct plic_config {
 static uint32_t save_irq;
 static const struct device *save_dev;
 
-static inline uint32_t local_irq_to_reg_offset(uint32_t local_irq)
+INTC_PLIC_STATIC uint32_t local_irq_to_reg_index(uint32_t local_irq)
 {
 	return local_irq >> LOG2(PLIC_REG_SIZE);
+}
+
+INTC_PLIC_STATIC uint32_t local_irq_to_reg_offset(uint32_t local_irq)
+{
+	return local_irq_to_reg_index(local_irq) * sizeof(uint32_t);
 }
 
 static inline uint32_t get_plic_enabled_size(const struct device *dev)
 {
 	const struct plic_config *config = dev->config;
 
-	return local_irq_to_reg_offset(config->num_irqs) + 1;
+	return local_irq_to_reg_index(config->num_irqs) + 1;
 }
 
-static inline uint32_t get_claim_complete_offset(const struct device *dev)
+static inline mem_addr_t get_claim_complete_addr(const struct device *dev)
 {
 	const struct plic_config *config = dev->config;
 
 	return config->reg + PLIC_REG_REGS_CLAIM_COMPLETE_OFFSET;
 }
 
-static inline uint32_t get_threshold_priority_offset(const struct device *dev)
+static inline mem_addr_t get_threshold_priority_addr(const struct device *dev)
 {
 	const struct plic_config *config = dev->config;
 
@@ -240,7 +251,7 @@ const struct device *riscv_plic_get_dev(void)
 static void plic_irq_handler(const struct device *dev)
 {
 	const struct plic_config *config = dev->config;
-	mem_addr_t claim_complete_addr = get_claim_complete_offset(dev);
+	mem_addr_t claim_complete_addr = get_claim_complete_addr(dev);
 	struct _isr_table_entry *ite;
 	int edge_irq;
 
@@ -305,7 +316,7 @@ static int plic_init(const struct device *dev)
 	const struct plic_config *config = dev->config;
 	mem_addr_t en_addr = config->irq_en;
 	mem_addr_t prio_addr = config->prio;
-	mem_addr_t thres_prio_addr = get_threshold_priority_offset(dev);
+	mem_addr_t thres_prio_addr = get_threshold_priority_addr(dev);
 
 	/* Ensure that all interrupts are disabled initially */
 	for (uint32_t i = 0; i < get_plic_enabled_size(dev); i++) {

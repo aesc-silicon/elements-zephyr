@@ -58,6 +58,41 @@ Device Drivers and Device Tree
 Power Management
 ================
 
+Shell
+=====
+
+* The following subsystem and driver shell modules are now disabled by default. Each required shell
+  module must now be explicitly enabled via Kconfig (:github:`65307`):
+
+  * :kconfig:option:`CONFIG_ACPI_SHELL`
+  * :kconfig:option:`CONFIG_ADC_SHELL`
+  * :kconfig:option:`CONFIG_AUDIO_CODEC_SHELL`
+  * :kconfig:option:`CONFIG_CAN_SHELL`
+  * :kconfig:option:`CONFIG_CLOCK_CONTROL_NRF_SHELL`
+  * :kconfig:option:`CONFIG_DAC_SHELL`
+  * :kconfig:option:`CONFIG_DEBUG_COREDUMP_SHELL`
+  * :kconfig:option:`CONFIG_EDAC_SHELL`
+  * :kconfig:option:`CONFIG_EEPROM_SHELL`
+  * :kconfig:option:`CONFIG_FLASH_SHELL`
+  * :kconfig:option:`CONFIG_HWINFO_SHELL`
+  * :kconfig:option:`CONFIG_I2C_SHELL`
+  * :kconfig:option:`CONFIG_LOG_CMDS`
+  * :kconfig:option:`CONFIG_LORA_SHELL`
+  * :kconfig:option:`CONFIG_MCUBOOT_SHELL`
+  * :kconfig:option:`CONFIG_MDIO_SHELL`
+  * :kconfig:option:`CONFIG_OPENTHREAD_SHELL`
+  * :kconfig:option:`CONFIG_PCIE_SHELL`
+  * :kconfig:option:`CONFIG_PSCI_SHELL`
+  * :kconfig:option:`CONFIG_PWM_SHELL`
+  * :kconfig:option:`CONFIG_REGULATOR_SHELL`
+  * :kconfig:option:`CONFIG_SENSOR_SHELL`
+  * :kconfig:option:`CONFIG_SMBUS_SHELL`
+  * :kconfig:option:`CONFIG_STATS_SHELL`
+  * :kconfig:option:`CONFIG_USBD_SHELL`
+  * :kconfig:option:`CONFIG_USBH_SHELL`
+  * :kconfig:option:`CONFIG_W1_SHELL`
+  * :kconfig:option:`CONFIG_WDT_SHELL`
+
 Bootloader
 ==========
 
@@ -82,6 +117,9 @@ Bluetooth
   The ``model->user_data``, ``model->elem_idx`` and ``model->mod_idx`` field has been changed to
   the new runtime structure, replaced by ``model->rt->user_data``, ``model->rt->elem_idx`` and
   ``model->rt->mod_idx`` separately. (:github:`65152`)
+* The Bluetooth Mesh ``element`` declaration has been changed to add prefix ``const``.
+  The ``elem->addr`` field has been changed to the new runtime structure, replaced by
+  ``elem->rt->addr``. (:github:`65388`)
 
 LoRaWAN
 =======
@@ -115,3 +153,7 @@ Other Subsystems
 
 Recommended Changes
 *******************
+
+* New macros available for ST sensor DT properties setting. These macros have a self-explanatory
+  name that helps in recognizing what the property setting means (e.g. LSM6DSV16X_DT_ODR_AT_60Hz).
+  (:github:`65410`)
