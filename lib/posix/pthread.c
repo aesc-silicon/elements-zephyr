@@ -16,6 +16,7 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/posix/pthread.h>
 #include <zephyr/sys/slist.h>
+#include <zephyr/sys/util.h>
 
 LOG_MODULE_REGISTER(pthread, CONFIG_PTHREAD_LOG_LEVEL);
 
@@ -25,8 +26,9 @@ LOG_MODULE_REGISTER(pthread, CONFIG_PTHREAD_LOG_LEVEL);
 #define DYNAMIC_STACK_SIZE 0
 #endif
 
-#define PTHREAD_INIT_FLAGS	PTHREAD_CANCEL_ENABLE
-#define PTHREAD_CANCELED	((void *) -1)
+#define _pthread_cancel_pos LOG2(PTHREAD_CANCEL_DISABLE)
+
+#define PTHREAD_INIT_FLAGS PTHREAD_CANCEL_ENABLE
 
 enum posix_thread_qid {
 	/* ready to be started via pthread_create() */
@@ -133,6 +135,11 @@ pthread_t pthread_self(void)
 	bit = posix_thread_to_offset(t);
 
 	return mark_pthread_obj_initialized(bit);
+}
+
+int pthread_equal(pthread_t pt1, pthread_t pt2)
+{
+	return (pt1 == pt2);
 }
 
 static bool is_posix_policy_prio_valid(uint32_t priority, int policy)
@@ -402,7 +409,7 @@ int pthread_create(pthread_t *th, const pthread_attr_t *_attr, void *(*threadrou
 		sys_dlist_append(&run_q, &t->q_node);
 		t->qid = POSIX_THREAD_RUN_Q;
 		t->detachstate = attr->detachstate;
-		if ((BIT(_PTHREAD_CANCEL_POS) & attr->flags) != 0) {
+		if ((BIT(_pthread_cancel_pos) & attr->flags) != 0) {
 			t->cancel_state = PTHREAD_CANCEL_ENABLE;
 		}
 		t->cancel_pending = false;
@@ -973,10 +980,4 @@ static int posix_thread_pool_init(void)
 
 	return 0;
 }
-
-int pthread_equal(pthread_t pt1, pthread_t pt2)
-{
-	return (pt1 == pt2);
-}
-
 SYS_INIT(posix_thread_pool_init, PRE_KERNEL_1, 0);
