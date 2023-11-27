@@ -61,15 +61,31 @@ multiple processes.
     pthread_once(),yes
     pthread_self(),yes
     pthread_setcancelstate(),yes
-    pthread_setcanceltype(),
+    pthread_setcanceltype(),yes
     pthread_setspecific(),yes
     pthread_sigmask(),
     pthread_testcancel(),
 
-.. _posix_option_group_xsi_thread_ext:
+.. _posix_option_group_posix_threads_ext:
 
-XSI_THREAD_EXT
-==============
+POSIX_THREADS_EXT
+=================
+
+This table lists service support status in Zephyr:
+
+.. csv-table:: POSIX_THREADS_EXT
+   :header: API, Supported
+   :widths: 50,10
+
+    pthread_attr_getguardsize(),
+    pthread_attr_setguardsize(),
+    pthread_mutexattr_gettype(),yes
+    pthread_mutexattr_settype(),yes
+
+.. _posix_option_group_xsi_threads_ext:
+
+XSI_THREADS_EXT
+===============
 
 The XSI_THREADS_EXT option group is required because it provides
 functions to control a thread's stack. This is considered useful for any
@@ -77,13 +93,11 @@ real-time application.
 
 This table lists service support status in Zephyr:
 
-.. csv-table:: XSI_THREAD_EXT
+.. csv-table:: XSI_THREADS_EXT
    :header: API, Supported
    :widths: 50,10
 
-    pthread_attr_getguardsize(),
     pthread_attr_getstack(),yes
-    pthread_attr_setguardsize(),
     pthread_attr_setstack(),yes
     pthread_getconcurrency(),
     pthread_setconcurrency()
