@@ -222,6 +222,8 @@ Ambiq Platforms:
   collaborators:
     - tgorochowik
     - msobkowski
+    - aaronyegx
+    - RichardSWheatley
   files:
     - soc/arm/ambiq/
     - boards/arm/apollo*/
@@ -1101,6 +1103,7 @@ Release Notes:
     - doc/hardware/peripherals/gnss.rst
     - drivers/gnss/
     - include/zephyr/drivers/gnss.h
+    - tests/drivers/build_all/gnss/
     - tests/drivers/gnss/
   labels:
     - "area: GNSS"
@@ -3273,6 +3276,8 @@ West:
   collaborators:
     - tgorochowik
     - msobkowski
+    - aaronyegx
+    - RichardSWheatley
   files:
     - modules/hal_ambiq/
   labels:
