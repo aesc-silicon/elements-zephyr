@@ -59,6 +59,8 @@ Boards & SoC Support
 
 * Added support for these SoC series:
 
+  * Added support for Renesas R-Car Gen4 series
+
 * Removed support for these SoC series:
 
 * Made these changes in other SoC series:
@@ -69,6 +71,8 @@ Boards & SoC Support
 * Added support for these ARC boards:
 
 * Added support for these ARM boards:
+
+  * Added support for Renesas R-Car Spider board CR52: ``rcar_spider_cr52``
 
 * Added support for these ARM64 boards:
 
@@ -126,6 +130,8 @@ Drivers and Sensors
 
 * Clock control
 
+  * Renesas R-Car clock control driver now supports Gen4 SoCs
+
 * Counter
 
 * DAC
@@ -146,11 +152,16 @@ Drivers and Sensors
 
 * GPIO
 
+  * Renesas R-Car GPIO driver now supports Gen4 SoCs
+
 * I2C
 
 * I2S
 
 * I3C
+
+  * The Legacy Virtual Register defines have been renamed from ``I3C_DCR_I2C_*``
+    to ``I3C_LVR_I2C_*``.
 
 * IEEE 802.15.4
 
@@ -163,6 +174,8 @@ Drivers and Sensors
 * ACPI
 
 * Pin control
+
+  * Renesas R-Car pinctrl driver now supports Gen4 SoCs
 
 * PWM
 
@@ -305,6 +318,11 @@ Documentation
 
 Tests and Samples
 *****************
+
+* :ref:`native_sim<native_sim>` has replaced :ref:`native_posix<native_posix>` as the default
+  test platform.
+  :ref:`native_posix<native_posix>` remains supported and used in testing but will be deprecated
+  in a future release.
 
 * Fixed an issue in :zephyr:code-sample:`smp-svr` sample whereby if USB was already initialised,
   application would fail to boot properly.
