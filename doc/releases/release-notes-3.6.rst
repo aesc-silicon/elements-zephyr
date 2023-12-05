@@ -222,6 +222,10 @@ Networking
 
 * Misc:
 
+  * It is now possible to have separate IPv4 TTL value and IPv6 hop limit value for
+    unicast and multicast packets. This can be controlled in each socket via
+    :c:func:`setsockopt` API.
+
 * MQTT-SN:
 
 * OpenThread:
@@ -229,6 +233,9 @@ Networking
 * PPP:
 
 * Sockets:
+
+  * Added support for IPv4 multicast ``IP_ADD_MEMBERSHIP`` and ``IP_DROP_MEMBERSHIP`` socket options.
+  * Added support for IPv6 multicast ``IPV6_ADD_MEMBERSHIP`` and ``IPV6_DROP_MEMBERSHIP`` socket options.
 
 * TCP:
 

@@ -203,6 +203,11 @@ Networking
   a NULL pointer. IGMPv3 can be enabled using the Kconfig ``CONFIG_NET_IPV4_IGMPV3``.
   (:github:`65293`)
 
+* The network stack now uses a separate IPv4 TTL (time-to-live) value for multicast packets.
+  Before, the same TTL value was used for unicast and multicast packets.
+  The IPv6 hop limit value is also changed so that unicast and multicast packets can have a
+  different one. (:github:`65886`)
+
 Other Subsystems
 ================
 
@@ -226,3 +231,7 @@ Recommended Changes
 * New macros available for ST sensor DT properties setting. These macros have a self-explanatory
   name that helps in recognizing what the property setting means (e.g. LSM6DSV16X_DT_ODR_AT_60Hz).
   (:github:`65410`)
+
+* Users of :ref:`native_posix<native_posix>` are recommended to migrate to
+  :ref:`native_sim<native_sim>`. :ref:`native_sim<native_sim>` supports all its use cases,
+  and should be a drop-in replacement for most.
