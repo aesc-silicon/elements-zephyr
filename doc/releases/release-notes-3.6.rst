@@ -206,6 +206,8 @@ Networking
 
 * CoAP:
 
+  * Emit observer/service network events using the Network Event subsystem.
+
 * Connection Manager:
 
 * DHCP:
@@ -228,6 +230,9 @@ Networking
 
   * Added support for compile time network event handlers using the macro
     :c:macro:`NET_MGMT_REGISTER_EVENT_HANDLER`.
+
+  * The :kconfig:option:`CONFIG_NET_MGMT_EVENT_WORKER` choice is added to
+    allow emitting network events using the system work queue or synchronously.
 
 * MQTT-SN:
 
@@ -278,8 +283,11 @@ Libraries / Subsystems
   * Implemented datetime functionality in MCUmgr OS management group, this makes use of the RTC
     driver API.
 
-  * Fixes an issue in MCUmgr console UART input whereby the FIFO would be read outside of an ISR,
+  * Fixed an issue in MCUmgr console UART input whereby the FIFO would be read outside of an ISR,
     which is not supported in the next USB stack.
+
+  * Fixed an issue whereby the ``mcuboot erase`` DFU shell command could be used to erase the
+    MCUboot or currently running application slot.
 
 * File systems
 
