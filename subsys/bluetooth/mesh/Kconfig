@@ -240,7 +240,7 @@ config BT_MESH_PB_GATT
 	select BT_MESH_GATT_SERVER
 	select BT_MESH_PROV
 	select BT_MESH_PB_GATT_COMMON
-	select BT_MESH_PROV_DEVICE
+	select BT_MESH_PROVISIONEE
 	help
 	  Enable this option to allow the device to be provisioned over
 	  GATT.
@@ -268,7 +268,16 @@ config BT_MESH_PB_GATT_CLIENT
 endif # BT_CONN
 
 config BT_MESH_PROV_DEVICE
-	bool "Provisioning device role support"
+	bool "[DEPRECATED] Provisioning device role support"
+	select DEPRECATED
+	select BT_MESH_PROVISIONEE
+	help
+	  Enable this option to allow the device to be provisioned into a mesh network.
+	  The option is marked as deprecated and will be replaced by BT_MESH_PROVISIONEE
+	  option.
+
+config BT_MESH_PROVISIONEE
+	bool "Provisionee role support"
 	depends on BT_MESH_PB_ADV || BT_MESH_PB_GATT
 	default y
 	help
@@ -276,7 +285,7 @@ config BT_MESH_PROV_DEVICE
 
 config BT_MESH_PROV_OOB_PUBLIC_KEY
 	bool "OOB Public key support"
-	depends on BT_MESH_PROV_DEVICE
+	depends on BT_MESH_PROVISIONEE
 	help
 	  Enable this option if public key is to be exchanged via Out of Band (OOB) technology.
 
@@ -627,6 +636,41 @@ config BT_MESH_LABEL_NO_RECOVER
 	  virtual address support wasn't enabled before this option was added, or the devices were
 	  unprovisioned before upgrading to the version with this option). The option is marked as
 	  deprecated to remove the recovery code eventually.
+
+menuconfig BT_MESH_ACCESS_DELAYABLE_MSG
+	bool "Access layer tx delayable message"
+	help
+	  Enable following of the message transmitting recommendations, the Access layer
+	  specification. The recommendations are optional.
+	  However, they are strictly recommended if the device participates in the network with
+	  intensive communication where the device receives a lot of requests that require responses.
+
+if BT_MESH_ACCESS_DELAYABLE_MSG
+
+config BT_MESH_ACCESS_DELAYABLE_MSG_COUNT
+	int "Number of simultaneously delayed messages"
+	default 4
+	help
+	  The maximum number of messages the Access layer can manage to delay
+	  at the same time. The number of messages can be handled only if the Access layer
+	  has a sufficient amount of memory to store the model payload for them.
+
+config BT_MESH_ACCESS_DELAYABLE_MSG_CHUNK_SIZE
+	int "Maximum delayable message storage chunk"
+	default 20
+	help
+	  Size of memory that Access layer uses to split model message to. It allocates
+	  a sufficient number of these chunks from the pool to store the full model payload.
+
+config BT_MESH_ACCESS_DELAYABLE_MSG_CHUNK_COUNT
+	int "Maximum number of available chunks"
+	default 20
+	help
+	  The maximum number of available chunks the Access layer allocates to store model payload.
+	  It is recommended to keep chunk size equal to the reasonable small value to prevent
+	  unnecessary memory wasting.
+
+endif # BT_MESH_ACCESS_DELAYABLE_MSG
 
 endmenu # Access layer
 

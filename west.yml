@@ -193,12 +193,12 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 1b2f3608ab0d5f2cf2a4c2973ae9f6353fb43e72
+      revision: 2a294b540c09b36f7cddece44d25628bfde5970e
       path: modules/hal/nxp
       groups:
         - hal
     - name: hal_openisa
-      revision: d1e61c0c654d8ca9e73d27fca3a7eb3b7881cb6a
+      revision: eabd530a64d71de91d907bad257cd61aacf607bc
       path: modules/hal/openisa
       groups:
         - hal
@@ -219,7 +219,7 @@ manifest:
       groups:
         - hal
     - name: hal_silabs
-      revision: d191d981c4eb20c0c7445a4061fcdbcfa686113a
+      revision: 7a6ba7ce989c3c466b4cb450e44858a3bb0a949a
       path: modules/hal/silabs
       groups:
         - hal
@@ -244,7 +244,7 @@ manifest:
       groups:
         - hal
     - name: hal_wurthelektronik
-      revision: 24ca9873c3d608fad1fea0431836bc8f144c132e
+      revision: e5bcb2eac1bb9639ce13b4dafc78eb254e014342
       path: modules/hal/wurthelektronik
       groups:
         - hal
@@ -263,7 +263,7 @@ manifest:
       groups:
         - hal
     - name: liblc3
-      revision: 448f3de31f49a838988a162ef1e23a89ddf2d2ed
+      revision: 1a5938ebaca4f13fe79ce074f5dee079783aa29f
       path: modules/lib/liblc3
     - name: littlefs
       path: modules/fs/littlefs
@@ -282,7 +282,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 212997395ed34ff1721f5f4461b800e81abeb68d
+      revision: e9131ee8b8ab9306d8f6ad410fd1e3d8a820ce10
       path: bootloader/mcuboot
     - name: mipi-sys-t
       path: modules/debug/mipi-sys-t

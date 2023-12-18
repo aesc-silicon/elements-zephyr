@@ -37,6 +37,8 @@ Architectures
 
 * Xtensa
 
+  * Removed the unused Kconfig option ``CONFIG_XTENSA_NO_IPC``.
+
 * x86
 
 * POSIX
@@ -51,6 +53,11 @@ Bluetooth
 * Host
 
 * Mesh
+
+  * Added the delayable messages functionality to apply random delays for
+    the transmitted responses on the Access layer.
+    The functionality is enabled by the :kconfig:option:`CONFIG_BT_MESH_ACCESS_DELAYABLE_MSG`
+    Kconfig option.
 
 * Controller
 
@@ -120,6 +127,16 @@ Build system and infrastructure
 * Dropped the ``COMPAT_INCLUDES`` option, it was unused since 3.0.
 
 * Fixed an issue whereby board revision ``0`` did not include overlay files for that revision.
+
+* Added ``PRE_IMAGE_CMAKE`` and ``POST_IMAGE_CMAKE`` hooks to sysbuild modules, which allows for
+  modules to run code after and before each image's cmake invocation.
+
+* Added :kconfig:option:`CONFIG_ROM_END_OFFSET` option which allows reducing the size of an image,
+  this is intended for use with firmware signing scripts which add additional data to the end of
+  images outside of the build itself.
+
+* Added MCUboot image size reduction to sysbuild images which include MCUboot which prevents
+  issues with building firmware images that are too large for MCUboot to swap.
 
 Drivers and Sensors
 *******************
@@ -207,6 +224,11 @@ Networking
 * CoAP:
 
   * Emit observer/service network events using the Network Event subsystem.
+
+  * Added new API functions:
+
+    * :c:func:`coap_get_transmission_parameters`
+    * :c:func:`coap_set_transmission_parameters`
 
 * Connection Manager:
 
@@ -298,6 +320,9 @@ Libraries / Subsystems
 * Random
 
 * Retention
+
+  * Fixed issue whereby :kconfig:option:`CONFIG_RETENTION_BUFFER_SIZE` values over 256 would cause
+    an infinite loop due to use of 8-bit variables.
 
 * Binary descriptors
 
