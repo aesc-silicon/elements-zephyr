@@ -19,9 +19,14 @@
 extern "C" {
 #endif
 
-/* Pthread detach/joinable */
-#define PTHREAD_CREATE_DETACHED 0
-#define PTHREAD_CREATE_JOINABLE 1
+/*
+ * Pthread detach/joinable
+ * Undefine possibly predefined values by external toolchain headers
+ */
+#undef PTHREAD_CREATE_DETACHED
+#define PTHREAD_CREATE_DETACHED 1
+#undef PTHREAD_CREATE_JOINABLE
+#define PTHREAD_CREATE_JOINABLE 0
 
 /* Pthread resource visibility */
 #define PTHREAD_PROCESS_PRIVATE 0
@@ -423,7 +428,9 @@ static inline int pthread_rwlockattr_init(pthread_rwlockattr_t *attr)
 	return 0;
 }
 
+int pthread_attr_getguardsize(const pthread_attr_t *ZRESTRICT attr, size_t *ZRESTRICT guardsize);
 int pthread_attr_getstacksize(const pthread_attr_t *attr, size_t *stacksize);
+int pthread_attr_setguardsize(pthread_attr_t *attr, size_t guardsize);
 int pthread_attr_setstacksize(pthread_attr_t *attr, size_t stacksize);
 int pthread_attr_setschedpolicy(pthread_attr_t *attr, int policy);
 int pthread_attr_getschedpolicy(const pthread_attr_t *attr, int *policy);
