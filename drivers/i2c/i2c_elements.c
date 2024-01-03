@@ -7,11 +7,11 @@
 #define DT_DRV_COMPAT elements_i2c
 #define LOG_LEVEL CONFIG_I2C_LOG_LEVEL
 
-#include <logging/log.h>
+#include <zephyr/drivers/i2c.h>
+#include <soc.h>
+
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(DT_DRV_COMPAT);
-#include <kernel.h>
-#include <device.h>
-#include <drivers/i2c.h>
 
 #include "i2c-priv.h"
 
@@ -62,9 +62,9 @@ struct i2c_elements_regs {
 	static struct i2c_elements_config i2c_elements_dev_cfg_##no = {	     \
 		.regs = DT_REG_ADDR(DT_INST(no, elements_i2c)),		     \
 		.sys_clk_freq =						     \
-			DT_PROP(DT_INST(no, elements_i2c), input_frequency), \
-		.bus_clk_freq =						     \
 			DT_PROP(DT_INST(no, elements_i2c), clock_frequency), \
+		.bus_clk_freq =						     \
+			DT_PROP(DT_INST(no, elements_i2c), bus_frequency),   \
 	};								     \
 	DEVICE_DT_INST_DEFINE(no,					     \
 			      i2c_elements_init,			     \
@@ -231,7 +231,7 @@ static int i2c_elements_configure(const struct device *dev,
 	i2c->clock_div = cfg->sys_clk_freq / i2c_speed / 4;
 
 	/* Support I2C Master mode only */
-	if (!(dev_config & I2C_MODE_MASTER)) {
+	if (!(dev_config & I2C_MODE_CONTROLLER)) {
 		LOG_ERR("I2C only supports operation as master");
 		return -ENOTSUP;
 	}
@@ -281,7 +281,8 @@ static int i2c_elements_init(const struct device *dev)
 	/* Save fifo size to check later if busy */
 	cfg->fifo_size = i2c->status >> 16;
 
-	dev_config = (I2C_MODE_MASTER | i2c_map_dt_bitrate(cfg->bus_clk_freq));
+	dev_config = (I2C_MODE_CONTROLLER |
+		i2c_map_dt_bitrate(cfg->bus_clk_freq));
 
 	rc = i2c_elements_configure(dev, dev_config);
 	if (rc != 0) {

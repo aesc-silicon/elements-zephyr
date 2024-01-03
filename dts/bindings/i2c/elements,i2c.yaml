@@ -12,7 +12,12 @@ compatible: "elements,i2c"
 include: i2c-controller.yaml
 
 properties:
-    input-frequency:
+    clock-frequency:
       type: int
       required: false
       description: Frequency of the peripheral input clock.
+
+    bus-frequency:
+      type: int
+      required: false
+      description: Frequency of the I2C SCL.
