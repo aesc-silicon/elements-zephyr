@@ -1,0 +1,32 @@
+# Copyright (c) 2024, aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+
+description: ELements PWM
+
+include: [pwm-controller.yaml, base.yaml]
+
+compatible: "elements,pwm"
+
+properties:
+
+  clock-frequency:
+    type: int
+    required: true
+    description: Default PWM Peripheral Clock frequency in Hz
+
+  channels:
+    type: int
+    required: true
+    description: Number of channels this PWM has
+
+  reg:
+    required: true
+
+  "#pwm-cells":
+    const: 3
+
+pwm-cells:
+  - channel
+  - period
+  - flags

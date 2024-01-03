@@ -1,0 +1,12 @@
+# Kconfig.elements - Elements PWM configuration option
+#
+# Copyright (c) 2024 aesc silicon
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+config PWM_ELEMENTS
+	bool "Elements  PWM PWM driver"
+	depends on SOC_SERIES_RISCV32_ELEMENTS_VEXRISCV
+	help
+	  Enable the Elements PWM driver.
