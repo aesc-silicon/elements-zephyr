@@ -1,9 +1,9 @@
-if BOARD_HYDROGEN1_NEXYS4DDR
-config BOARD
-    default "hydrogen1-nexys4ddr"
-endif
-
 if BOARD_HYDROGEN1_ECPIX5
 config BOARD
     default "hydrogen1-ecpix5"
+endif
+
+if BOARD_HYDROGEN2_NEXYSA7
+config BOARD
+    default "hydrogen2-nexysa7"
 endif

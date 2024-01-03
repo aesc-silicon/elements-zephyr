@@ -1,11 +1,11 @@
-config BOARD_HYDROGEN1_NEXYS4DDR
-    bool "Hydrogen1 Nexys4DDR board"
+config BOARD_HYDROGEN1_ECPIX5
+    bool "Hydrogen1 ECPIX-5 Board"
     depends on SOC_RISCV32_ELEMENTS_VEXRISCV
     select HAS_DTS
     select RISCV
 
-config BOARD_HYDROGEN1_ECPIX5
-    bool "Hydrogen1 ECPIX-5 Board"
+config BOARD_HYDROGEN2_NEXYSA7
+    bool "Hydrogen2 Nexys A7 board"
     depends on SOC_RISCV32_ELEMENTS_VEXRISCV
     select HAS_DTS
     select RISCV
