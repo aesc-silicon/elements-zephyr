@@ -1,0 +1,80 @@
+/*
+ * Copyright (c) 2023 aesc silicon
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <helium/helium.dtsi>
+#include <zephyr/dt-bindings/i2c/i2c.h>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "elements,helium-soc", "simple-bus";
+		ranges;
+
+		uartStdCtrl: uartStdCtrl@f0000000 {
+			compatible = "elements,uart";
+			reg = <0xf0000000 0x1000>;
+			status = "okay";
+			interrupt-parent = <&plic>;
+			interrupts = <1 1>;
+			current-speed = <115200>;
+		};
+
+		gpioStatusCtrl: gpioStatusCtrl@f0001000 {
+			compatible = "elements,gpio";
+			reg = <0xf0001000 0x1000>;
+			status = "okay";
+			interrupt-parent = <&plic>;
+			interrupts = <2 1>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <2>;
+		};
+
+		pwmLEDCtrl: pwmLEDCtrl@f0010000 {
+			compatible = "elements,pwm";
+			reg = <0xf0010000 0x1000>;
+			status = "okay";
+			channels = <3>;
+			#pwm-cells = <3>;
+		};
+
+		i2cACtrl: i2cACtrl@f0011000 {
+			compatible = "elements,i2c";
+			reg = <0xf0011000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			bus-frequency = <I2C_BITRATE_STANDARD>;
+			status = "okay";
+		};
+
+		spiACtrl: spiACtrl@f0012000 {
+			compatible = "elements,spi";
+			reg = <0xf0012000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "okay";
+		};
+
+		gpioACtrl: gpioACtrl@f0013000 {
+			compatible = "elements,gpio";
+			reg = <0xf0013000 0x1000>;
+			status = "okay";
+			interrupt-parent = <&plic>;
+			interrupts = <5 1>;
+			gpio-controller;
+			#gpio-cells = <2>;
+			ngpios = <32>;
+		};
+	};
+};
+
+&plic {
+	riscv,ndev = <5>;
+};
