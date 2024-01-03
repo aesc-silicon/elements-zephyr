@@ -6,11 +6,12 @@
 
 #define DT_DRV_COMPAT elements_spi
 
-#include <logging/log.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/spi.h>
+#include <soc.h>
+
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(DT_DRV_COMPAT);
-#include <kernel.h>
-#include <arch/cpu.h>
-#include <drivers/spi.h>
 
 struct spi_elements_data {
 	unsigned int res;
