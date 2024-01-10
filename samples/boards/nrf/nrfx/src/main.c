@@ -8,18 +8,13 @@
 
 #include <nrfx_gpiote.h>
 #include <helpers/nrfx_gppi.h>
-#if defined(DPPI_PRESENT)
-#include <nrfx_dppi.h>
-#else
-#include <nrfx_ppi.h>
-#endif
 
 #include <zephyr/logging/log.h>
 #include <zephyr/irq.h>
 LOG_MODULE_REGISTER(nrfx_sample, LOG_LEVEL_INF);
 
-#define INPUT_PIN	DT_GPIO_PIN(DT_ALIAS(sw0), gpios)
-#define OUTPUT_PIN	DT_GPIO_PIN(DT_ALIAS(led0), gpios)
+#define INPUT_PIN	NRF_DT_GPIOS_TO_PSEL(DT_ALIAS(sw0), gpios)
+#define OUTPUT_PIN	NRF_DT_GPIOS_TO_PSEL(DT_ALIAS(led0), gpios)
 
 #define GPIOTE_INST	NRF_DT_GPIOTE_INST(DT_ALIAS(sw0), gpios)
 #define GPIOTE_NODE	DT_NODELABEL(_CONCAT(gpiote, GPIOTE_INST))
