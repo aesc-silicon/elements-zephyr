@@ -14,6 +14,13 @@ As per `IEEE 1003.1-2017`, this section details Zephyr's POSIX conformance.
    Zephyr's current design, some features requiring multi-process capabilities may exhibit
    undefined behaviour, which we denote with the † (obelus) symbol.
 
+.. _posix_libc_provided:
+
+.. note::
+    Features listed in various POSIX Options or Option Groups may be provided in whole or in part
+    by a conformant C library implementation. This includes (but is not limited to) POSIX
+    Extensions to the ISO C Standard (`CX`_).
+
 .. _posix_system_interfaces:
 
 POSIX System Interfaces
@@ -61,7 +68,7 @@ POSIX System Interfaces
     _POSIX_REALTIME_SIGNALS, -1, :ref:`†<posix_undefined_behaviour>`
     :ref:`_POSIX_SEMAPHORES<posix_option_group_semaphores>`, 200809L, :kconfig:option:`CONFIG_PTHREAD_IPC`
     :ref:`_POSIX_SPIN_LOCKS<posix_option_group_spin_locks>`, 200809L, :kconfig:option:`CONFIG_PTHREAD_SPINLOCK`
-    _POSIX_THREAD_SAFE_FUNCTIONS, 200809L,
+    :ref:`_POSIX_THREAD_SAFE_FUNCTIONS<posix_thread_safe_functions>`, -1,
     :ref:`_POSIX_THREADS<posix_option_group_threads_base>`, -1, :kconfig:option:`CONFIG_PTHREAD_IPC`
     :ref:`_POSIX_TIMEOUTS<posix_option_timeouts>`, 200809L, :kconfig:option:`CONFIG_PTHREAD_IPC`
     :ref:`_POSIX_TIMERS<posix_option_group_timers>`, 200809L, :kconfig:option:`CONFIG_POSIX_CLOCK`
@@ -143,3 +150,5 @@ XSI System Interfaces
     :ref:`_POSIX_THREAD_ATTR_STACKADDR<posix_option_thread_attr_stackaddr>`, 200809L, :kconfig:option:`CONFIG_PTHREAD`
     :ref:`_POSIX_THREAD_ATTR_STACKSIZE<posix_option_thread_attr_stacksize>`, 200809L, :kconfig:option:`CONFIG_PTHREAD`
     _POSIX_THREAD_PROCESS_SHARED, -1,
+
+.. _CX: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap01.html
