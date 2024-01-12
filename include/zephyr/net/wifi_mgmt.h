@@ -180,6 +180,14 @@ enum net_event_wifi_cmd {
 	NET_EVENT_WIFI_CMD_RAW_SCAN_RESULT,
 	/** Disconnect complete */
 	NET_EVENT_WIFI_CMD_DISCONNECT_COMPLETE,
+	/** AP mode enable result */
+	NET_EVENT_WIFI_CMD_AP_ENABLE_RESULT,
+	/** AP mode disable result */
+	NET_EVENT_WIFI_CMD_AP_DISABLE_RESULT,
+	/** STA connected to AP */
+	NET_EVENT_WIFI_CMD_AP_STA_CONNECTED,
+	/** STA disconnected from AP */
+	NET_EVENT_WIFI_CMD_AP_STA_DISCONNECTED,
 };
 
 #define NET_EVENT_WIFI_SCAN_RESULT				\
@@ -208,6 +216,18 @@ enum net_event_wifi_cmd {
 
 #define NET_EVENT_WIFI_DISCONNECT_COMPLETE			\
 	(_NET_WIFI_EVENT | NET_EVENT_WIFI_CMD_DISCONNECT_COMPLETE)
+
+#define NET_EVENT_WIFI_AP_ENABLE_RESULT				\
+	(_NET_WIFI_EVENT | NET_EVENT_WIFI_CMD_AP_ENABLE_RESULT)
+
+#define NET_EVENT_WIFI_AP_DISABLE_RESULT			\
+	(_NET_WIFI_EVENT | NET_EVENT_WIFI_CMD_AP_DISABLE_RESULT)
+
+#define NET_EVENT_WIFI_AP_STA_CONNECTED				\
+	(_NET_WIFI_EVENT | NET_EVENT_WIFI_CMD_AP_STA_CONNECTED)
+
+#define NET_EVENT_WIFI_AP_STA_DISCONNECTED			\
+	(_NET_WIFI_EVENT | NET_EVENT_WIFI_CMD_AP_STA_DISCONNECTED)
 
 /**
  * @brief Wi-Fi structure to uniquely identify a band-channel pair
@@ -351,12 +371,35 @@ enum wifi_disconn_reason {
 	WIFI_REASON_DISCONN_INACTIVITY,
 };
 
+/** Wi-Fi AP mode result codes. To be overlaid on top of \ref wifi_status
+ * in the AP mode enable or disable result event for detailed status.
+ */
+enum wifi_ap_status {
+	/** AP mode enable or disable successful */
+	WIFI_STATUS_AP_SUCCESS = 0,
+	/** AP mode enable or disable failed - generic failure */
+	WIFI_STATUS_AP_FAIL,
+	/** AP mode enable failed - channel not supported */
+	WIFI_STATUS_AP_CHANNEL_NOT_SUPPORTED,
+	/** AP mode enable failed - channel not allowed */
+	WIFI_STATUS_AP_CHANNEL_NOT_ALLOWED,
+	/** AP mode enable failed - SSID not allowed */
+	WIFI_STATUS_AP_SSID_NOT_ALLOWED,
+	/** AP mode enable failed - authentication type not supported */
+	WIFI_STATUS_AP_AUTH_TYPE_NOT_SUPPORTED,
+	/** AP mode enable failed - operation not supported */
+	WIFI_STATUS_AP_OP_NOT_SUPPORTED,
+	/** AP mode enable failed - operation not permitted */
+	WIFI_STATUS_AP_OP_NOT_PERMITTED,
+};
+
 /** Generic Wi-Fi status for commands and events */
 struct wifi_status {
 	union {
 		int status;
 		enum wifi_conn_status conn_status;
 		enum wifi_disconn_reason disconn_reason;
+		enum wifi_ap_status ap_status;
 	};
 };
 
@@ -427,6 +470,8 @@ struct wifi_twt_params {
 	enum wifi_twt_setup_cmd setup_cmd;
 	/** TWT setup response status, see enum wifi_twt_setup_resp_status */
 	enum wifi_twt_setup_resp_status resp_status;
+	/** TWT teardown cmd status, see enum wifi_twt_teardown_status */
+	enum wifi_twt_teardown_status teardown_status;
 	/** Dialog token, used to map requests to responses */
 	uint8_t dialog_token;
 	/** Flow ID, used to map setup with teardown */
@@ -535,6 +580,18 @@ struct wifi_raw_scan_result {
 };
 #endif /* CONFIG_WIFI_MGMT_RAW_SCAN_RESULTS */
 
+/** AP mode - connected STA details */
+struct wifi_ap_sta_info {
+	/** Link mode, see enum wifi_link_mode */
+	enum wifi_link_mode link_mode;
+	/** MAC address */
+	uint8_t mac[WIFI_MAC_ADDR_LEN];
+	/** MAC address length */
+	uint8_t mac_length;
+	/** is TWT capable ? */
+	bool twt_capable;
+};
+
 /* for use in max info size calculations */
 union wifi_mgmt_events {
 	struct wifi_scan_result scan_result;
@@ -544,6 +601,7 @@ union wifi_mgmt_events {
 	struct wifi_raw_scan_result raw_scan_result;
 #endif /* CONFIG_WIFI_MGMT_RAW_SCAN_RESULTS */
 	struct wifi_twt_params twt_params;
+	struct wifi_ap_sta_info ap_sta_info;
 };
 
 /** Wi-Fi mode setup */
@@ -801,6 +859,35 @@ void wifi_mgmt_raise_raw_scan_result_event(struct net_if *iface,
  * @param status Disconnect complete status
  */
 void wifi_mgmt_raise_disconnect_complete_event(struct net_if *iface, int status);
+
+/** Wi-Fi management AP mode enable result event
+ *
+ * @param iface Network interface
+ * @param status AP mode enable result status
+ */
+void wifi_mgmt_raise_ap_enable_result_event(struct net_if *iface, enum wifi_ap_status status);
+
+/** Wi-Fi management AP mode disable result event
+ *
+ * @param iface Network interface
+ * @param status AP mode disable result status
+ */
+void wifi_mgmt_raise_ap_disable_result_event(struct net_if *iface, enum wifi_ap_status status);
+
+/** Wi-Fi management AP mode STA connected event
+ *
+ * @param iface Network interface
+ * @param sta_info STA information
+ */
+void wifi_mgmt_raise_ap_sta_connected_event(struct net_if *iface,
+		struct wifi_ap_sta_info *sta_info);
+
+/** Wi-Fi management AP mode STA disconnected event
+ * @param iface Network interface
+ * @param sta_info STA information
+ */
+void wifi_mgmt_raise_ap_sta_disconnected_event(struct net_if *iface,
+		struct wifi_ap_sta_info *sta_info);
 
 /**
  * @}

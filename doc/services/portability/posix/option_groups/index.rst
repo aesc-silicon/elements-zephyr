@@ -197,8 +197,8 @@ required for error and event handling.
     sigismember(),yes
     signal(),
     sigpending(),
-    sigprocmask(),
-    igsuspend(),
+    sigprocmask(),yes
+    sigsuspend(),
     sigwait(),
     strsignal(),yes
 
