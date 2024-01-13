@@ -491,6 +491,12 @@ struct wifi_twt_params {
 			bool announce;
 			/** Wake up time */
 			uint32_t twt_wake_interval;
+			/* Wake ahead notification is sent earlier than
+			 * TWT Service period (SP) start based on this duration.
+			 * This should give applications ample time to
+			 * prepare the data before TWT SP starts.
+			 */
+			uint32_t twt_wake_ahead_duration;
 		} setup;
 		/** Teardown specific parameters */
 		struct {
@@ -507,6 +513,7 @@ struct wifi_twt_params {
 #define WIFI_MAX_TWT_INTERVAL_US (LONG_MAX - 1)
 /* 256 (u8) * 1TU */
 #define WIFI_MAX_TWT_WAKE_INTERVAL_US 262144
+#define WIFI_MAX_TWT_WAKE_AHEAD_DURATION_US (LONG_MAX - 1)
 
 /** Wi-Fi TWT flow information */
 struct wifi_twt_flow_info {
@@ -528,6 +535,8 @@ struct wifi_twt_flow_info {
 	bool announce;
 	/** Wake up time */
 	uint32_t twt_wake_interval;
+	/* wake ahead duration */
+	uint32_t twt_wake_ahead_duration;
 };
 
 /** Wi-Fi power save configuration */
@@ -548,6 +557,22 @@ enum wifi_mgmt_op {
 	WIFI_MGMT_SET = 1,
 };
 
+#define MAX_REG_CHAN_NUM  42
+
+/** Per-channel regulatory attributes */
+struct wifi_reg_chan_info {
+	/** Center frequency in MHz */
+	unsigned short center_frequency;
+	/** Maximum transmission power (in dBm) */
+	unsigned short max_power:8;
+	/** Is channel supported or not */
+	unsigned short supported:1;
+	/** Passive transmissions only */
+	unsigned short passive_only:1;
+	/** Is a DFS channel */
+	unsigned short dfs:1;
+} __packed;
+
 /** Regulatory domain information or configuration */
 struct wifi_reg_domain {
 	/* Regulatory domain operation */
@@ -556,6 +581,10 @@ struct wifi_reg_domain {
 	bool force;
 	/** Country code: ISO/IEC 3166-1 alpha-2 */
 	uint8_t country_code[WIFI_COUNTRY_CODE_LEN];
+	/** Number of channels supported */
+	unsigned int num_channels;
+	/** Channels information */
+	struct wifi_reg_chan_info *chan_info;
 };
 
 /** Wi-Fi TWT sleep states */

@@ -65,6 +65,7 @@ static struct {
 static uint32_t scan_result;
 
 static struct net_mgmt_event_callback wifi_shell_mgmt_cb;
+static struct wifi_reg_chan_info chan_info[MAX_REG_CHAN_NUM];
 
 static K_MUTEX_DEFINE(wifi_ap_sta_list_lock);
 struct wifi_ap_sta_node {
@@ -135,7 +136,6 @@ static void handle_wifi_scan_result(struct net_mgmt_event_callback *cb)
 	      wifi_mfp_txt(entry->mfp));
 }
 
-#ifdef CONFIG_WIFI_MGMT_RAW_SCAN_RESULTS
 static int wifi_freq_to_channel(int frequency)
 {
 	int channel = 0;
@@ -157,6 +157,7 @@ static int wifi_freq_to_channel(int frequency)
 	return channel;
 }
 
+#ifdef CONFIG_WIFI_MGMT_RAW_SCAN_RESULTS
 static enum wifi_frequency_bands wifi_freq_to_band(int frequency)
 {
 	enum wifi_frequency_bands band = WIFI_FREQ_BAND_2_4_GHZ;
@@ -886,6 +887,9 @@ static int cmd_wifi_ps(const struct shell *sh, size_t argc, char *argv[])
 					config.twt_flows[i].trigger,
 					config.twt_flows[i].twt_wake_interval,
 					config.twt_flows[i].twt_interval);
+				shell_fprintf(context.sh, SHELL_NORMAL,
+					      "TWT Wake ahead duration : %d us\n",
+					      config.twt_flows[i].twt_wake_ahead_duration);
 			}
 		}
 		return 0;
@@ -1044,7 +1048,7 @@ static int cmd_wifi_twt_setup(const struct shell *sh, size_t argc,
 
 	context.sh = sh;
 
-	if (argc != 11) {
+	if (argc != 12) {
 		shell_fprintf(sh, SHELL_WARNING, "Invalid number of arguments\n");
 		shell_help(sh);
 		return -ENOEXEC;
@@ -1103,6 +1107,11 @@ static int cmd_wifi_twt_setup(const struct shell *sh, size_t argc,
 		return -EINVAL;
 	}
 	params.setup.twt_interval = (uint64_t)value;
+
+	if (!parse_number(sh, &value, argv[idx++], 0, WIFI_MAX_TWT_WAKE_AHEAD_DURATION_US)) {
+		return -EINVAL;
+	}
+	params.setup.twt_wake_ahead_duration = (uint32_t)value;
 
 	if (net_mgmt(NET_REQUEST_WIFI_TWT, iface, &params, sizeof(params))) {
 		shell_fprintf(sh, SHELL_WARNING, "%s with %s failed. reason : %s\n",
@@ -1295,9 +1304,10 @@ static int cmd_wifi_reg_domain(const struct shell *sh, size_t argc,
 {
 	struct net_if *iface = net_if_get_first_wifi();
 	struct wifi_reg_domain regd = {0};
-	int ret;
+	int ret, chan_idx = 0;
 
 	if (argc == 1) {
+		(&regd)->chan_info = &chan_info[0];
 		regd.oper = WIFI_MGMT_GET;
 	} else if (argc >= 2 && argc <= 3) {
 		regd.oper = WIFI_MGMT_SET;
@@ -1342,6 +1352,19 @@ static int cmd_wifi_reg_domain(const struct shell *sh, size_t argc,
 	if (regd.oper == WIFI_MGMT_GET) {
 		shell_fprintf(sh, SHELL_NORMAL, "Wi-Fi Regulatory domain is: %c%c\n",
 			regd.country_code[0], regd.country_code[1]);
+		shell_fprintf(sh, SHELL_NORMAL,
+			"<channel>\t<center frequency>\t<supported(y/n)>\t"
+			"<max power(dBm)>\t<passive scan supported(y/n)>\t<dfs supported(y/n)>\n");
+		for (chan_idx = 0; chan_idx < regd.num_channels; chan_idx++) {
+			shell_fprintf(sh, SHELL_NORMAL,
+				      "  %d\t\t\t\%d\t\t\t\%s\t\t\t%d\t\t\t%s\t\t\t\t%s\n",
+				      wifi_freq_to_channel(chan_info[chan_idx].center_frequency),
+				      chan_info[chan_idx].center_frequency,
+				      chan_info[chan_idx].supported ? "y" : "n",
+				      chan_info[chan_idx].max_power,
+				      chan_info[chan_idx].passive_only ? "y" : "n",
+				      chan_info[chan_idx].dfs ? "y" : "n");
+		}
 	} else {
 		shell_fprintf(sh, SHELL_NORMAL, "Wi-Fi Regulatory domain set to: %c%c\n",
 			regd.country_code[0], regd.country_code[1]);
@@ -1783,9 +1806,10 @@ SHELL_STATIC_SUBCMD_SET_CREATE(wifi_twt_ops,
 		"<negotiation_type, 0: Individual, 1: Broadcast, 2: Wake TBTT>\n"
 		"<setup_cmd: 0: Request, 1: Suggest, 2: Demand>\n"
 		"<dialog_token: 1-255> <flow_id: 0-7> <responder: 0/1> <trigger: 0/1> <implicit:0/1> "
-		"<announce: 0/1> <twt_wake_interval: 1-262144us> <twt_interval: 1us-2^31us>.\n",
+		"<announce: 0/1> <twt_wake_interval: 1-262144us> <twt_interval: 1us-2^31us>.\n"
+		"<twt_wake_ahead_duration>: 0us-2^31us>\n",
 		cmd_wifi_twt_setup,
-		11, 0),
+		12, 0),
 	SHELL_CMD_ARG(teardown, NULL, " Teardown a TWT flow:\n"
 		"<negotiation_type, 0: Individual, 1: Broadcast, 2: Wake TBTT>\n"
 		"<setup_cmd: 0: Request, 1: Suggest, 2: Demand>\n"
