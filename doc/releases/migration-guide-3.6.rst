@@ -241,6 +241,10 @@ Bluetooth
   Any pointer to a UUID must be prefixed with `const`, otherwise there will be a compilation warning.
   For example change ``struct bt_uuid *uuid = BT_UUID_DECLARE_16(xx)`` to
   ``const struct bt_uuid *uuid = BT_UUID_DECLARE_16(xx)``. (:github:`66136`)
+* The :c:func:`bt_l2cap_chan_send` API no longer allocates buffers from the same pool as its `buf`
+  parameter when segmenting SDUs into PDUs. In order to reproduce the previous behavior, the
+  application should register the `alloc_seg` channel callback and allocate from the same pool as
+  `buf`.
 
 * Mesh
 
@@ -298,6 +302,11 @@ Networking
   Before, the same TTL value was used for unicast and multicast packets.
   The IPv6 hop limit value is also changed so that unicast and multicast packets can have a
   different one. (:github:`65886`)
+
+* The Ethernet phy APIs defined in ``<zephyr/net/phy.h>`` are removed from syscall list.
+  The APIs were marked as callable from usermode but in practice this does not work as the device
+  cannot be accessed from usermode thread. This means that the API calls will need to made
+  from supervisor mode thread.
 
 Other Subsystems
 ================
