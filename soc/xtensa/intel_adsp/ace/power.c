@@ -150,6 +150,7 @@ static ALWAYS_INLINE void _restore_core_context(void)
 }
 
 void dsp_restore_vector(void);
+void mp_resume_entry(void);
 
 void power_gate_entry(uint32_t core_id)
 {
@@ -180,6 +181,11 @@ void power_gate_exit(void)
 	cpu_early_init();
 	sys_cache_data_flush_and_invd_all();
 	_restore_core_context();
+
+	/* Secondary core is resumed by set_dx */
+	if (arch_proc_id()) {
+		mp_resume_entry();
+	}
 }
 
 __asm__(".align 4\n\t"
@@ -235,7 +241,7 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 {
 	ARG_UNUSED(substate_id);
 	uint32_t cpu = arch_proc_id();
-	int ret = 0;
+	int ret;
 
 	ARG_UNUSED(ret);
 
@@ -243,7 +249,8 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 	core_desc[cpu].intenable = XTENSA_RSR("INTENABLE");
 	z_xt_ints_off(0xffffffff);
 
-	if (state == PM_STATE_SOFT_OFF) {
+	switch (state) {
+	case PM_STATE_SOFT_OFF:
 		core_desc[cpu].bctl = DSPCS.bootctl[cpu].bctl;
 		DSPCS.bootctl[cpu].bctl &= ~DSPBR_BCTL_WAITIPCG;
 		if (cpu == 0) {
@@ -307,7 +314,8 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 		} else {
 			power_gate_entry(cpu);
 		}
-	} else if (state == PM_STATE_RUNTIME_IDLE) {
+		break;
+	case PM_STATE_RUNTIME_IDLE:
 		DSPCS.bootctl[cpu].bctl &= ~DSPBR_BCTL_WAITIPPG;
 		DSPCS.bootctl[cpu].bctl &= ~DSPBR_BCTL_WAITIPCG;
 		soc_cpu_power_down(cpu);
@@ -321,7 +329,8 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 		ret = pm_device_runtime_put(INTEL_ADSP_HST_DOMAIN_DEV);
 		__ASSERT_NO_MSG(ret == 0);
 		power_gate_entry(cpu);
-	} else {
+		break;
+	default:
 		__ASSERT(false, "invalid argument - unsupported power state");
 	}
 }
