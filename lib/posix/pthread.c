@@ -215,39 +215,40 @@ void __z_pthread_cleanup_pop(int execute)
 	}
 }
 
-static bool is_posix_policy_prio_valid(uint32_t priority, int policy)
+static bool is_posix_policy_prio_valid(int priority, int policy)
 {
 	if (priority >= sched_get_priority_min(policy) &&
 	    priority <= sched_get_priority_max(policy)) {
 		return true;
 	}
 
-	LOG_ERR("Invalid piority %d and / or policy %d", priority, policy);
+	LOG_ERR("Invalid priority %d and / or policy %d", priority, policy);
 
 	return false;
 }
 
-static uint32_t zephyr_to_posix_priority(int32_t z_prio, int *policy)
+/* Non-static so that they can be tested in ztest */
+int zephyr_to_posix_priority(int z_prio, int *policy)
 {
+	int priority;
+
 	if (z_prio < 0) {
-		__ASSERT_NO_MSG(z_prio < CONFIG_NUM_COOP_PRIORITIES);
+		__ASSERT_NO_MSG(-z_prio <= CONFIG_NUM_COOP_PRIORITIES);
 	} else {
 		__ASSERT_NO_MSG(z_prio < CONFIG_NUM_PREEMPT_PRIORITIES);
 	}
 
 	*policy = (z_prio < 0) ? SCHED_FIFO : SCHED_RR;
-	return ZEPHYR_TO_POSIX_PRIORITY(z_prio);
+	priority = ZEPHYR_TO_POSIX_PRIORITY(z_prio);
+	__ASSERT_NO_MSG(is_posix_policy_prio_valid(priority, *policy));
+
+	return priority;
 }
 
-static int32_t posix_to_zephyr_priority(uint32_t priority, int policy)
+/* Non-static so that they can be tested in ztest */
+int posix_to_zephyr_priority(int priority, int policy)
 {
-	if (policy == SCHED_FIFO) {
-		/* COOP: highest [CONFIG_NUM_COOP_PRIORITIES, -1] lowest */
-		__ASSERT_NO_MSG(priority < CONFIG_NUM_COOP_PRIORITIES);
-	} else {
-		/* PREEMPT: lowest [0, CONFIG_NUM_PREEMPT_PRIORITIES - 1] highest */
-		__ASSERT_NO_MSG(priority < CONFIG_NUM_PREEMPT_PRIORITIES);
-	}
+	__ASSERT_NO_MSG(is_posix_policy_prio_valid(priority, policy));
 
 	return POSIX_TO_ZEPHYR_PRIORITY(priority, policy);
 }
@@ -701,7 +702,7 @@ int pthread_attr_init(pthread_attr_t *_attr)
  */
 int pthread_getschedparam(pthread_t pthread, int *policy, struct sched_param *param)
 {
-	uint32_t priority;
+	int priority;
 	struct posix_thread *t;
 
 	t = to_posix_thread(pthread);

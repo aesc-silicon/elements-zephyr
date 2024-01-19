@@ -204,6 +204,10 @@ Device Drivers and Device Tree
                      <&rcc STM32_SRC_PLL1_Q FDCAN_SEL(1)>;
     };
 
+* Runtime configuration is now disabled by default for Nordic UART drivers. The motivation for the
+  change is that this feature is rarely used and disabling it significantly reduces the memory
+  footprint.
+
 Power Management
 ================
 
@@ -241,6 +245,10 @@ Shell
   * :kconfig:option:`CONFIG_USBH_SHELL`
   * :kconfig:option:`CONFIG_W1_SHELL`
   * :kconfig:option:`CONFIG_WDT_SHELL`
+
+* The ``SHELL_UART_DEFINE`` macro now only requires a ``_name`` argument. In the meantime, the
+  macro accepts additional arguments (ring buffer TX & RX size arguments) for compatibility with
+  previous Zephyr version, but they are ignored, and will be removed in future release.
 
 Bootloader
 ==========

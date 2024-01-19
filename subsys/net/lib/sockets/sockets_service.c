@@ -196,7 +196,7 @@ static void socket_service_thread(void)
 
 	if ((count + 1) > ARRAY_SIZE(ctx.events)) {
 		NET_WARN("You have %d services to monitor but "
-			 "%d poll entries configured.",
+			 "%zd poll entries configured.",
 			 count + 1, ARRAY_SIZE(ctx.events));
 		NET_WARN("Consider increasing value of %s to %d",
 			 "CONFIG_NET_SOCKETS_POLL_MAX", count + 1);
@@ -279,7 +279,9 @@ fail:
 
 K_THREAD_DEFINE(socket_service_monitor, CONFIG_NET_SOCKETS_SERVICE_STACK_SIZE,
 		socket_service_thread, NULL, NULL, NULL,
-		K_LOWEST_APPLICATION_THREAD_PRIO, 0, 0);
+		CLAMP(CONFIG_NET_SOCKETS_SERVICE_THREAD_PRIO,
+		      K_HIGHEST_APPLICATION_THREAD_PRIO,
+		      K_LOWEST_APPLICATION_THREAD_PRIO), 0, 0);
 
 static int init_socket_service(void)
 {
