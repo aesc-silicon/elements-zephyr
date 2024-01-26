@@ -96,6 +96,9 @@ static void uart_stm32_pm_policy_state_lock_get(const struct device *dev)
 	if (!data->pm_policy_state_on) {
 		data->pm_policy_state_on = true;
 		pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
+		if (IS_ENABLED(CONFIG_PM_S2RAM)) {
+			pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_RAM, PM_ALL_SUBSTATES);
+		}
 	}
 }
 
@@ -106,6 +109,9 @@ static void uart_stm32_pm_policy_state_lock_put(const struct device *dev)
 	if (data->pm_policy_state_on) {
 		data->pm_policy_state_on = false;
 		pm_policy_state_lock_put(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
+		if (IS_ENABLED(CONFIG_PM_S2RAM)) {
+			pm_policy_state_lock_put(PM_STATE_SUSPEND_TO_RAM, PM_ALL_SUBSTATES);
+		}
 	}
 }
 #endif /* CONFIG_PM */
@@ -2075,17 +2081,26 @@ static int uart_stm32_pm_action(const struct device *dev,
 
 	switch (action) {
 	case PM_DEVICE_ACTION_RESUME:
-		/* Set pins to active state */
-		err = pinctrl_apply_state(config->pcfg, PINCTRL_STATE_DEFAULT);
-		if (err < 0) {
-			return err;
-		}
+		/* When exiting low power mode, check whether UART is enabled.
+		 * If not, it means we are exiting Suspend to RAM mode (STM32
+		 * Standby), and the driver need to be reinitialized
+		 */
+		if (LL_USART_IsEnabled(config->usart)) {
+			/* Set pins to active state */
+			err = pinctrl_apply_state(config->pcfg, PINCTRL_STATE_DEFAULT);
+			if (err < 0) {
+				return err;
+			}
 
-		/* enable clock */
-		err = clock_control_on(data->clock, (clock_control_subsys_t)&config->pclken[0]);
-		if (err != 0) {
-			LOG_ERR("Could not enable (LP)UART clock");
-			return err;
+			/* enable clock */
+			err = clock_control_on(data->clock,
+					       (clock_control_subsys_t)&config->pclken[0]);
+			if (err != 0) {
+				LOG_ERR("Could not enable (LP)UART clock");
+				return err;
+			}
+		} else {
+			uart_stm32_init(dev);
 		}
 		break;
 	case PM_DEVICE_ACTION_SUSPEND:

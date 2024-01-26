@@ -74,7 +74,7 @@ Boards & SoC Support
 * Made these changes in other SoC series:
 
   * Nordic SoCs now imply :kconfig:option:`CONFIG_XIP` instead of selecting it, this allows for
-    creating RAM-based applicatins by disabling it.
+    creating RAM-based applications by disabling it.
 
 * Added support for these ARC boards:
 
@@ -371,6 +371,20 @@ MCUboot
 
 Nanopb
 ******
+
+zcbor
+*****
+
+zcbor has been updated from 0.7.0 to 0.8.0.
+Full release notes can be found at:
+https://github.com/zephyrproject-rtos/zcbor/blob/0.8.0/RELEASE_NOTES.md
+
+Highlights:
+
+* Add support for unordered maps
+* Performance improvements
+* Naming improvements for generated code
+* Bugfixes
 
 LVGL
 ****

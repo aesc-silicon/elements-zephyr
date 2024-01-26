@@ -183,7 +183,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: a5f11c33864264c60a81bf83e5d5643260296eb5
+      revision: 4362d0fcdbac80942212bffc999654beac7ab30e
       path: modules/hal/nordic
       groups:
         - hal
@@ -193,7 +193,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: d6d43cab73f1a0fc73ec26084dab3f54c6324d2e
+      revision: e6b0d96d865da1bdda357073570a13ae95e08d9c
       path: modules/hal/nxp
       groups:
         - hal
@@ -282,7 +282,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: b994ba2ce29425587957dcbb6c96d4e1872b5737
+      revision: f09e205b1e4a8d2bc3f50dffa7960d6ccd14df59
       path: bootloader/mcuboot
     - name: mipi-sys-t
       path: modules/debug/mipi-sys-t
@@ -310,7 +310,7 @@ manifest:
         - debug
     - name: picolibc
       path: modules/lib/picolibc
-      revision: 1a5c603b9f8e228f9459bdafedad15ea28efc700
+      revision: 764ef4e401a8f4c6a86ab723533841f072885a5b
     - name: segger
       revision: 9d0191285956cef43daf411edc2f1a7788346def
       path: modules/debug/segger
@@ -332,10 +332,10 @@ manifest:
       groups:
         - tee
     - name: uoscore-uedhoc
-      revision: 5024d8c98b3864c6698f0195a53e19c484bc8cd3
+      revision: 150f4eb2955eaf36ac0f9519d4f4f58d5ade5740
       path: modules/lib/uoscore-uedhoc
     - name: zcbor
-      revision: 67fd8bb88d3136738661fa8bb5f9989103f4599e
+      revision: dbe20afd00b3ddd6956f4b47f5df202bb49a8707
       path: modules/lib/zcbor
 
   self:
