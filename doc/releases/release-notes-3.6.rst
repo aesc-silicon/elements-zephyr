@@ -154,6 +154,12 @@ Drivers and Sensors
 
 * CAN
 
+  * Added system call :c:func:`can_get_mode()` for getting the current operation mode of a CAN
+    controller.
+
+  * Add system call :c:func:`can_get_transceiver()` for getting the CAN transceiver associated with
+    a CAN controller.
+
 * Clock control
 
   * Renesas R-Car clock control driver now supports Gen4 SoCs
@@ -175,6 +181,10 @@ Drivers and Sensors
 * Ethernet
 
 * Flash
+
+  * ``spi_nor`` driver now sleeps between polls in ``spi_nor_wait_until_ready``. If this is not
+    desired (For example due to ROM constraints in a bootloader),
+    :kconfig:option:`CONFIG_SPI_NOR_SLEEP_WHILE_WAITING_UNTIL_READY` can be disabled.
 
 * GPIO
 

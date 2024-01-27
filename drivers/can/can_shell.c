@@ -202,7 +202,7 @@ static const char *can_shell_state_to_string(enum can_state state)
 	}
 }
 
-static void can_shell_print_capabilities(const struct shell *sh, can_mode_t cap)
+static void can_shell_print_extended_modes(const struct shell *sh, can_mode_t cap)
 {
 	int bit;
 	int i;
@@ -273,6 +273,7 @@ static int cmd_can_stop(const struct shell *sh, size_t argc, char **argv)
 static int cmd_can_show(const struct shell *sh, size_t argc, char **argv)
 {
 	const struct device *dev = device_get_binding(argv[1]);
+	const struct device *phy;
 	const struct can_timing *timing_min;
 	const struct can_timing *timing_max;
 	struct can_bus_err_cnt err_cnt;
@@ -331,7 +332,11 @@ static int cmd_can_show(const struct shell *sh, size_t argc, char **argv)
 	shell_print(sh, "max ext filters: %d", max_ext_filters);
 
 	shell_fprintf(sh, SHELL_NORMAL, "capabilities:    normal ");
-	can_shell_print_capabilities(sh, cap);
+	can_shell_print_extended_modes(sh, cap);
+	shell_fprintf(sh, SHELL_NORMAL, "\n");
+
+	shell_fprintf(sh, SHELL_NORMAL, "mode:            normal ");
+	can_shell_print_extended_modes(sh, can_get_mode(dev));
 	shell_fprintf(sh, SHELL_NORMAL, "\n");
 
 	shell_print(sh, "state:           %s", can_shell_state_to_string(state));
@@ -361,6 +366,9 @@ static int cmd_can_show(const struct shell *sh, size_t argc, char **argv)
 			    timing_min->phase_seg2, timing_max->phase_seg2,
 			    timing_min->prescaler, timing_max->prescaler);
 	}
+
+	phy = can_get_transceiver(dev);
+	shell_print(sh, "transceiver:     %s", phy != NULL ? phy->name : "passive/none");
 
 #ifdef CONFIG_CAN_STATS
 	shell_print(sh, "statistics:");

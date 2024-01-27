@@ -419,7 +419,7 @@ static int can_stm32_start(const struct device *dev)
 	}
 
 	if (cfg->common.phy != NULL) {
-		ret = can_transceiver_enable(cfg->common.phy);
+		ret = can_transceiver_enable(cfg->common.phy, data->common.mode);
 		if (ret != 0) {
 			LOG_ERR("failed to enable CAN transceiver (err %d)", ret);
 			goto unlock;
@@ -531,6 +531,8 @@ static int can_stm32_set_mode(const struct device *dev, can_mode_t mode)
 	} else {
 		can->MCR &= ~CAN_MCR_NART;
 	}
+
+	data->common.mode = mode;
 
 	k_mutex_unlock(&data->inst_mutex);
 

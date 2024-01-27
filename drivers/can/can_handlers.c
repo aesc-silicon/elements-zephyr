@@ -146,6 +146,14 @@ static inline int z_vrfy_can_get_capabilities(const struct device *dev, can_mode
 }
 #include <syscalls/can_get_capabilities_mrsh.c>
 
+static inline const struct device *z_vrfy_can_get_transceiver(const struct device *dev)
+{
+	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
+
+	return z_impl_can_get_transceiver(dev);
+}
+#include <syscalls/can_get_transceiver_mrsh.c>
+
 static inline int z_vrfy_can_start(const struct device *dev)
 {
 	K_OOPS(K_SYSCALL_DRIVER_CAN(dev, start));
@@ -169,6 +177,14 @@ static inline int z_vrfy_can_set_mode(const struct device *dev, can_mode_t mode)
 	return z_impl_can_set_mode(dev, mode);
 }
 #include <syscalls/can_set_mode_mrsh.c>
+
+static inline can_mode_t z_vrfy_can_get_mode(const struct device *dev)
+{
+	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
+
+	return z_impl_can_get_mode(dev);
+}
+#include <syscalls/can_get_mode_mrsh.c>
 
 static inline int z_vrfy_can_set_bitrate(const struct device *dev, uint32_t bitrate)
 {
