@@ -259,7 +259,12 @@ static void send_pending_adv(struct k_work *work)
 		atomic_clear_bit(ext_adv->flags, ADV_FLAG_PROXY_START);
 
 		if (ext_adv->adv) {
+			struct bt_mesh_adv_ctx ctx = ext_adv->adv->ctx;
+
+			ext_adv->adv->ctx.started = 0;
 			bt_mesh_adv_unref(ext_adv->adv);
+			bt_mesh_adv_send_end(0, &ctx);
+
 			ext_adv->adv = NULL;
 		}
 
@@ -365,7 +370,7 @@ void bt_mesh_adv_friend_ready(void)
 	}
 }
 
-void bt_mesh_adv_terminate(struct bt_mesh_adv *adv)
+int bt_mesh_adv_terminate(struct bt_mesh_adv *adv)
 {
 	int err;
 
@@ -377,13 +382,13 @@ void bt_mesh_adv_terminate(struct bt_mesh_adv *adv)
 		}
 
 		if (!atomic_test_bit(ext_adv->flags, ADV_FLAG_ACTIVE)) {
-			return;
+			return 0;
 		}
 
 		err = bt_le_ext_adv_stop(ext_adv->instance);
 		if (err) {
 			LOG_ERR("Failed to stop adv %d", err);
-			return;
+			return err;
 		}
 
 		/* Do not call `cb:end`, since this user action */
@@ -393,8 +398,10 @@ void bt_mesh_adv_terminate(struct bt_mesh_adv *adv)
 
 		k_work_submit(&ext_adv->work);
 
-		return;
+		return 0;
 	}
+
+	return -EINVAL;
 }
 
 void bt_mesh_adv_init(void)

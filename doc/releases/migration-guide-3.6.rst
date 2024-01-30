@@ -276,6 +276,13 @@ Device Drivers and Device Tree
   * ``DT_INST_IRQ_BY_IDX(inst, idx, irq)`` -> ``DT_INST_IRQN_BY_IDX(inst, idx)``
   * ``DT_INST_IRQ_BY_NAME(inst, name, irq)`` -> ``DT_INST_IRQN_BY_NAME(inst, name)``
 
+* Several Renesas RA series drivers Kconfig options have been renamed:
+
+  * ``CONFIG_CLOCK_CONTROL_RA`` -> :kconfig:option:`CONFIG_CLOCK_CONTROL_RENESAS_RA`
+  * ``CONFIG_GPIO_RA`` -> :kconfig:option:`CONFIG_GPIO_RENESAS_RA`
+  * ``CONFIG_PINCTRL_RA`` -> :kconfig:option:`CONFIG_PINCTRL_RENESAS_RA`
+  * ``CONFIG_UART_RA`` -> :kconfig:option:`CONFIG_UART_RENESAS_RA`
+
 Power Management
 ================
 
@@ -434,6 +441,9 @@ Networking
   The APIs were marked as callable from usermode but in practice this does not work as the device
   cannot be accessed from usermode thread. This means that the API calls will need to made
   from supervisor mode thread.
+
+* The zperf ratio between mbps and kbps, kbps and bps is changed to 1000, instead of 1024,
+  to align with iperf ratios.
 
 zcbor
 =====
