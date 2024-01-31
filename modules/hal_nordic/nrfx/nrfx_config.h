@@ -109,6 +109,13 @@
 #define NRFX_EGU5_ENABLED 1
 #endif
 
+#ifdef CONFIG_NRFX_GRTC
+#define NRFX_GRTC_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_GRTC_LOG
+#define NRFX_GRTC_CONFIG_LOG_ENABLED 1
+#endif
+
 #ifdef CONFIG_NRFX_GPIOTE
 #define NRFX_GPIOTE_ENABLED 1
 #endif
@@ -444,6 +451,27 @@
 #ifdef CONFIG_NRFX_TIMER4
 #define NRFX_TIMER4_ENABLED 1
 #endif
+#ifdef CONFIG_NRFX_TIMER00
+#define NRFX_TIMER00_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_TIMER10
+#define NRFX_TIMER10_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_TIMER20
+#define NRFX_TIMER20_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_TIMER21
+#define NRFX_TIMER21_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_TIMER22
+#define NRFX_TIMER22_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_TIMER23
+#define NRFX_TIMER23_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_TIMER24
+#define NRFX_TIMER24_ENABLED 1
+#endif
 
 #ifdef CONFIG_NRFX_TWI
 #define NRFX_TWI_ENABLED 1
@@ -563,6 +591,21 @@
 #ifdef CONFIG_NRFX_UARTE3
 #define NRFX_UARTE3_ENABLED 1
 #endif
+#ifdef CONFIG_NRFX_UARTE00
+#define NRFX_UARTE00_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_UARTE20
+#define NRFX_UARTE20_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_UARTE21
+#define NRFX_UARTE21_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_UARTE22
+#define NRFX_UARTE22_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_UARTE30
+#define NRFX_UARTE30_ENABLED 1
+#endif
 #ifdef CONFIG_NRFX_UARTE_CONFIG_SKIP_GPIO_CONFIG
 #define NRFX_UARTE_CONFIG_SKIP_GPIO_CONFIG 1
 #endif
@@ -655,6 +698,8 @@
     #include <nrfx_config_nrf5340_network.h>
 #elif defined(NRF9120_XXAA) || defined(NRF9160_XXAA)
     #include <nrfx_config_nrf91.h>
+#elif defined(NRF54L15_ENGA_XXAA) && defined(NRF_APPLICATION)
+    #include <nrfx_config_nrf54l15_enga_application.h>
 #else
     #error "Unknown device."
 #endif

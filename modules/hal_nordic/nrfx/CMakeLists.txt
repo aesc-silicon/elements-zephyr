@@ -36,6 +36,8 @@ zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF5340_CPUAPP      NRF5340_XXAA_APP
 zephyr_compile_definitions_ifdef(CONFIG_SOC_COMPATIBLE_NRF5340_CPUAPP NRF5340_XXAA_APPLICATION)
 zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF5340_CPUNET      NRF5340_XXAA_NETWORK)
 zephyr_compile_definitions_ifdef(CONFIG_SOC_COMPATIBLE_NRF5340_CPUNET NRF5340_XXAA_NETWORK)
+zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF54L15_ENGA       NRF54L15_ENGA_XXAA)
+zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF54L15_ENGA_CPUAPP NRF_APPLICATION)
 zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF9120             NRF9120_XXAA)
 zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF9160             NRF9160_XXAA)
 
@@ -69,6 +71,7 @@ zephyr_library_sources_ifdef(CONFIG_SOC_NRF52833       ${MDK_DIR}/system_nrf5283
 zephyr_library_sources_ifdef(CONFIG_SOC_NRF52840       ${MDK_DIR}/system_nrf52840.c)
 zephyr_library_sources_ifdef(CONFIG_SOC_NRF5340_CPUAPP ${MDK_DIR}/system_nrf5340_application.c)
 zephyr_library_sources_ifdef(CONFIG_SOC_NRF5340_CPUNET ${MDK_DIR}/system_nrf5340_network.c)
+zephyr_library_sources_ifdef(CONFIG_SOC_SERIES_NRF54LX ${MDK_DIR}/system_nrf54l.c)
 zephyr_library_sources_ifdef(CONFIG_SOC_SERIES_NRF91X  ${MDK_DIR}/system_nrf91.c)
 
 zephyr_library_sources(nrfx_glue.c)
@@ -84,6 +87,7 @@ zephyr_library_sources_ifdef(CONFIG_NRFX_COMP    ${SRC_DIR}/nrfx_comp.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_DPPI    ${SRC_DIR}/nrfx_dppi.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_EGU     ${SRC_DIR}/nrfx_egu.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_GPIOTE  ${SRC_DIR}/nrfx_gpiote.c)
+zephyr_library_sources_ifdef(CONFIG_NRFX_GRTC    ${SRC_DIR}/nrfx_grtc.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_I2S     ${SRC_DIR}/nrfx_i2s.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_IPC     ${SRC_DIR}/nrfx_ipc.c)
 zephyr_library_sources_ifdef(CONFIG_NRFX_LPCOMP  ${SRC_DIR}/nrfx_lpcomp.c)
@@ -116,6 +120,10 @@ if(CONFIG_NRFX_TWI OR CONFIG_NRFX_TWIM)
   zephyr_library_sources(${SRC_DIR}/nrfx_twi_twim.c)
 endif()
 
+if (CONFIG_NRF_GRTC_TIMER AND CONFIG_NRF_GRTC_TIMER_CLOCK_MANAGEMENT)
+  zephyr_library_compile_definitions(NRF_GRTC_HAS_EXTENDED=1)
+endif()
+
 # Inject HAL "CONFIG_NFCT_PINS_AS_GPIOS" definition if user requests to
 # configure the NFCT pins as GPIOS. Do the same with "CONFIG_GPIO_AS_PINRESET"
 # to configure the reset GPIO as nRESET. This way, the HAL will take care of
@@ -132,4 +140,16 @@ if(DEFINED uicr_path)
   if(${gpio_as_nreset})
     zephyr_library_compile_definitions(CONFIG_GPIO_AS_PINRESET)
   endif()
+endif()
+
+if(CONFIG_SOC_NRF54L15)
+	dt_prop(clock_frequency PATH "/cpus/cpu@0" PROPERTY "clock-frequency")
+	math(EXPR clock_frequency_mhz "${clock_frequency} / 1000000")
+	zephyr_compile_definitions("NRF_CONFIG_CPU_FREQ_MHZ=${clock_frequency_mhz}")
+endif()
+
+zephyr_compile_definitions_ifdef(CONFIG_SOC_NRF54LX_SKIP_CLOCK_CONFIG NRF_SKIP_CLOCK_CONFIGURATION)
+
+if(CONFIG_SOC_SERIES_NRF54LX AND CONFIG_NRFX_DPPI)
+  zephyr_library_sources(${HELPERS_DIR}/nrfx_gppi_dppi_ppib_lumos.c)
 endif()
