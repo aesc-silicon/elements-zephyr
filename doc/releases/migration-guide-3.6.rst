@@ -112,6 +112,7 @@ Device Drivers and Device Tree
             drdy-pin = <2>;
         };
     };
+
 * The optional :c:func:`setup()` function in the Bluetooth HCI driver API (enabled through
   :kconfig:option:`CONFIG_BT_HCI_SETUP`) has gained a function parameter of type
   :c:struct:`bt_hci_setup_params`. By default, the struct is empty, but drivers can opt-in to
@@ -228,6 +229,46 @@ Device Drivers and Device Tree
   :dtcompatible:`microchip,mcp3208` devicetree bindings were renamed from ``channel`` to the common
   ``input``, making it possible to use the various ADC DT macros with Microchip MCP320x ADC devices.
 
+* ILI9XXX based displays now use the MIPI DBI driver class. These displays
+  must now be declared within a MIPI DBI driver wrapper device, which will
+  manage interfacing with the display. For an example, see below:
+
+  .. code-block:: devicetree
+
+    /* Legacy ILI9XXX display definition */
+    &spi2 {
+        ili9340: ili9340@0 {
+            compatible = "ilitek,ili9340";
+            reg = <0>;
+            spi-max-frequency = <32000000>;
+            reset-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+            cmd-data-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+            rotation = <270>;
+            width = <320>;
+            height = <240>;
+        };
+    };
+
+    /* New display definition with MIPI DBI device */
+
+    mipi_dbi {
+        compatible = "zephyr,mipi-dbi-spi";
+        reset-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+        dc-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+        spi-dev = <&spi2>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        ili9340: ili9340@0 {
+            compatible = "ilitek,ili9340";
+            reg = <0>;
+            mipi-max-frequency = <32000000>;
+            rotation = <270>;
+            width = <320>;
+            height = <240>;
+        };
+    };
+
 * The :dtcompatible:`st,stm32h7-fdcan` CAN controller driver now supports configuring the
   domain/kernel clock via devicetree. Previously, the driver only supported using the PLL1_Q clock
   for kernel clock, but now it defaults to the HSE clock, which is the chip default. Boards that
@@ -292,6 +333,13 @@ Device Drivers and Device Tree
   * ``CONFIG_GPIO_RA`` -> :kconfig:option:`CONFIG_GPIO_RENESAS_RA`
   * ``CONFIG_PINCTRL_RA`` -> :kconfig:option:`CONFIG_PINCTRL_RENESAS_RA`
   * ``CONFIG_UART_RA`` -> :kconfig:option:`CONFIG_UART_RENESAS_RA`
+
+* The function signature of the ``isr_t`` callback function passed to the ``shared_irq``
+  interrupt controller driver API via :c:func:`shared_irq_isr_register()` has changed.
+  The callback now takes an additional `irq_number` parameter. Out-of-tree users of
+  this API will need to be updated.
+
+  (:github:`66427`)
 
 Power Management
 ================

@@ -231,7 +231,8 @@ static void unicast_client_ep_iso_recv(struct bt_iso_chan *chan,
 		 * host as HCI ISO data packets, which we should just ignore
 		 */
 		if ((info->flags & BT_ISO_FLAGS_VALID) != 0) {
-			LOG_ERR("iso %p not bound with ep", chan);
+			LOG_DBG("Valid ISO packet of len %zu received for iso %p not bound with ep",
+				net_buf_frags_len(buf), chan);
 		}
 
 		return;
@@ -1047,6 +1048,8 @@ static void unicast_client_ep_set_status(struct bt_bap_ep *ep, struct net_buf_si
 			case BT_BAP_EP_STATE_CODEC_CONFIGURED:
 			/* or 0x02 (QoS Configured) */
 			case BT_BAP_EP_STATE_QOS_CONFIGURED:
+			/* or 0x04 (Streaming) if there is a disconnect */
+			case BT_BAP_EP_STATE_STREAMING:
 			/* or 0x05 (Disabling) */
 			case BT_BAP_EP_STATE_DISABLING:
 				break;
@@ -2084,6 +2087,7 @@ static void unicast_client_reset(struct bt_bap_ep *ep, uint8_t reason)
 
 static void unicast_client_ep_reset(struct bt_conn *conn, uint8_t reason)
 {
+	struct unicast_client *client;
 	uint8_t index;
 
 	LOG_DBG("conn %p", conn);
@@ -2105,6 +2109,11 @@ static void unicast_client_ep_reset(struct bt_conn *conn, uint8_t reason)
 		unicast_client_reset(ep, reason);
 	}
 #endif /* CONFIG_BT_BAP_UNICAST_CLIENT_ASE_SRC_COUNT > 0 */
+
+	client = &uni_cli_insts[index];
+	client->busy = false;
+	client->dir = 0U;
+	reset_att_buf(client);
 }
 
 static void bt_audio_codec_qos_to_cig_param(struct bt_iso_cig_param *cig_param,

@@ -30,7 +30,7 @@ manifest:
   # Please add items below based on alphabetical order
   projects:
     - name: acpica
-      revision: 10ae1038e51eb9306f73c3bbcfc4fde954bb9625
+      revision: da5f2721e1c7f188fe04aa50af76f4b94f3c3ea3
       path: modules/lib/acpica
     - name: bsim
       repo-path: babblesim-manifest
@@ -147,7 +147,7 @@ manifest:
       groups:
         - hal
     - name: hal_atmel
-      revision: b0cc87f2a494d8b3c383292d1d6c7d10323932bd
+      revision: aad79bf530b69b72712d18873df4120ad052d921
       path: modules/hal/atmel
       groups:
         - hal
