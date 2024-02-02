@@ -22,6 +22,7 @@ source ${ZEPHYR_BASE}/tests/bsim/compile.source
 app=tests/bsim/bluetooth/host/adv/resume compile
 app=tests/bsim/bluetooth/host/adv/resume conf_file=prj_2.conf compile
 app=tests/bsim/bluetooth/host/adv/chain compile
+app=tests/bsim/bluetooth/host/adv/extended compile
 app=tests/bsim/bluetooth/host/adv/periodic compile
 app=tests/bsim/bluetooth/host/adv/periodic conf_file=prj_long_data.conf compile
 app=tests/bsim/bluetooth/host/adv/encrypted/css_sample_data compile
@@ -75,6 +76,7 @@ app=tests/bsim/bluetooth/host/misc/disconnect/dut compile
 app=tests/bsim/bluetooth/host/misc/disconnect/tester compile
 app=tests/bsim/bluetooth/host/misc/conn_stress/central compile
 app=tests/bsim/bluetooth/host/misc/conn_stress/peripheral compile
+app=tests/bsim/bluetooth/host/misc/unregister_conn_cb compile
 
 app=tests/bsim/bluetooth/host/privacy/central compile
 app=tests/bsim/bluetooth/host/privacy/peripheral compile
