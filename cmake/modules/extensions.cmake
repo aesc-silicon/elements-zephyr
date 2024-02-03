@@ -2425,6 +2425,12 @@ endfunction()
 #
 # returns an updated list of absolute paths
 #
+# Usage:
+#   zephyr_file(CONF_FILES <paths> [DTS <list>] [KCONF <list>]
+#               [BOARD <board> [BOARD_REVISION <revision>] | NAMES <name> ...]
+#               [BUILD <type>] [SUFFIX <suffix>] [REQUIRED]
+#   )
+#
 # CONF_FILES <paths>: Find all configuration files in the list of paths and
 #                     return them in a list. If paths is empty then no configuration
 #                     files are returned. Configuration files will be:
@@ -2438,14 +2444,27 @@ endfunction()
 #                                                revision. Requires BOARD to be specified.
 #
 #                                                If no board is given the current BOARD and
-#                                                BOARD_REVISION will be used.
+#                                                BOARD_REVISION will be used, unless NAMES are
+#                                                specified.
 #
-#                     DTS <list>:   List to append DTS overlay files in <path> to
-#                     KCONF <list>: List to append Kconfig fragment files in <path> to
-#                     BUILD <type>: Build type to include for search.
-#                                   For example:
-#                                   BUILD debug, will look for <board>_debug.conf
-#                                   and <board>_debug.overlay, instead of <board>.conf
+#                     NAMES <name1> [name2] ...  List of file names to look for and instead of
+#                                                creating file names based on board settings.
+#                                                Only the first match found in <paths> will be
+#                                                returned in the <list>
+#
+#                     DTS <list>:    List to append DTS overlay files in <path> to
+#                     KCONF <list>:  List to append Kconfig fragment files in <path> to
+#                     BUILD <type>:  Build type to include for search.
+#                                    For example:
+#                                    BUILD debug, will look for <board>_debug.conf
+#                                    and <board>_debug.overlay, instead of <board>.conf
+#                     SUFFIX <name>: Suffix name to check for instead of the default name
+#                                    but with a fallback to the default name if not found.
+#                                    For example:
+#                                    SUFFIX fish, will look for <file>_fish.conf and use
+#                                    if found but will use <file>.conf if not found
+#                     REQUIRED:      Option to indicate that the <list> specified by DTS or KCONF
+#                                    must contain at least one element, else an error will be raised.
 #
 function(zephyr_file)
   set(file_options APPLICATION_ROOT CONF_FILES)
@@ -2457,15 +2476,15 @@ Please provide one of following: APPLICATION_ROOT, CONF_FILES")
   if(${ARGV0} STREQUAL APPLICATION_ROOT)
     set(single_args APPLICATION_ROOT)
   elseif(${ARGV0} STREQUAL CONF_FILES)
-    set(single_args BOARD BOARD_REVISION DTS KCONF BUILD)
-    set(multi_args CONF_FILES)
+    set(options REQUIRED)
+    set(single_args BOARD BOARD_REVISION DTS KCONF BUILD SUFFIX)
+    set(multi_args CONF_FILES NAMES)
   endif()
 
-  cmake_parse_arguments(FILE "" "${single_args}" "${multi_args}" ${ARGN})
+  cmake_parse_arguments(FILE "${options}" "${single_args}" "${multi_args}" ${ARGN})
   if(FILE_UNPARSED_ARGUMENTS)
       message(FATAL_ERROR "zephyr_file(${ARGV0} <val> ...) given unknown arguments: ${FILE_UNPARSED_ARGUMENTS}")
   endif()
-
 
   if(FILE_APPLICATION_ROOT)
     # Note: user can do: `-D<var>=<relative-path>` and app can at same
@@ -2518,44 +2537,104 @@ Relative paths are only allowed with `-D${ARGV1}=<path>`")
       endif()
     endif()
 
-    zephyr_build_string(filename
-                        BOARD ${FILE_BOARD}
-                        BUILD ${FILE_BUILD}
-    )
-    set(filename_list ${filename})
+    if(FILE_NAMES)
+      set(dts_filename_list ${FILE_NAMES})
+      set(kconf_filename_list ${FILE_NAMES})
+    else()
+      zephyr_build_string(filename
+                          BOARD ${FILE_BOARD}
+                          BUILD ${FILE_BUILD}
+      )
+      set(filename_list ${filename})
 
-    zephyr_build_string(filename
-                        BOARD ${FILE_BOARD}
-                        BOARD_REVISION ${FILE_BOARD_REVISION}
-                        BUILD ${FILE_BUILD}
-    )
-    list(APPEND filename_list ${filename})
-    list(REMOVE_DUPLICATES filename_list)
+      zephyr_build_string(filename
+                          BOARD ${FILE_BOARD}
+                          BOARD_REVISION ${FILE_BOARD_REVISION}
+                          BUILD ${FILE_BUILD}
+      )
+      list(APPEND filename_list ${filename})
+      list(REMOVE_DUPLICATES filename_list)
+      set(dts_filename_list ${filename_list})
+      list(TRANSFORM dts_filename_list APPEND ".overlay")
+
+      set(kconf_filename_list ${filename_list})
+      list(TRANSFORM kconf_filename_list APPEND ".conf")
+    endif()
 
     if(FILE_DTS)
       foreach(path ${FILE_CONF_FILES})
-        foreach(filename ${filename_list})
-          if(EXISTS ${path}/${filename}.overlay)
-            list(APPEND ${FILE_DTS} ${path}/${filename}.overlay)
+        foreach(filename ${dts_filename_list})
+          if(NOT IS_ABSOLUTE ${filename})
+            set(test_file ${path}/${filename})
+          else()
+            set(test_file ${filename})
+          endif()
+          zephyr_file_suffix(test_file SUFFIX ${FILE_SUFFIX})
+
+          if(EXISTS ${test_file})
+            list(APPEND ${FILE_DTS} ${test_file})
+
+            if(DEFINED FILE_BUILD)
+              set(deprecated_file_found y)
+            endif()
+
+            if(FILE_NAMES)
+              break()
+            endif()
           endif()
         endforeach()
       endforeach()
 
       # This updates the provided list in parent scope (callers scope)
       set(${FILE_DTS} ${${FILE_DTS}} PARENT_SCOPE)
+
+      if(NOT ${FILE_DTS})
+        set(not_found ${dts_filename_list})
+      endif()
     endif()
 
     if(FILE_KCONF)
       foreach(path ${FILE_CONF_FILES})
-        foreach(filename ${filename_list})
-          if(EXISTS ${path}/${filename}.conf)
-            list(APPEND ${FILE_KCONF} ${path}/${filename}.conf)
+        foreach(filename ${kconf_filename_list})
+          if(NOT IS_ABSOLUTE ${filename})
+            set(test_file ${path}/${filename})
+          else()
+            set(test_file ${filename})
+          endif()
+          zephyr_file_suffix(test_file SUFFIX ${FILE_SUFFIX})
+
+          if(EXISTS ${test_file})
+            list(APPEND ${FILE_KCONF} ${test_file})
+
+            if(DEFINED FILE_BUILD)
+              set(deprecated_file_found y)
+            endif()
+
+            if(FILE_NAMES)
+              break()
+            endif()
           endif()
         endforeach()
       endforeach()
 
       # This updates the provided list in parent scope (callers scope)
       set(${FILE_KCONF} ${${FILE_KCONF}} PARENT_SCOPE)
+
+      if(NOT ${FILE_KCONF})
+        set(not_found ${kconf_filename_list})
+      endif()
+    endif()
+
+    if(FILE_REQUIRED AND DEFINED not_found)
+      message(FATAL_ERROR
+              "No ${not_found} file(s) was found in the ${FILE_CONF_FILES} folder(s), "
+              "please read the Zephyr documentation on application development."
+      )
+    endif()
+
+    if(deprecated_file_found)
+      message(DEPRECATION "prj_<build>.conf was deprecated after Zephyr 3.5,"
+                          " you should switch to using -DFILE_SUFFIX instead")
     endif()
   endif()
 endfunction()
@@ -2593,6 +2672,56 @@ function(zephyr_file_copy oldname newname)
     execute_process(
       COMMAND ${CMAKE_COMMAND} -E ${copy_file_command} ${oldname} ${newname}
     )
+  endif()
+endfunction()
+
+# Usage:
+#   zephyr_file_suffix(<filename> SUFFIX <suffix>)
+#
+# Zephyr file add suffix extension.
+# This function will check the provied filename or list of filenames to see if they have a
+# `_<suffix>` extension to them and if so, updates the supplied variable/list with the new
+# path/paths.
+#
+# <filename>: Variable (singlular or list) of absolute path filename(s) which should be checked
+#             and updated if there is a filename which has the <suffix> present.
+# <suffix>: The suffix to test for and append to the end of the provided filename.
+#
+# Returns an updated variable of absolute path(s)
+#
+function(zephyr_file_suffix filename)
+  set(single_args SUFFIX)
+  cmake_parse_arguments(FILE "" "${single_args}" "" ${ARGN})
+
+  if(NOT DEFINED FILE_SUFFIX OR NOT DEFINED ${filename})
+    # If the file suffix variable is not known then there is nothing to do, return early
+    return()
+  endif()
+
+  set(tmp_new_list)
+
+  foreach(file ${${filename}})
+    if("${file}" STREQUAL "")
+      # Skip checking empty variables
+      continue()
+    endif()
+
+    # Search for the full stop so we know where to add the file suffix before the file extension
+    cmake_path(GET file EXTENSION file_ext)
+    cmake_path(REMOVE_EXTENSION file OUTPUT_VARIABLE new_filename)
+    cmake_path(APPEND_STRING new_filename "_${FILE_SUFFIX}${file_ext}")
+
+    # Use the filename with the suffix if it exists, if not then fall back to the default
+    if(EXISTS "${new_filename}")
+      list(APPEND tmp_new_list ${new_filename})
+    else()
+      list(APPEND tmp_new_list ${file})
+    endif()
+  endforeach()
+
+  # Update supplied variable if it differs
+  if(NOT "${${filename}}" STREQUAL "${tmp_new_list}")
+    set(${filename} "${tmp_new_list}" PARENT_SCOPE)
   endif()
 endfunction()
 

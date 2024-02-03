@@ -36,6 +36,9 @@ Build System
   ``target_compile_definitions(app PRIVATE _POSIX_C_SOURCE=200809L)`` to your application
   or ``zephyr_library_compile_definitions(_POSIX_C_SOURCE=200809L)`` to your library.
 
+* Build type by setting ``CONF_FILE`` to ``prj_<build>.conf`` is now deprecated, users should
+  instead use the new ``-DFILE_SUFFIX`` feature :ref:`application-file-suffixes`.
+
 Kernel
 ======
 
@@ -175,6 +178,18 @@ Device Drivers and Device Tree
 
     stm32_lp_tick_source: &lptim1 {
             status = "okay";
+    };
+
+
+* The :dtcompatible:`st,stm32-ospi-nor` and :dtcompatible:`st,stm32-qspi-nor` give the nor flash
+  base address and size (in Bytes) with the **reg** property as follows.
+  The <size> property is not used anymore.
+
+  .. code-block:: devicetree
+
+    mx25lm51245: ospi-nor-flash@70000000 {
+            compatible = "st,stm32-ospi-nor";
+            reg = <0x70000000 DT_SIZE_M(64)>; /* 512 Mbits*/
     };
 
 * The native Linux SocketCAN driver, which can now be used in both :ref:`native_posix<native_posix>`

@@ -7,11 +7,25 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/irq.h>
+#if defined(CONFIG_CLOCK_CONTROL_NRF)
 #include <zephyr/drivers/clock_control/nrf_clock_control.h>
+#endif
 #include <zephyr/drivers/timer/system_timer.h>
 #include <zephyr/drivers/timer/nrf_grtc_timer.h>
 #include <nrfx_grtc.h>
 #include <zephyr/sys/math_extras.h>
+
+#define GRTC_NODE DT_NODELABEL(grtc)
+
+/* Ensure that GRTC properties in devicetree are defined correctly. */
+#if !DT_NODE_HAS_PROP(GRTC_NODE, owned_channels)
+#error GRTC owned-channels DT property is not defined
+#endif
+#define OWNED_CHANNELS_MASK       NRFX_CONFIG_GRTC_MASK_DT(owned_channels)
+#define CHILD_OWNED_CHANNELS_MASK NRFX_CONFIG_GRTC_MASK_DT(child_owned_channels)
+#if ((OWNED_CHANNELS_MASK | CHILD_OWNED_CHANNELS_MASK) != OWNED_CHANNELS_MASK)
+#error GRTC child-owned-channels DT property must be a subset of owned-channels
+#endif
 
 #define CHAN_COUNT     NRFX_GRTC_CONFIG_NUM_OF_CC_CHANNELS
 #define EXT_CHAN_COUNT (CHAN_COUNT - 1)
@@ -21,8 +35,6 @@
  */
 #define WAKETIME       (4)
 #define TIMEOUT        (WAKETIME + 1)
-
-#define GRTC_NODE DT_NODELABEL(grtc)
 
 #ifndef GRTC_SYSCOUNTERL_VALUE_Msk
 #define GRTC_SYSCOUNTERL_VALUE_Msk GRTC_SYSCOUNTER_SYSCOUNTERL_VALUE_Msk
@@ -511,6 +523,7 @@ static int sys_clock_driver_init(void)
 		system_timeout_set(CYC_PER_TICK);
 	}
 
+#if defined(CONFIG_CLOCK_CONTROL_NRF)
 	static const enum nrf_lfclk_start_mode mode =
 		IS_ENABLED(CONFIG_SYSTEM_CLOCK_NO_WAIT)
 			? CLOCK_CONTROL_NRF_LF_START_NOWAIT
@@ -519,6 +532,7 @@ static int sys_clock_driver_init(void)
 				   : CLOCK_CONTROL_NRF_LF_START_STABLE);
 
 	z_nrf_clock_control_lf_on(mode);
+#endif
 
 	return 0;
 }

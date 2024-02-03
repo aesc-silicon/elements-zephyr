@@ -176,6 +176,15 @@ Build system and infrastructure
   After this change users may need to define them for their own applications or libraries if they
   require them.
 
+* Added support for sysbuild setting a signing script (``SIGNING_SCRIPT``), see
+  :ref:`west-extending-signing` for details.
+
+* Added support for ``FILE_SUFFIX`` in the build system which allows for adding suffixes to
+  application Kconfig fragment file names and devicetree overlay file names, see
+  :ref:`application-file-suffixes` and :ref:`sysbuild_file_suffixes` for details.
+
+* Deprecated ``CONF_FILE`` ``prj_<build>.conf`` build type.
+
 Drivers and Sensors
 *******************
 

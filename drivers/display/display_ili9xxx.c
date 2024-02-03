@@ -48,7 +48,9 @@ static void ili9xxx_hw_reset(const struct device *dev)
 {
 	const struct ili9xxx_config *config = dev->config;
 
-	mipi_dbi_reset(config->mipi_dev, ILI9XXX_RESET_PULSE_TIME);
+	if (mipi_dbi_reset(config->mipi_dev, ILI9XXX_RESET_PULSE_TIME) < 0) {
+		return;
+	};
 	k_sleep(K_MSEC(ILI9XXX_RESET_WAIT_TIME));
 }
 
@@ -111,12 +113,11 @@ static int ili9xxx_write(const struct device *dev, const uint16_t x,
 	} else {
 		write_h = desc->height;
 		mipi_desc.height = desc->height;
-		mipi_desc.buf_size = desc->buf_size;
+		mipi_desc.buf_size = desc->width * data->bytes_per_pixel * write_h;
 		nbr_of_writes = 1U;
 	}
 
 	mipi_desc.width = desc->width;
-	mipi_desc.height = desc->height;
 	/* Per MIPI API, pitch must always match width */
 	mipi_desc.pitch = desc->width;
 

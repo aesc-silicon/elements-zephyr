@@ -8,6 +8,7 @@
 #include <zephyr/dt-bindings/adc/nrf-adc.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/i2c/i2c.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/pinctrl/nrf-pinctrl.h>
 #include <zephyr/dt-bindings/pwm/pwm.h>
 
@@ -42,12 +43,4 @@
 		clock-prescaler = <0>;
 		#pwm-cells = <3>;
 	};
-};
-
-&systick {
-	/*
-	 * Nordic SoCs rely by default on the RTC for system clock
-	 * implementation, so the SysTick node is not to be enabled.
-	 */
-	status = "disabled";
 };
