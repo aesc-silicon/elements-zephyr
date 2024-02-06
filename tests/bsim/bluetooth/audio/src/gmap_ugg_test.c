@@ -106,6 +106,8 @@ struct named_lc3_preset named_preset;
 
 static struct audio_test_stream broadcast_streams[CONFIG_BT_BAP_BROADCAST_SRC_STREAM_COUNT];
 static struct unicast_stream unicast_streams[GMAP_UNICAST_AC_MAX_STREAM];
+static struct bt_cap_stream *started_unicast_streams[GMAP_UNICAST_AC_MAX_STREAM];
+static size_t started_unicast_streams_cnt;
 static struct bt_bap_ep
 	*sink_eps[GMAP_UNICAST_AC_MAX_CONN][CONFIG_BT_BAP_UNICAST_CLIENT_ASE_SNK_COUNT];
 static struct bt_bap_ep
@@ -285,8 +287,7 @@ static void cap_discovery_complete_cb(struct bt_conn *conn, int err,
 	SET_FLAG(flag_cas_discovered);
 }
 
-static void unicast_start_complete_cb(struct bt_bap_unicast_group *unicast_group, int err,
-				      struct bt_conn *conn)
+static void unicast_start_complete_cb(int err, struct bt_conn *conn)
 {
 	if (err != 0) {
 		FAIL("Failed to start (failing conn %p): %d\n", conn, err);
@@ -308,8 +309,7 @@ static void unicast_update_complete_cb(int err, struct bt_conn *conn)
 	SET_FLAG(flag_updated);
 }
 
-static void unicast_stop_complete_cb(struct bt_bap_unicast_group *unicast_group, int err,
-				     struct bt_conn *conn)
+static void unicast_stop_complete_cb(int err, struct bt_conn *conn)
 {
 	if (err != 0) {
 		FAIL("Failed to stop (failing conn %p): %d\n", conn, err);
@@ -687,6 +687,7 @@ static int gmap_ac_cap_unicast_start(const struct gmap_unicast_ac_param *param,
 	size_t stream_cnt = 0U;
 	size_t snk_ep_cnt = 0U;
 	size_t src_ep_cnt = 0U;
+	int err;
 
 	for (size_t i = 0U; i < param->conn_cnt; i++) {
 #if UNICAST_SINK_SUPPORTED
@@ -799,7 +800,16 @@ static int gmap_ac_cap_unicast_start(const struct gmap_unicast_ac_param *param,
 	start_param.count = stream_cnt;
 	start_param.type = BT_CAP_SET_TYPE_AD_HOC;
 
-	return bt_cap_initiator_unicast_audio_start(&start_param, unicast_group);
+	err = bt_cap_initiator_unicast_audio_start(&start_param);
+	if (err == 0) {
+		for (size_t i = 0U; i < start_param.count; i++) {
+			started_unicast_streams[i] = start_param.stream_params[i].stream;
+		}
+
+		started_unicast_streams_cnt = start_param.count;
+	}
+
+	return err;
 }
 
 static int gmap_ac_unicast(const struct gmap_unicast_ac_param *param,
@@ -889,17 +899,25 @@ static int gmap_ac_unicast(const struct gmap_unicast_ac_param *param,
 
 static void unicast_audio_stop(struct bt_bap_unicast_group *unicast_group)
 {
+	struct bt_cap_unicast_audio_stop_param param;
 	int err;
 
 	UNSET_FLAG(flag_stopped);
 
-	err = bt_cap_initiator_unicast_audio_stop(unicast_group);
+	param.type = BT_CAP_SET_TYPE_AD_HOC;
+	param.count = started_unicast_streams_cnt;
+	param.streams = started_unicast_streams;
+
+	err = bt_cap_initiator_unicast_audio_stop(&param);
 	if (err != 0) {
 		FAIL("Failed to start unicast audio: %d\n", err);
 		return;
 	}
 
 	WAIT_FOR_FLAG(flag_stopped);
+
+	started_unicast_streams_cnt = 0U;
+	memset(started_unicast_streams, 0, sizeof(started_unicast_streams));
 }
 
 static void unicast_group_delete(struct bt_bap_unicast_group *unicast_group)
@@ -1150,11 +1168,11 @@ static void broadcast_audio_delete(struct bt_cap_broadcast_source *broadcast_sou
 static int test_gmap_ugg_broadcast_ac(const struct gmap_broadcast_ac_param *param)
 {
 	uint8_t stereo_data[] = {
-		BT_AUDIO_CODEC_DATA(BT_AUDIO_CODEC_CONFIG_LC3_CHAN_ALLOC,
+		BT_AUDIO_CODEC_DATA(BT_AUDIO_CODEC_CFG_CHAN_ALLOC,
 				    BT_AUDIO_LOCATION_FRONT_RIGHT | BT_AUDIO_LOCATION_FRONT_LEFT)};
-	uint8_t right_data[] = {BT_AUDIO_CODEC_DATA(BT_AUDIO_CODEC_CONFIG_LC3_CHAN_ALLOC,
+	uint8_t right_data[] = {BT_AUDIO_CODEC_DATA(BT_AUDIO_CODEC_CFG_CHAN_ALLOC,
 						    BT_AUDIO_LOCATION_FRONT_RIGHT)};
-	uint8_t left_data[] = {BT_AUDIO_CODEC_DATA(BT_AUDIO_CODEC_CONFIG_LC3_CHAN_ALLOC,
+	uint8_t left_data[] = {BT_AUDIO_CODEC_DATA(BT_AUDIO_CODEC_CFG_CHAN_ALLOC,
 						   BT_AUDIO_LOCATION_FRONT_LEFT)};
 	struct bt_cap_initiator_broadcast_subgroup_param subgroup_param = {0};
 	struct bt_cap_initiator_broadcast_create_param create_param = {0};

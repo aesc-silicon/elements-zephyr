@@ -76,8 +76,6 @@ struct bt_cap_initiator_cb {
 	/**
 	 * @brief Callback for bt_cap_initiator_unicast_audio_start().
 	 *
-	 * @param unicast_group  The unicast group pointer supplied to
-	 *                       bt_cap_initiator_unicast_audio_start().
 	 * @param err            0 if success, BT_GATT_ERR() with a
 	 *                       specific ATT (BT_ATT_ERR_*) error code or -ECANCELED if cancelled
 	 *                       by bt_cap_initiator_unicast_audio_cancel().
@@ -85,8 +83,7 @@ struct bt_cap_initiator_cb {
 	 *                       occurred. NULL if @p err is 0 or if cancelled by
 	 *                       bt_cap_initiator_unicast_audio_cancel()
 	 */
-	void (*unicast_start_complete)(struct bt_bap_unicast_group *unicast_group,
-				       int err, struct bt_conn *conn);
+	void (*unicast_start_complete)(int err, struct bt_conn *conn);
 
 	/**
 	 * @brief Callback for bt_cap_initiator_unicast_audio_update().
@@ -103,14 +100,6 @@ struct bt_cap_initiator_cb {
 	/**
 	 * @brief Callback for bt_cap_initiator_unicast_audio_stop().
 	 *
-	 * If @p err is 0, then @p unicast_group has been deleted and can no
-	 * longer be used.
-	 *
-	 * If @p err is not 0 and @p conn is NULL, then the deletion of the
-	 * @p unicast_group failed with @p err as the error.
-	 *
-	 * @param unicast_group  The unicast group pointer supplied to
-	 *                       bt_cap_initiator_unicast_audio_stop().
 	 * @param err            0 if success, BT_GATT_ERR() with a
 	 *                       specific ATT (BT_ATT_ERR_*) error code or -ECANCELED if cancelled
 	 *                       by bt_cap_initiator_unicast_audio_cancel().
@@ -118,8 +107,7 @@ struct bt_cap_initiator_cb {
 	 *                       occurred. NULL if @p err is 0 or if cancelled by
 	 *                       bt_cap_initiator_unicast_audio_cancel()
 	 */
-	void (*unicast_stop_complete)(struct bt_bap_unicast_group *unicast_group,
-				      int err, struct bt_conn *conn);
+	void (*unicast_stop_complete)(int err, struct bt_conn *conn);
 #endif /* CONFIG_BT_BAP_UNICAST_CLIENT */
 };
 
@@ -206,6 +194,7 @@ int bt_cap_stream_send(struct bt_cap_stream *stream, struct net_buf *buf, uint16
  */
 int bt_cap_stream_get_tx_sync(struct bt_cap_stream *stream, struct bt_iso_tx_info *info);
 
+/** Stream specific parameters for the bt_cap_initiator_unicast_audio_start() function */
 struct bt_cap_unicast_audio_start_stream_param {
 	/** Coordinated or ad-hoc set member. */
 	union bt_cap_set_member member;
@@ -226,6 +215,7 @@ struct bt_cap_unicast_audio_start_stream_param {
 	struct bt_audio_codec_cfg *codec_cfg;
 };
 
+/** Parameters for the bt_cap_initiator_unicast_audio_start() function */
 struct bt_cap_unicast_audio_start_param {
 	/** The type of the set. */
 	enum bt_cap_set_type type;
@@ -237,8 +227,9 @@ struct bt_cap_unicast_audio_start_param {
 	struct bt_cap_unicast_audio_start_stream_param *stream_params;
 };
 
-struct bt_cap_unicast_audio_update_param {
-	/** @brief Stream for the @p member */
+/** Stream specific parameters for the bt_cap_initiator_unicast_audio_update() function */
+struct bt_cap_unicast_audio_update_stream_param {
+	/** Stream to update */
 	struct bt_cap_stream *stream;
 
 	/** The length of @p meta. */
@@ -250,6 +241,30 @@ struct bt_cap_unicast_audio_update_param {
 	 * well as a non-0 context bitfield.
 	 */
 	uint8_t *meta;
+};
+
+/** Parameters for the bt_cap_initiator_unicast_audio_update() function */
+struct bt_cap_unicast_audio_update_param {
+	/** The type of the set. */
+	enum bt_cap_set_type type;
+
+	/** The number of parameters in @p stream_params */
+	size_t count;
+
+	/** Array of stream parameters */
+	struct bt_cap_unicast_audio_update_stream_param *stream_params;
+};
+
+/** Parameters for the bt_cap_initiator_unicast_audio_stop() function */
+struct bt_cap_unicast_audio_stop_param {
+	/** The type of the set. */
+	enum bt_cap_set_type type;
+
+	/** The number of streams in @p streams */
+	size_t count;
+
+	/** Array of streams to stop */
+	struct bt_cap_stream **streams;
 };
 
 /**
@@ -272,13 +287,11 @@ int bt_cap_initiator_register_cb(const struct bt_cap_initiator_cb *cb);
  * @kconfig{CONFIG_BT_BAP_UNICAST_CLIENT} must be enabled for this function
  * to be enabled.
  *
- * @param[in]  param          Parameters to start the audio streams.
- * @param[out] unicast_group  Pointer to the unicast group.
+ * @param param Parameters to start the audio streams.
  *
  * @return 0 on success or negative error value on failure.
  */
-int bt_cap_initiator_unicast_audio_start(const struct bt_cap_unicast_audio_start_param *param,
-					 struct bt_bap_unicast_group *unicast_group);
+int bt_cap_initiator_unicast_audio_start(const struct bt_cap_unicast_audio_start_param *param);
 
 /**
  * @brief Update unicast audio streams.
@@ -289,28 +302,26 @@ int bt_cap_initiator_unicast_audio_start(const struct bt_cap_unicast_audio_start
  * @kconfig{CONFIG_BT_BAP_UNICAST_CLIENT} must be enabled for this function
  * to be enabled.
  *
- * @param params  Array of update parameters.
- * @param count   The number of entries in @p params.
+ * @param param Update parameters.
  *
  * @return 0 on success or negative error value on failure.
  */
-int bt_cap_initiator_unicast_audio_update(const struct bt_cap_unicast_audio_update_param params[],
-					  size_t count);
+int bt_cap_initiator_unicast_audio_update(const struct bt_cap_unicast_audio_update_param *param);
 
 /**
- * @brief Stop unicast audio streams for a unicast group.
+ * @brief Stop unicast audio streams.
+ *
+ * This will stop one or more streams.
  *
  * @note @kconfig{CONFIG_BT_CAP_INITIATOR} and
  * @kconfig{CONFIG_BT_BAP_UNICAST_CLIENT} must be enabled for this function
  * to be enabled.
  *
- * @param unicast_group The group of unicast devices to stop. The audio streams
- *                      in this will be stopped and reset, and the
- *                      @p unicast_group will be invalidated.
+ * @param param Stop parameters.
  *
  * @return 0 on success or negative error value on failure.
  */
-int bt_cap_initiator_unicast_audio_stop(struct bt_bap_unicast_group *unicast_group);
+int bt_cap_initiator_unicast_audio_stop(const struct bt_cap_unicast_audio_stop_param *param);
 
 /** @brief Cancel any current Common Audio Profile procedure
  *

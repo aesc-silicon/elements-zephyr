@@ -20,6 +20,8 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME, CONFIG_BTTESTER_LOG_LEVEL);
 #include "btp_bap_unicast.h"
 #include "btp_bap_broadcast.h"
 
+static struct btp_bap_unicast_group *u_group;
+
 extern struct bt_csip_set_coordinator_set_member *btp_csip_set_members[CONFIG_BT_MAX_CONN];
 
 static struct bt_bap_stream *stream_unicast_to_bap(struct btp_bap_unicast_stream *stream)
@@ -95,20 +97,19 @@ static void btp_send_cap_unicast_stop_completed_ev(uint8_t cig_id, uint8_t statu
 	tester_event(BTP_SERVICE_ID_CAP, BTP_CAP_EV_UNICAST_STOP_COMPLETED, &ev, sizeof(ev));
 }
 
-static void unicast_start_complete_cb(struct bt_bap_unicast_group *group,
-				      int err, struct bt_conn *conn)
+static void unicast_start_complete_cb(int err, struct bt_conn *conn)
 {
 	LOG_DBG("");
 
 	if (err != 0) {
 		LOG_DBG("Failed to unicast-start, err %d", err);
-		btp_send_cap_unicast_start_completed_ev(group->index,
+		btp_send_cap_unicast_start_completed_ev(u_group->cig->index,
 							BTP_CAP_UNICAST_START_STATUS_FAILED);
 
 		return;
 	}
 
-	btp_send_cap_unicast_start_completed_ev(group->index,
+	btp_send_cap_unicast_start_completed_ev(u_group->cig->index,
 						BTP_CAP_UNICAST_START_STATUS_SUCCESS);
 }
 
@@ -121,20 +122,19 @@ static void unicast_update_complete_cb(int err, struct bt_conn *conn)
 	}
 }
 
-static void unicast_stop_complete_cb(struct bt_bap_unicast_group *group, int err,
-				     struct bt_conn *conn)
+static void unicast_stop_complete_cb(int err, struct bt_conn *conn)
 {
 	LOG_DBG("");
 
 	if (err != 0) {
 		LOG_DBG("Failed to unicast-stop, err %d", err);
-		btp_send_cap_unicast_stop_completed_ev(group->index,
+		btp_send_cap_unicast_stop_completed_ev(u_group->cig->index,
 						       BTP_CAP_UNICAST_START_STATUS_FAILED);
 
 		return;
 	}
 
-	btp_send_cap_unicast_stop_completed_ev(group->index,
+	btp_send_cap_unicast_stop_completed_ev(u_group->cig->index,
 					       BTP_CAP_UNICAST_START_STATUS_SUCCESS);
 }
 
@@ -282,7 +282,6 @@ static uint8_t btp_cap_unicast_audio_start(const void *cmd, uint16_t cmd_len,
 {
 	int err;
 	size_t stream_count = 0;
-	struct btp_bap_unicast_group *u_group;
 	const struct btp_cap_unicast_audio_start_cmd *cp = cmd;
 	struct bt_cap_unicast_audio_start_param start_param;
 	struct bt_cap_unicast_audio_start_stream_param stream_params[
@@ -326,7 +325,7 @@ static uint8_t btp_cap_unicast_audio_start(const void *cmd, uint16_t cmd_len,
 	start_param.count = stream_count;
 	start_param.stream_params = stream_params;
 
-	err = bt_cap_initiator_unicast_audio_start(&start_param, u_group->cig);
+	err = bt_cap_initiator_unicast_audio_start(&start_param);
 	if (err != 0) {
 		LOG_ERR("Failed to start unicast audio: %d", err);
 
@@ -342,8 +341,9 @@ static uint8_t btp_cap_unicast_audio_update(const void *cmd, uint16_t cmd_len,
 	int err;
 	const uint8_t *data_ptr;
 	const struct btp_cap_unicast_audio_update_cmd *cp = cmd;
-	struct bt_cap_unicast_audio_update_param stream_params[
-		ARRAY_SIZE(btp_csip_set_members) * BTP_BAP_UNICAST_MAX_STREAMS_COUNT];
+	struct bt_cap_unicast_audio_update_stream_param
+		stream_params[ARRAY_SIZE(btp_csip_set_members) * BTP_BAP_UNICAST_MAX_STREAMS_COUNT];
+	struct bt_cap_unicast_audio_update_param param = {0};
 
 	LOG_DBG("");
 
@@ -358,7 +358,7 @@ static uint8_t btp_cap_unicast_audio_update(const void *cmd, uint16_t cmd_len,
 		struct bt_conn *conn;
 		struct btp_cap_unicast_audio_update_data *update_data =
 			(struct btp_cap_unicast_audio_update_data *)data_ptr;
-		struct bt_cap_unicast_audio_update_param *param = &stream_params[i];
+		struct bt_cap_unicast_audio_update_stream_param *stream_param = &stream_params[i];
 
 		conn = bt_conn_lookup_addr_le(BT_ID_DEFAULT, &update_data->address);
 		if (!conn) {
@@ -380,15 +380,19 @@ static uint8_t btp_cap_unicast_audio_update(const void *cmd, uint16_t cmd_len,
 			return BTP_STATUS_FAILED;
 		}
 
-		param->stream = &u_stream->audio_stream.cap_stream;
-		param->meta_len = update_data->metadata_ltvs_len;
-		param->meta = update_data->metadata_ltvs;
+		stream_param->stream = &u_stream->audio_stream.cap_stream;
+		stream_param->meta_len = update_data->metadata_ltvs_len;
+		stream_param->meta = update_data->metadata_ltvs;
 
-		data_ptr = ((uint8_t *)update_data) + param->meta_len +
+		data_ptr = ((uint8_t *)update_data) + stream_param->meta_len +
 			   sizeof(struct btp_cap_unicast_audio_update_data);
 	}
 
-	err = bt_cap_initiator_unicast_audio_update(stream_params, cp->stream_count);
+	param.count = cp->stream_count;
+	param.stream_params = stream_params;
+	param.type = BT_CAP_SET_TYPE_AD_HOC;
+
+	err = bt_cap_initiator_unicast_audio_update(&param);
 	if (err != 0) {
 		LOG_ERR("Failed to start unicast audio: %d", err);
 
@@ -401,16 +405,40 @@ static uint8_t btp_cap_unicast_audio_update(const void *cmd, uint16_t cmd_len,
 static uint8_t btp_cap_unicast_audio_stop(const void *cmd, uint16_t cmd_len,
 					  void *rsp, uint16_t *rsp_len)
 {
-
+	struct bt_cap_stream
+		*streams[ARRAY_SIZE(btp_csip_set_members) * BTP_BAP_UNICAST_MAX_STREAMS_COUNT];
+	struct bt_cap_unicast_audio_stop_param param = {0};
 	int err;
 	const struct btp_cap_unicast_audio_stop_cmd *cp = cmd;
-	struct btp_bap_unicast_group *group;
+	size_t stream_cnt = 0U;
 
 	LOG_DBG("");
 
-	group = btp_bap_unicast_group_find(cp->cig_id);
+	/* Get generate the same stream list as used by btp_cap_unicast_audio_start */
+	for (size_t conn_index = 0; conn_index < ARRAY_SIZE(btp_csip_set_members); conn_index++) {
+		struct btp_bap_unicast_connection *u_conn = btp_bap_unicast_conn_get(conn_index);
 
-	err = bt_cap_initiator_unicast_audio_stop(group->cig);
+		if (u_conn->end_points_count == 0) {
+			/* Connection not initialized */
+			continue;
+		}
+
+		for (size_t i = 0; i < ARRAY_SIZE(u_conn->streams); i++) {
+			struct btp_bap_unicast_stream *u_stream = &u_conn->streams[i];
+
+			if (!u_stream->in_use || u_stream->cig_id != cp->cig_id) {
+				continue;
+			}
+
+			streams[stream_cnt++] = stream_unicast_to_cap(u_stream);
+		}
+	}
+
+	param.streams = streams;
+	param.count = stream_cnt;
+	param.type = BT_CAP_SET_TYPE_AD_HOC;
+
+	err = bt_cap_initiator_unicast_audio_stop(&param);
 	if (err != 0) {
 		LOG_ERR("Failed to start unicast audio: %d", err);
 
