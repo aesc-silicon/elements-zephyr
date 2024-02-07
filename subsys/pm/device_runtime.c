@@ -387,12 +387,6 @@ static int runtime_enable_sync(const struct device *dev)
 	struct pm_device_isr *pm = dev->pm_isr;
 	k_spinlock_key_t k = k_spin_lock(&pm->lock);
 
-	/* Because context is locked we can access flags directly. */
-	if (pm->base.flags & BIT(PM_DEVICE_FLAG_RUNTIME_ENABLED)) {
-		ret = 0;
-		goto unlock;
-	}
-
 	if (pm->base.state == PM_DEVICE_STATE_ACTIVE) {
 		ret = pm->base.action_cb(dev, PM_DEVICE_ACTION_SUSPEND);
 		if (ret < 0) {
@@ -416,11 +410,16 @@ int pm_device_runtime_enable(const struct device *dev)
 	int ret = 0;
 	struct pm_device *pm = dev->pm;
 
+	SYS_PORT_TRACING_FUNC_ENTER(pm, device_runtime_enable, dev);
+
 	if (pm == NULL) {
-		return -ENOTSUP;
+		ret = -ENOTSUP;
+		goto end;
 	}
 
-	SYS_PORT_TRACING_FUNC_ENTER(pm, device_runtime_enable, dev);
+	if (atomic_test_bit(&pm->base.flags, PM_DEVICE_FLAG_RUNTIME_ENABLED)) {
+		goto end;
+	}
 
 	if (pm_device_state_is_locked(dev)) {
 		ret = -EPERM;
@@ -434,10 +433,6 @@ int pm_device_runtime_enable(const struct device *dev)
 
 	if (!k_is_pre_kernel()) {
 		(void)k_sem_take(&pm->lock, K_FOREVER);
-	}
-
-	if (atomic_test_bit(&pm->base.flags, PM_DEVICE_FLAG_RUNTIME_ENABLED)) {
-		goto unlock;
 	}
 
 	/* lazy init of PM fields */
@@ -474,11 +469,6 @@ static int runtime_disable_sync(const struct device *dev)
 	int ret;
 	k_spinlock_key_t k = k_spin_lock(&pm->lock);
 
-	if (!(pm->base.flags & BIT(PM_DEVICE_FLAG_RUNTIME_ENABLED))) {
-		ret = 0;
-		goto unlock;
-	}
-
 	if (pm->base.state == PM_DEVICE_STATE_SUSPENDED) {
 		ret = pm->base.action_cb(dev, PM_DEVICE_ACTION_RESUME);
 		if (ret < 0) {
@@ -501,11 +491,16 @@ int pm_device_runtime_disable(const struct device *dev)
 	int ret = 0;
 	struct pm_device *pm = dev->pm;
 
+	SYS_PORT_TRACING_FUNC_ENTER(pm, device_runtime_disable, dev);
+
 	if (pm == NULL) {
-		return -ENOTSUP;
+		ret = -ENOTSUP;
+		goto end;
 	}
 
-	SYS_PORT_TRACING_FUNC_ENTER(pm, device_runtime_disable, dev);
+	if (!atomic_test_bit(&pm->base.flags, PM_DEVICE_FLAG_RUNTIME_ENABLED)) {
+		goto end;
+	}
 
 	if (atomic_test_bit(&dev->pm_base->flags, PM_DEVICE_FLAG_ISR_SAFE)) {
 		ret = runtime_disable_sync(dev);
@@ -514,10 +509,6 @@ int pm_device_runtime_disable(const struct device *dev)
 
 	if (!k_is_pre_kernel()) {
 		(void)k_sem_take(&pm->lock, K_FOREVER);
-	}
-
-	if (!atomic_test_bit(&pm->base.flags, PM_DEVICE_FLAG_RUNTIME_ENABLED)) {
-		goto unlock;
 	}
 
 	if (!k_is_pre_kernel()) {
