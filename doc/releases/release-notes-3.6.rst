@@ -269,6 +269,20 @@ Drivers and Sensors
 
 * Input
 
+  * The ``short-codes`` property of :dtcompatible:`zephyr,input-longpress` is
+    now optional, the node can be used by specifying only input and long codes.
+  * Added support for keyboard matrix drivers, including a new
+    :dtcompatible:`gpio-kbd-matrix` and :dtcompatible:`input-keymap` drivers,
+    see :ref:`gpio-kbd` for more details.
+  * Added a pair of input codes to HID codes translation functions, see
+    :c:func:`input_to_hid_code` and :c:func:`input_to_hid_modifier`.
+  * Added power management support to :dtcompatible:`gpio-keys`
+    :dtcompatible:`focaltech,ft5336`.
+  * Added a :dtcompatible:`zephyr,native-linux-evdev` device node for getting
+    input events from a Linux evdev device node.
+  * Added support for optical encoders and power management to :dtcompatible:`gpio-qdec`.
+  * New drivers :dtcompatible:`espressif,esp32-touch`, :dtcompatible:`analog-axis`.
+
 * PCIE
 
 * ACPI
@@ -447,6 +461,41 @@ HALs
 
 MCUboot
 *******
+
+  * Fixed compatible sector checking in bootutil.
+
+  * Fixed Kconfig issue with saving encrypted TLVs not depending on encryption being enabled.
+
+  * Fixed issue with missing condition check for applications in sysflash include file.
+
+  * Fixed issue with single slot encrypted image listing support in boot_serial.
+
+  * Fixed issue with allowing MBEDTLS Kconfig selection when tinycrypt is used.
+
+  * Fixed missing response if echo command was disabled in boot_serial.
+
+  * Fixed issue with USB configurations not generating usable images.
+
+  * Added debug logging for boot status write in bootutil.
+
+  * Added estimated image overhead size to cache in sysbuild.
+
+  * Added firmware loader operating mode which allows for a dedicated secondary slot image that
+    is used to update the primary image.
+
+  * Added error if main thread is not pre-emptible when USB CDC serial recovery is enabled.
+
+  * Added error if USB CDC and console are both enabled and set to the same device.
+
+  * Removed the deprecated ``CONFIG_ZEPHYR_TRY_MASS_ERASE`` Kconfig option.
+
+  * Updated zcbor to version 0.8.1 and re-generated boot_serial files.
+
+  * Moved IO functions out of main to separate file.
+
+  * Made ``align`` parameter of imgtool optional.
+
+  * The MCUboot version in this release is version ``2.1.0+0-dev``.
 
 Nanopb
 ******
