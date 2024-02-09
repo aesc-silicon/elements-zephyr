@@ -959,15 +959,18 @@ static void event_handler(enum mdm_hl7800_event event, void *event_data)
 {
 	sys_snode_t *node;
 	struct mdm_hl7800_callback_agent *agent;
+	int ret;
 
-	k_sem_take(&cb_lock, K_FOREVER);
-	SYS_SLIST_FOR_EACH_NODE(&hl7800_event_callback_list, node) {
-		agent = CONTAINER_OF(node, struct mdm_hl7800_callback_agent, node);
-		if (agent->event_callback != NULL) {
-			agent->event_callback(event, event_data);
+	ret = k_sem_take(&cb_lock, K_FOREVER);
+	if (ret == 0) {
+		SYS_SLIST_FOR_EACH_NODE(&hl7800_event_callback_list, node) {
+			agent = CONTAINER_OF(node, struct mdm_hl7800_callback_agent, node);
+			if (agent->event_callback != NULL) {
+				agent->event_callback(event, event_data);
+			}
 		}
+		k_sem_give(&cb_lock);
 	}
-	k_sem_give(&cb_lock);
 }
 
 void mdm_hl7800_get_signal_quality(int *rsrp, int *sinr)
@@ -4047,7 +4050,7 @@ static void sockreadrecv_cb_work(struct k_work *work)
 	}
 }
 
-static void sock_read(struct net_buf **buf, uint16_t len)
+static void sock_read(struct net_buf **buf)
 {
 	struct hl7800_socket *sock = NULL;
 	struct net_buf *frag;
@@ -4153,7 +4156,7 @@ static void sock_read(struct net_buf **buf, uint16_t len)
 	}
 
 	frag = NULL;
-	len = net_buf_findcrlf(*buf, &frag);
+	(void)net_buf_findcrlf(*buf, &frag);
 	if (!frag) {
 		LOG_WRN("Unable to find OK start");
 		goto all_rx_data;
@@ -4217,7 +4220,7 @@ static bool on_cmd_connect(struct net_buf **buf, uint16_t len)
 
 	if (sock->state == SOCK_RX) {
 		remove_data_from_buffer = false;
-		sock_read(buf, len);
+		sock_read(buf);
 	} else {
 		k_sem_give(&sock->sock_send_sem);
 	}
