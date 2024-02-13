@@ -108,6 +108,8 @@ Boards & SoC Support
 
 * Made these changes for RISC-V boards:
 
+  * ``longan_nano``: Enabled ADC support.
+
 * Made these changes for X86 boards:
 
 * Made these changes for Xtensa boards:
@@ -213,7 +215,30 @@ Drivers and Sensors
   * Add system call :c:func:`can_get_transceiver()` for getting the CAN transceiver associated with
     a CAN controller.
 
-  * The "native linux" driver now supports being built with embedded C libraries.
+  * Added accessor functions for the CAN statistics.
+
+  * Added common bit error counter to the CAN statistics.
+
+  * Added CAN statistics support to the following drivers:
+
+    * :dtcompatible:`microchip,mcp2515`
+    * :dtcompatible:`espressif,esp32-twai`
+    * :dtcompatible:`kvaser,pcican`
+
+  * Added CAN controller driver for the Nuvoton NuMaker series
+    (:dtcompatible:`nuvoton,numaker-canfd`).
+
+  * Added CAN controller driver for the Infineon XMC4xxx family
+    (:dtcompatible:`infineon,xmc4xxx-can` and :dtcompatible:`infineon,xmc4xxx-can-node`).
+
+  * Added support for the NXP S32K1xx family to the :dtcompatible:`nxp,flexcan` driver.
+
+  * Use named IRQs "int0" and "int1" in all Bosch M_CAN-based front-end drivers.
+
+  * The :dtcompatible:`zephyr,native-linux-can` driver now supports being built with embedded C
+    libraries.
+
+  * Added support for setting "raw" timing values from the :ref:`CAN shell <can_shell>`.
 
 * Clock control
 
@@ -234,8 +259,6 @@ Drivers and Sensors
 
 * DMA
 
-* EEPROM
-
 * Entropy
 
   * The "native_posix" entropy driver now accepts a new command line option ``seed-random``.
@@ -247,6 +270,7 @@ Drivers and Sensors
 
 * Flash
 
+  * Atmel SAM: Redesign controller to fully utilize flash page layout.
   * ``spi_nor`` driver now sleeps between polls in ``spi_nor_wait_until_ready``. If this is not
     desired (For example due to ROM constraints in a bootloader),
     :kconfig:option:`CONFIG_SPI_NOR_SLEEP_WHILE_WAITING_UNTIL_READY` can be disabled.
@@ -309,6 +333,8 @@ Drivers and Sensors
   * Retained memory API status changed from experimental to unstable.
 
 * RTC
+
+  * Atmel SAM: Added RTC driver.
 
 * SDHC
 
@@ -428,6 +454,8 @@ Libraries / Subsystems
 
 * Power management
 
+  * Atmel SAM: introduced SUPC functions to allow wakeup sources and poweroff.
+
 * Random
 
 * Retention
@@ -448,8 +476,6 @@ Libraries / Subsystems
 * POSIX API
 
 * LoRa/LoRaWAN
-
-* CAN ISO-TP
 
 * RTIO
 
