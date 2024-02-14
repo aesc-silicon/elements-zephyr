@@ -39,6 +39,8 @@ Architectures
 
   * Removed the unused Kconfig option ``CONFIG_XTENSA_NO_IPC``.
 
+  * Added userspace support via MMU.
+
 * x86
 
 * POSIX
@@ -267,6 +269,22 @@ Drivers and Sensors
 * Ethernet
 
   * The "native_posix" ethernet driver now supports being built with embedded C libraries.
+  * Enabled HW checksum offloading for STM32H7.
+  * Added implementation of Open Alliance's TC6 T1S driver.
+  * Added xmc4xxx driver.
+  * Added NXP enet driver with PTP support.
+  * Added KSZ8081 PHY driver.
+  * Added proper IPv4 multicast support to NXP mcux driver.
+  * Added LAN8651 T1S support.
+  * Added DSA support to STM32.
+  * Added tja1103 PHY support.
+  * Added Nuvoton numaker support.
+  * Fixed lan865x driver. Transmission speed improvements, IRQ handling fixes.
+  * Fixed s32_gmac driver. Link up/down handling fixes.
+  * Fixed phy_mii driver. The invalid phy id was incorrectly checked.
+  * Fixed sam_gmac driver. PTP clock adjustment was wrong for negative values.
+  * Fixed adin2111 driver. Initialization was done incorrectly when working with adin2110.
+  * Fixed ksz8081 driver. Logging changes, RMII clock fixes, GPIO pin fixes.
 
 * Flash
 
@@ -274,6 +292,9 @@ Drivers and Sensors
   * ``spi_nor`` driver now sleeps between polls in ``spi_nor_wait_until_ready``. If this is not
     desired (For example due to ROM constraints in a bootloader),
     :kconfig:option:`CONFIG_SPI_NOR_SLEEP_WHILE_WAITING_UNTIL_READY` can be disabled.
+
+  * ``nordic_qspi_nor`` driver now supports user-configurable QSPI timeout with
+    :kconfig:option:`CONFIG_NORDIC_QSPI_NOR_TIMEOUT_MS`.
 
 * GPIO
 
@@ -288,6 +309,34 @@ Drivers and Sensors
 
   * The Legacy Virtual Register defines have been renamed from ``I3C_DCR_I2C_*``
     to ``I3C_LVR_I2C_*``.
+
+  * Added the ability to specify a start address when searching for a free I3C
+    address to be reserved. This requires a new function argument to
+    :c:func:`i3c_addr_slots_next_free_find`.
+
+  * Added a field named ``num_xfer`` in :c:struct:`i3c_msg` and
+    :c:struct:`i3c_ccc_taget_payload` as an output to indicate the actual
+    number of bytes transferred.
+
+  * Cadence I3C driver (:file:`drivers/i3c/i3c_cdns.c`):
+
+    * Added support to handle controller abort where target does not emit
+      end of data for register read but continues sending data.
+
+    * Updated the timeout calculation to be coupled with CPU speed instead of
+      a fixed number of retries.
+
+  * NXP MCUX I3C driver (:file:`drivers/i3c/i3c_mcux.c`):
+
+    * Fixed ``mcux_i3c_config_get()`` of not returning the configuration to caller.
+
+    * Sped up the FIFO read routine to support higher transfer rate.
+
+    * Removed the infinite wait for MCTRLDONE in auto IBI.
+
+    * Added ``disable-open-drain-high-pp`` property to
+      :dtcompatible:`nxp,mcux-i3c`, which allows alternative high time for
+      open-drain clock.
 
 * IEEE 802.15.4
 
@@ -313,12 +362,21 @@ Drivers and Sensors
 
 * PCIE
 
+  * Fixed MMIO size calculation by disabling IO/memory decoding beforehand.
+
+  * Modified to use PNP ID for PRT retrieval.
+
 * ACPI
 
 * Pin control
 
   * Renesas R-Car pinctrl driver now supports Gen4 SoCs
   * Renamed ``CONFIG_PINCTRL_RA`` to :kconfig:option:`CONFIG_PINCTRL_RENESAS_RA`
+  * Renesas R-Car pinctrl driver now supports voltage control for R8A77951 and
+    R8A77961 SoCs
+  * Added driver for ZynqMP / Mercury XU
+  * Added driver for i.MX8QM/QXP
+  * Added driver for Renesas RZ/T2M
 
 * PWM
 
@@ -342,7 +400,30 @@ Drivers and Sensors
 
 * Serial
 
-  * Renamed ``CONFIG_UART_RA`` to :kconfig:option:`CONFIG_UART_RENESAS_RA`
+  * Added drivers to support UART on Renesas RA and RZ/T2M.
+
+  * Added support for higher baud rate for ITE IT8xxx2.
+
+  * Added driver to support Intel Lightweight UART.
+
+  * Added UART asynchronous RX helper.
+
+  * Added support for async API on NS16550 driver.
+
+  * Updated ``uart_esp32`` to use serial port configuration from devicetree.
+
+  * Added an adaptation API to provide interrupt driven API for drivers
+    which have only implemented async API.
+
+  * Emulated UART driver (:file:`drivers/serial/uart_emul.c`):
+
+    * Added emulated interrupt based TX.
+
+    * Added emulated error for testing.
+
+    * Modified to use local work queue for data transfer.
+
+    * Modified FIFO size and its handling to be more aligned with real hardware.
 
 * SPI
 
@@ -350,7 +431,12 @@ Drivers and Sensors
 
 * USB
 
-* WiFi
+* Wi-Fi
+
+  * Added Infineon airoc driver.
+  * Fixed esp32 driver. Decreased minimum heap size, disabled automatic reconnection on leaving.
+  * Fixed esp_at driver. Allow building without IPv4 support. Passive Receive mode fixes. Depend on UART runtime configuration.
+  * Fixed winc1500 driver. Disconnect result event was not returned when disconnecting.
 
 Networking
 **********
@@ -370,7 +456,17 @@ Networking
 
 * Ethernet:
 
+  * Allow manual registration of ARP entries.
+  * Added PHY mode selection to device tree.
+  * Added TX-Injection mode support.
+
 * gPTP:
+
+  * Use local port identity when forwarding sync messages.
+  * Fix double converted byte order of BMCA info.
+  * Always use GM PRIO root system id for announce messages.
+  * Create gPTP handler thread stack size Kconfig option.
+  * Invert the priority of outgoing packets.
 
 * ICMP:
 
@@ -409,6 +505,12 @@ Networking
 
 * Wi-Fi:
 
+  * Added Wi-Fi driver version information to Wi-Fi shell.
+  * Added AP (Access Point) mode support to Wi-Fi shell.
+  * Added Regulatory channel information.
+  * Added Wi-Fi bindings to connection manager.
+  * Fixed Wi-Fi shell. SSID print fixes. Help text fixes. Channel validation fixes.
+  * Fixed TWT functionality. Teardown status was not updated. Powersave fixes.
 
 USB
 ***
@@ -448,6 +550,29 @@ Libraries / Subsystems
   * Fixed an issue whereby messages that were too large to be sent over the UDP transport would
     wrongly return :c:enum:`MGMT_ERR_EINVAL` instead of :c:enum:`MGMT_ERR_EMSGSIZE`.
 
+  * Fixed an issue where confirming an image in Direct XIP mode would always confirm the image in
+    the primary slot even when executing from the secondary slot, now the currently active image is
+    always confirmed.
+
+  * Added support for retrieving registered command groups, to support registering and deregistering
+    default command groups at runtime, allowing an application to support multiple implementations
+    for the same command group.
+
+  * Fixed an issue in MCUmgr FS management whereby the semaphore lock would not be given if an
+    error was returned, leading to a possible deadlock.
+
+  * Added support for custom payload MCUmgr handlers, this can be enabled with
+    :kconfig:option:`CONFIG_MCUMGR_MGMT_CUSTOM_PAYLOAD`.
+
+  * Fixed an issue in MCUmgr image management whereby an error would be returned if a command was
+    sent to erase the slot which was already erased.
+
+  * Added support for image slot size checking to ensure an update can be utilised by MCUboot,
+    this can be performed by using sysbuild when building both application and MCUboot by enabling
+    :kconfig:option:`CONFIG_MCUMGR_GRP_IMG_TOO_LARGE_SYSBUILD` or by use of bootloader information
+    sharing from MCUboot by enabling
+    :kconfig:option:`CONFIG_MCUMGR_GRP_IMG_TOO_LARGE_BOOTLOADER_INFO`.
+
 * File systems
 
 * Modem modules
@@ -474,6 +599,35 @@ Libraries / Subsystems
 * Binary descriptors
 
 * POSIX API
+
+  * conformance: complete support for ``POSIX_THREADS_EXT``, ``XSI_THREADS_EXT``,
+    ``POSIX_CLOCK_SELECTION``, and ``POSIX_SEMAPHORES`` Option Groups.
+
+  * conformance: complete support for ``_POSIX_MESSAGE_PASSING`` and
+    ``_POSIX_PRIORITY_SCHEDULING`` Options.
+
+  * coverity: fix CID 211585, 334906, 334909, and 340851
+
+  * documentation: improve structure and accuracy of POSIX docs
+
+  * menuconfig: improved navigation and organization of POSIX options
+
+  * pthread: allocate and free stacks with pthread_attr_t, embed attr in thread structure
+
+  * pthread: support deferred and asynchronous thread cancellation
+
+  * pthread: support stack sizes up to 8MB
+
+  * samples: add dining philosophers sample app
+
+  * semaphores: add support for named semaphores
+
+  * shell: add a top-level ``posix`` command in the Zephyr shell. Zephyr shell utilities for
+    the POSIX API can be added as subcommands (e.g. ``posix uname -a``)
+
+  * timers: use async thread cancellation, add support for ``SIGEV_THREAD``, ``CLOCK_REALTIME``
+
+  * unistd: add compile-time-constant sysconf() implementation
 
 * LoRa/LoRaWAN
 
@@ -548,6 +702,19 @@ Highlights:
 LVGL
 ****
 
+LVGL has been updated from 8.3.7 to 8.3.11.
+Detailed release notes can be found at:
+https://github.com/zephyrproject-rtos/lvgl/blob/zephyr/docs/CHANGELOG.md
+
+Additionally the following changes in Zephyr were done:
+
+  * Added the :dtcompatible:`zephyr,lvgl-keypad-input` compatible for keypad input.
+
+  * Fixed issue with the Zephyr log levels not mapping properly to LVGL log levels.
+
+  * Fixed issue where setting :kconfig:option:`CONFIG_LV_Z_FULL_REFRESH` did not
+    set :kconfig:option:`CONFIG_LV_Z_VDB_SIZE` to 100 percent.
+
 Trusted Firmware-A
 ******************
 
@@ -573,3 +740,6 @@ Tests and Samples
 
 * Fixed an issue in :zephyr:code-sample:`smp-svr` sample whereby if USB was already initialised,
   application would fail to boot properly.
+
+* Added a LVGL sample :zephyr:code-sample:`lvgl-accelerometer-chart` showcasing displaying of live
+  sensor data in a chart widget.
