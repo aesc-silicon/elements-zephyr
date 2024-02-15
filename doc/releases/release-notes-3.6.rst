@@ -74,6 +74,11 @@ Boards & SoC Support
 * Added support for these SoC series:
 
   * Added support for Renesas R-Car Gen4 series
+  * Added support for STM32F303xB SoC variants
+  * Added support for STM32H7B0xx SoC variants
+  * Added support for STM32L010xx SoC variants
+  * Added support for STM32L081xx SoC variants
+  * Added support for STM32U5A9xx SoC variants
 
 * Removed support for these SoC series:
 
@@ -81,16 +86,25 @@ Boards & SoC Support
 
   * Nordic SoCs now imply :kconfig:option:`CONFIG_XIP` instead of selecting it, this allows for
     creating RAM-based applications by disabling it.
+  * BLE is now supported on STM32WBA series.
 
 * Added support for these ARC boards:
 
 * Added support for these ARM boards:
 
-  * Added support for Renesas R-Car Spider board CR52: ``rcar_spider_cr52``
-
   * Added support for Adafruit QTPy RP2040 board: ``adafruit_qt_py_rp2040``
-
+  * Added support for FANKE FK7B0M1-VBT6 board: ``fk7b0m1_vbt6``
+  * Added support for Renesas R-Car Spider board CR52: ``rcar_spider_cr52``
+  * Added support for ST Nucleo F722ZE board: ``nucleo_f722ze``
+  * Added support for ST STM32H750B Discovery Kit: ``stm32h750b_dk``
+  * Added support for ST STM32L4R9I Discovery board: ``stm32l4r9i_disco``
+  * Added support for ST STM32U5A9J-DK discovery kit: ``stm32u5a9j_dk``
+  * Added support for ST Nucleo WBA55CG board: ``nucleo_wba55cg``
+  * Added support for ST STM32WB5MM-DK Discovery board: ``stm32wb5mm_dk``
   * Added support for Wiznet W5500 Evaluation Pico board: ``w5500_evb_pico``
+
+  * Added support for ADI boards: ``adi_sdp_k1``, ``adi_eval_adin1110ebz``,
+    ``adi_eval_adin2111ebz``
 
 * Added support for these ARM64 boards:
 
@@ -154,6 +168,12 @@ Boards & SoC Support
 
 * Added support for these following shields:
 
+  * M5Stack-Core2 base
+  * MikroElektronika ACCEL 13 Click
+  * Waveshare Pico UPS-B
+  * X-NUCLEO-BNRG2A1: BLE expansion board
+  * X-NUCLEO-IKS4A1: MEMS Inertial and Environmental Multi sensor
+
 Build system and infrastructure
 *******************************
 
@@ -209,6 +229,15 @@ Drivers and Sensors
 
 * ADC
 
+  * Power Management for ADC is now supported on STM32 devices.
+  * STM32 ADC driver now supports mixing shared and separate IRQs (for instance on STM32G473
+    which has 5 ADCs, ADC1 and ADC2 share one IRQ while ADC3, ADC4 and ADC5 each have unique IRQs).
+    Enabling all instances in same application is not possible on such devices as of now.
+
+* Battery backed up RAM
+
+  * STM32WL devices now support BBRAM.
+
 * CAN
 
   * Added system call :c:func:`can_get_mode()` for getting the current operation mode of a CAN
@@ -246,6 +275,8 @@ Drivers and Sensors
 
   * Renesas R-Car clock control driver now supports Gen4 SoCs
   * Renamed ``CONFIG_CLOCK_CONTROL_RA`` to :kconfig:option:`CONFIG_CLOCK_CONTROL_RENESAS_RA`
+  * On STM32 devices, :dtcompatible:`st,stm32-hse-clock` now allows setting a ``css-enabled``
+    property which enables HSE clock security system (CSS).
 
 * Counter
 
@@ -253,18 +284,27 @@ Drivers and Sensors
 
   * counter_native_posix driver: Added support for top value configuration, and a bugfix.
 
+* Crypto
+
+  * STM32WB devices now support crypto API through AES block
+
 * DAC
 
 * Disk
 
 * Display
 
+  * Introduce frame buffer config to STM32 LTDC driver.
+
 * DMA
+
+  * STM32WBA Devices now support GPDMA
 
 * Entropy
 
   * The "native_posix" entropy driver now accepts a new command line option ``seed-random``.
     When used, the random generator will be seeded from ``/dev/urandom``
+  * On STM32devices, RNG block is now suspended when pool is full to save power.
 
 * Ethernet
 
@@ -292,6 +332,7 @@ Drivers and Sensors
   * ``spi_nor`` driver now sleeps between polls in ``spi_nor_wait_until_ready``. If this is not
     desired (For example due to ROM constraints in a bootloader),
     :kconfig:option:`CONFIG_SPI_NOR_SLEEP_WHILE_WAITING_UNTIL_READY` can be disabled.
+  * Flash readout protection configuration was added on STM32G4 and STM32L4 series.
 
   * ``nordic_qspi_nor`` driver now supports user-configurable QSPI timeout with
     :kconfig:option:`CONFIG_NORDIC_QSPI_NOR_TIMEOUT_MS`.
@@ -303,7 +344,11 @@ Drivers and Sensors
 
 * I2C
 
+  * :c:func:`i2c_get_config` is now supported on STM32 driver.
+
 * I2S
+
+  * STM32H7 devices now support I2S.
 
 * I3C
 
@@ -377,6 +422,8 @@ Drivers and Sensors
   * Added driver for ZynqMP / Mercury XU
   * Added driver for i.MX8QM/QXP
   * Added driver for Renesas RZ/T2M
+  * On STM32 devices, pins assigned to JTAG/SW port can now be put to analog state when
+    :kconfig:option:`CONFIG_PM` enabled and :kconfig:option:`CONFIG_DEBUG` disabled.
 
 * PWM
 
@@ -394,42 +441,98 @@ Drivers and Sensors
 
   * Atmel SAM: Added RTC driver.
 
+* SMBUS:
+
+  * SMBUS is now supported on STM32 devices
+
 * SDHC
 
 * Sensor
 
+  * Fixed arithmetic overflow in the LTRF216A driver.
+  * Fixed negative temperature calculation in MAX31865 driver.
+  * Added TI TMAG5273 3D Hall sensor driver.
+  * Added Vishay VCNL36825T proximity sensor driver.
+  * Added BMA4xx accelerometer sensor emulator.
+  * Added white channel support to the VEML7700 ambient light sensor driver.
+  * Added ST LIS2DE12 accelerometer sensor driver.
+  * Added Bosch BMP581 pressure sensor driver.
+  * Added support for triggering multiple sensor devices in the sensor shell.
+  * Added Aosong AGS10 TVOC air quality gas sensor driver.
+  * Extended MAX31865 temperature sensor driver to support changing three-wire
+    mode at runtime.
+  * Fixed Bosch BMI160 gyro range calculation and added support for getting
+    attributes.
+  * Optimized Bosch BMA4xx accelerometer sample calculation, improving
+    accuracy.
+  * Removed floating point arithmetic from the TI BQ274xx gauge driver.
+  * Fixed ST drivers Kconfig dependency to the HAL_ST module.
+  * Added Bosch BMA4xx accelerometer sensor driver.
+  * Added ST LIS2DU12 accelerometer sensor driver.
+  * Extended NTC thermistor driver to support TDK NTCG103JF103FT1.
+  * Added NXP S32 quadrature decoder driver.
+  * Fixed LSM6DSV16x gyro range table.
+  * Fixed missing return value checks in ADLTC2990, TSL2540, MAX17055 drivers.
+  * Added ST LPS28DFW pressure sensor driver.
+  * Fixed interrupt in BMI323 driver.
+  * Added devicetree properties macros to various ST sensor drivers.
+  * Added Renesas HS300x temperature/humidity sensor driver.
+  * Added Gas Sensing Solutions' ExplorIR-M CO2 sensor driver.
+  * Fixed self test delay in ADXL367 accelerometer sensor driver.
+  * Added ST LPS22DF pressure sensor driver.
+  * Added new streaming APIs and implemented in the ICM42688 driver.
+  * Added trigger support to the ADXL367 accelerometer sensor driver.
+  * Added PM suspend and resume support to the LSM6DSL accelerometer sensor
+    driver.
+  * Added AMS TSL2561 light sensor driver.
+  * Extended BQ274xx driver to support configuring and confirming the chemistry
+    profile.
+  * Extended LIS2DH and LSM6DSV16x drivers to support configuring INT1/INT2 in
+    devicetree.
+  * Added die temperature measurement support to NPM1300 charger driver.
+  * Added ADLTC2990 sensor emulator.
+  * Extended MPU6050 driver to support MPU6886 variant.
+  * Added ADXL367 accelerometer sensor driver.
+  * Added LiteOn LTR-F216A illuminance sensor driver.
+  * Added Memsic MC3419 accelerometer sensor driver.
+  * Added AMD SB temperature sensor driver.
+
 * Serial
 
   * Added drivers to support UART on Renesas RA and RZ/T2M.
-
   * Added support for higher baud rate for ITE IT8xxx2.
-
   * Added driver to support Intel Lightweight UART.
-
   * Added UART asynchronous RX helper.
-
   * Added support for async API on NS16550 driver.
-
   * Updated ``uart_esp32`` to use serial port configuration from devicetree.
-
   * Added an adaptation API to provide interrupt driven API for drivers
     which have only implemented async API.
-
   * Emulated UART driver (:file:`drivers/serial/uart_emul.c`):
-
     * Added emulated interrupt based TX.
-
     * Added emulated error for testing.
-
     * Modified to use local work queue for data transfer.
-
     * Modified FIFO size and its handling to be more aligned with real hardware.
+  * On STM32 devices, it is now possible to enable FIFO by setting a ``fifo-enable``
+    property in targeted serial node, with the following benefits:
+    In TX, FIFO allows to work in burst mode, easing scheduling of loaded applications.
+    It also allows more reliable communication with UART devices sensitive to variation of inter-frames delays.
+    In RX, FIFO reduces overrun occurences.
 
 * SPI
+
+  * On STM32H7 devices, ``fifo-enable`` property allows using SPI block FIFO. This
+    feature is still experimental and requires maturation.
+  * On STM32 devices impacted by BSY bit erratum, a workaround is implemented.
 
 * Timer
 
 * USB
+
+  * On STM2G0 devices, property ``crs-usb-sof`` in ``clk_hsi48`` node enables support
+    for Clock Recovery System allowing a more stable HSI48 clock and hence resilient USB
+    connection.
+  * On compatible STM32 devices, isochronous endpoint are now functional thanks to the
+    use of double buffering.
 
 * Wi-Fi
 
@@ -443,16 +546,50 @@ Networking
 
 * CoAP:
 
-  * Emit observer/service network events using the Network Event subsystem.
-
+  * Added support for Echo and Request-Tag CoAP options (RFC 9175).
+  * Changed :c:func:`coap_remove_observer` API function return type to bool.
+  * Introduced CoAP service library, which simplifies implementation of CoAP
+    server functionality.
+  * Updated CoAP server example to use CoAP service library.
+  * Added shell module for CoAP server.
+  * Fixed NULL pointer dereference in :c:func:`coap_packet_remove_option`
+  * Added CoAP observer/service network events using the Network Event subsystem.
+  * Changed :c:func:`coap_pending_init` API function to take
+    :c:struct:`coap_transmission_parameters` instead of retry count.
   * Added new API functions:
 
     * :c:func:`coap_get_transmission_parameters`
     * :c:func:`coap_set_transmission_parameters`
+    * :c:func:`coap_handle_request_len`
+    * :c:func:`coap_well_known_core_get_len`
+    * :c:func:`coap_uri_path_match`
+    * :c:func:`coap_packet_is_request`
+    * :c:func:`coap_find_observer`
+    * :c:func:`coap_find_observer_by_token`
+    * :c:func:`coap_pendings_count`
+    * :c:func:`coap_header_set_code`
 
 * Connection Manager:
 
+  * Added a generic Wi-Fi connectivity backend.
+
 * DHCP:
+
+  * Added missing DHCPv6 state structure initialization when initializing
+    network interface.
+  * DHCP-assigned IPv4 address is now removed when interface goes down.
+  * Added DHCPv4 server implementation.
+  * Rearranged DHCPv4 file structure, all DHCPv4 related files are now grouped
+    within ``subsys/net/lib/dhcpv4``.
+  * Moved DHCPv6 files to ``subsys/net/lib/dhcpv6`` to align with DHCPv4.
+
+* DNS:
+
+  * Added support for enabling mDNS listener on all network interfaces.
+  * Added VLAN support to the ``mdns_responder`` sample.
+  * Fixed TTL/hop limit set on DNS packets.
+  * Added :kconfig:option:`CONFIG_DNS_RESOLVER_AUTO_INIT` which allows to disable
+    automatic initialization of the default DNS context on boot.
 
 * Ethernet:
 
@@ -470,38 +607,185 @@ Networking
 
 * ICMP:
 
-* IPv6:
+  * Fixed an error being emitted when unhandled ICMP message was received.
+  * Fixed a bug, where ICMP Echo Reply could be sent without proper source IP
+    address set.
+  * Fixed a packet leak in ICMP Echo Request handlers, in case priority check
+    failed.
+  * Improved thread safety of the module handling Neighbor Discovery.
+  * Added support for IPv6 Neighbor reachability hints, allowing to reduce
+    ICMPv6 traffic for active connections.
 
-* LwM2M:
+* IP:
 
-* Misc:
-
+  * Fixed L3/L4 checksum calculation/validation for IP-fragmented packets on
+    interfaces that support checksum offload.
+  * Fixed net_context not being set on IP fragmented packets, preventing send
+    callback from being called.
   * It is now possible to have separate IPv4 TTL value and IPv6 hop limit value for
     unicast and multicast packets. This can be controlled in each socket via
     :c:func:`setsockopt` API.
+  * Improved source IP address verification in the IP stack. Addresses received
+    to/from loopback address on non-loopback interfaces are dropped.
+  * Added new functions to verify if IPv6 address is site local or global.
+  * Added support for setting peer IP address in :c:struct:`net_pkt` structure
+    for offloaded interfaces. This allows for :c:func:`recvfrom` to return a
+    valid address in offloaded case.
+
+* LwM2M:
+
+  * Added :kconfig:option:`CONFIG_LWM2M_UPDATE_PERIOD` which allows to configure LwM2M
+    Update period regardless of the lifetime value.
+  * Fixed composite read/write access rights check.
+  * Added shell command to delete object and resource instances.
+  * Fixed a bug in block-wise transfer, where block-wise ACKs were sent with
+    wrong response code.
+  * Fixed object version reporting for LwM2M version 1.1.
+  * Added support for DTLS Connection Identifier in LwM2M engine.
+  * Added support for LwM2M Server Disable executable resource.
+  * Implemented fallback mechanism for LwM2M server selection during registration
+    phase. The engine will now try to choose different server if the current one
+    becomes unavailable or disabled.
+  * Added support for storing LwM2M error list in settings.
+  * Fixed pmin observer attribute handling in tickless mode.
+  * Added support for notifying the application about ongoing CoAP transmissions
+    with ``set_socket_state()`` callback.
+  * Deprecated unsigned 64-bit integer value type, as it's not represented in the spec.
+    Use signed 64-bit integer instead.
+  * Added a callback for LwM2M Gateway object, which allows to handle LwM2M messages
+    with prefixed path.
+  * Added LwM2M-specific macros for object initialization during boot.
+  * Several other minor bugfixes ans improvements.
+
+* Misc:
 
   * Added support for compile time network event handlers using the macro
     :c:macro:`NET_MGMT_REGISTER_EVENT_HANDLER`.
-
   * The :kconfig:option:`CONFIG_NET_MGMT_EVENT_WORKER` choice is added to
     allow emitting network events using the system work queue or synchronously.
+  * Removed redundant Network Connectivity API documentation page.
+  * Improved thread safety of the network connections subsystem.
+  * Removed ``eth_native_posix`` sample.
+  * Removed redundant ``arb`` and ``fv2015`` fields  from
+    ``struct net_pkt_cb_ieee802154``.
+  * Introduced a separate mutex for TX at the network interface level, to prevent
+    concurrent access on TX to drivers that are not re-entrant.
+  * Fixed netmask not being registered for loopback address.
+  * Added support for binding to a specific network interface at the net_context
+    level.
+  * Added IGMPv3 support.
+  * Added a new network event, ``NET_EVENT_HOSTNAME_CHANGED``, triggered upon
+    hostname change.
+  * Refactored net_context option getters/setters to reduce code duplication.
+  * Fixed a possible packet leak at the ARP level, in case of errors during ARP
+    packet creation.
+  * Added support for analyzing SNTP time uncertainty.
+  * Fixed network interface being brought up even when underlying device is not
+    ready.
+  * Added start/stop functions for dummy interfaces.
+  * Added a detailed :ref:`network configuration <network_configuration_guide>`
+    guide to the documentation.
+  * Added :kconfig:option:`CONFIG_NET_HOSTNAME_DYNAMIC` option, which allows to
+    enable setting hostname at runtime.
 
 * MQTT-SN:
 
+  * Added :c:func:`mqtt_sn_get_topic_name` API function.
+  * Fixed handling of incoming Register messages when wildcard subscription is used.
+
 * OpenThread:
+
+  * Implemented the following OpenThread platform APIs:
+
+    * ``otPlatRadioSetRxOnWhenIdle()``
+    * ``otPlatResetToBootloader()``
+    * ``otPlatCryptoPbkdf2GenerateKey()``
+
+  * Updated OpenThread platform UART driver, so that it no longer waits for
+    communication with host to start during boot.
+  * Added BLE TCAT implementation in OpenThread platform.
+  * Updated Crypto PSA backend for OpenThread with additional algorithms.
+  * Fixed ``otPlatAssertFail()``, so that it prints the location of the actual
+    assert instead of the function itself.
 
 * PPP:
 
+  * Fixed PPP connection termination when interface goes down.
+
+* Shell:
+
+  * Refactored networking shell module, so that instead of large single file, it
+    is split into submodules, at per command basis.
+  * Fixed unexpected timeout message when executing loopback ping.
+  * Added ``net sockets`` command to print information about open sockets and
+    socket services.
+  * Join IPv4/IPv6 multicast groups, if needed, when adding IPv4/IPv6 multicast
+    addresses via shell.
+  * Fixed ``tcp connect`` command operation (TCP context released prematurely).
+  * Added support for Echo option in telnet shell backend.
+  * Fixed unnecessary connection close in telnet shell backend in case of
+    non-fatal EAGAIN or ENOBUFS errors.
+  * Fixed double packet dereference in ping reply handler.
+  * Fixed possible deadlock when executing ``net arp`` command.
+  * Added more detailed Ethernet statistics printout for ``net stats`` command.
+  * Added ``net dhcpv4 server`` commands for DHCPv4 server management.
+  * Added shell module to manage TLS credentials.
+
 * Sockets:
 
-  * Added support for IPv4 multicast ``IP_ADD_MEMBERSHIP`` and ``IP_DROP_MEMBERSHIP`` socket options.
-  * Added support for IPv6 multicast ``IPV6_ADD_MEMBERSHIP`` and ``IPV6_DROP_MEMBERSHIP`` socket options.
+  * Added support for v4-mapping-to-v6, which allows IPv4 and IPv6 to share the
+    same port space.
+  * Added support for :c:macro:`IPV6_V6ONLY` socket option.
+  * Added support for :c:macro:`SO_ERROR` socket option.
+  * Fixed :c:func:`select` not setting ``writefds`` in case of errors.
+  * Added support for object core, which allows to track networks sockets and
+    their statistics.
+  * Added support for :c:func:`recvmsg`.
+  * Added support for :c:macro:`IP_PKTINFO` and :c:macro:`IPV6_RECVPKTINFO`
+    socket options.
+  * Added support for :c:macro:`IP_TTL` socket option.
+  * Added support for IPv4 multicast :c:macro:`IP_ADD_MEMBERSHIP` and
+    :c:macro:`IP_DROP_MEMBERSHIP` socket options.
+  * Added support for IPv6 multicast :c:macro:`IPV6_ADD_MEMBERSHIP` and
+    :c:macro:`IPV6_DROP_MEMBERSHIP` socket options.
+  * Improved doxygen documentation of BSD socket API.
+  * Fixed POLLERR error reporting in TLS sockets.
+  * Fixed DTLS handshake processing during :c:func:`poll`.
+  * Aligned DTLS socket :c:func:`connect` behavior with regular TLS (handshake
+    during connect call).
+  * Added Socket Service library, which allows to register multiple socket based
+    network services, and process them within a single thread.
+  * Added a new ``echo_service`` sample for Socket Service.
+  * Added support for :c:macro:`SO_DOMAIN` socket option.
+  * Fixed DTLS connection timeout when monitoring socket with :c:func:`poll`.
+  * Fixed NULL link layer address pointer dereference on packet socket, in case
+    of packet loopback.
+  * Several other minor bugfixes ans improvements.
 
 * TCP:
 
+  * TCP stack now replies with RST packet in response to connection attempt on
+    a closed port.
+  * Fixed remote address passed in :c:func:`accept` call.
+  * Fixed reference counting during active handshake, to prevent TCP context
+    being released prematurely.
+  * Fixed compilation with :kconfig:option:`CONFIG_NET_TCP_CONGESTION_AVOIDANCE`
+    disabled.
+  * Reworked TCP data queueing API, to prevent TCP stack from overflowing TX window.
+  * Fixed possible race condition between TCP workqueue and other threads, when
+    releasing TCP context.
+  * Fixed possible race condition between input thread and TCP workqueue.
+  * Added support for TCP Keep-Alive feature.
+  * Fixed a bug, where TCP state machine could get stuck in LAST_ACK state
+    during passive connection close.
+  * Fixed a bug, where TCP state machine could get stuck in FIN_WAIT_1 state
+    in case peer did not respond.
+  * Several other minor bugfixes ans improvements.
+
 * TFTP:
 
-* WebSocket
+  * Fixed potential buffer overflow when copying TFTP error message.
+  * Improved logging in case of errors.
 
 * Wi-Fi:
 
@@ -511,6 +795,17 @@ Networking
   * Added Wi-Fi bindings to connection manager.
   * Fixed Wi-Fi shell. SSID print fixes. Help text fixes. Channel validation fixes.
   * Fixed TWT functionality. Teardown status was not updated. Powersave fixes.
+
+* zperf:
+
+  * Improved IP address binding. Zperf will bind to any address by default and
+    allow to override this with Kconfig/API provided address.
+  * Fixed TCP packet counting when transmitting.
+  * Refactored UDP/TCP received to use Socket Service to save memory.
+  * Fixed zperf session leak on interrupted downloads.
+  * Fixed the calculation ratio between Mbps, Kbps and bps.
+  * Allow network code relocation to RAM in zperf sample for platforms that
+    support it.
 
 USB
 ***
@@ -580,6 +875,8 @@ Libraries / Subsystems
 * Power management
 
   * Atmel SAM: introduced SUPC functions to allow wakeup sources and poweroff.
+  * STM32F4 devices now support stop mode thanks to the use of a RTC based idle timer which
+    keeps track of tick evolution while cortex systick is off.
 
 * Random
 
@@ -642,6 +939,16 @@ Libraries / Subsystems
 
 HALs
 ****
+
+* STM32
+
+  * stm32cube: updated STM32F1 to cube version V1.8.5.
+  * stm32cube: updated STM32F7 to cube version V1.17.1
+  * stm32cube: updated STM32H7 to cube version V1.11.1
+  * stm32cube: updated STM32L4 to cube version V1.18.0
+  * stm32cube: updated STM32U5 to cube version V1.4.0
+  * stm32cube: updated STM32WBA to cube version V1.2.0
+  * stm32cube: updated STM32WB to cube version V1.18.0
 
 MCUboot
 *******
