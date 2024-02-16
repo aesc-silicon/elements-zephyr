@@ -50,6 +50,29 @@ Bluetooth
 
 * Audio
 
+  * Changed ``bt_bap_scan_delegator_subgroup`` to :c:struct:`bt_bap_bass_subgroup` and
+    made it independent of :kconfig:option:`CONFIG_BT_BAP_SCAN_DELEGATOR`.
+  * Modified :c:func:`bt_bap_stream_send` to no longer take a timestamp as parameter,
+    and added :c:func:`bt_bap_stream_send_ts` that does.
+  * Modified :c:func:`bt_cap_stream_send` to no longer take a timestamp as parameter,
+    and added :c:func:`bt_cap_stream_send_ts` that does.
+  * Assigned number values have been moved from :file:`include/zephyr/bluetooth/audio/lc3.h` to
+    :file:`include/zephyr/bluetooth/audio/audio.h` and the ``LC3`` infix have been removed.
+  * The CAP initiator APIs have been streamlined and follow the same parameter pattern.
+  * Added Kconfig options to make MCC functionality optional to reduce memory usage for simple
+    clients.
+  * Added CAP Commander change volume and change volume offset.
+  * Added proper support for doing decoding in the application instead of in the controller by
+    modifying how the ISO data path is configured.
+  * Added :c:func:`bt_csip_set_member_unregister` to unregister a CSIS instance.
+  * Added helper functions to get and set assigned number values in codec configuration and
+    codec capabilities.
+  * Added support for the new mono audio location.
+  * Added ISO state callbacks for streams so the user knows the state of the CIS.
+  * Added :c:func:`bt_pacs_set_available_contexts_for_conn` to set available context per connection
+  * Refactored the :c:struct:`bt_bap_base` to be an abstract struct with new helper functions,
+    so that Zephyr supports all BASEs regardless of the size.
+
 * Direction Finding
 
 * Host
@@ -57,6 +80,8 @@ Bluetooth
   * Added ``recycled()`` callback to :c:struct:`bt_conn_cb`, which notifies listeners when a
     connection object has been freed, so it can be utilized for different purposes. No guarantees
     are made to what listener will be granted the object, as only the first claim is served.
+  * Modified :c:func:`bt_iso_chan_send` to no longer take a timestamp as parameter,
+    and added :c:func:`bt_iso_chan_send_ts` that does.
 
 * Mesh
 
@@ -67,6 +92,8 @@ Bluetooth
   * The Bluetooth Mesh Protocol 1.1 is now supported by default.
 
 * Controller
+
+  * Added deinit implementation for ESP32 controller.
 
 Boards & SoC Support
 ********************
@@ -113,6 +140,13 @@ Boards & SoC Support
 * Added support for these X86 boards:
 
 * Added support for these Xtensa boards:
+
+  * Added Heltec Wireless Stick Lite (V3) board: ``heltec_wireless_stick_lite_v3``
+  * Added KINCONY-KC868-A32 board: ``kincony_kc868_a32``
+  * Added Lolin ESP32-S2 Mini board: ``esp32s2_lolin_mini``
+  * Added M5Stack AtomS3 board: ``m5stack_atoms3``
+  * Added M5Stack AtomS3-Lite board: ``m5stack_atoms3_lite``
+  * Added M5Stack StampS3 board: ``m5stack_stamps3``
 
 * Added support for these POSIX boards:
 
@@ -337,6 +371,32 @@ Drivers and Sensors
   * ``nordic_qspi_nor`` driver now supports user-configurable QSPI timeout with
     :kconfig:option:`CONFIG_NORDIC_QSPI_NOR_TIMEOUT_MS`.
 
+* GNSS
+
+  * Added GNSS device driver API and subsystem for parsing and publishing location,
+    datetime, and satellite information, enabled by
+    :kconfig:option:`CONFIG_GNSS` and :kconfig:option:`CONFIG_GNSS_SATELLITES`.
+    The GNSS subsystem and device drivers are based on the :ref:`modem` subsystem,
+    using the ``modem_pipe`` module, modem backends, and ``modem_chat`` module to
+    communicate with the modems. For systems which already contain a cellular modem,
+    adding a GNSS modem is very efficient due to the reuse of subsystems.
+
+  * Added GNSS specific, safe, string to integer parsing utilities, enabled by
+    :kconfig:option:`CONFIG_GNSS_PARSE`.
+
+  * Added NMEA0183 parsing utilities, enabled by
+    :kconfig:option:`CONFIG_GNSS_NMEA0183`.
+
+  * Added extensive GNSS data logging, enabled by
+    :kconfig:option:`CONFIG_GNSS_DUMP_TO_LOG`.
+
+  * Added generic NMEA0183 over UART based modem device driver, matching the
+    devicetree compatible :dtcompatible:`gnss-nmea-generic`.
+
+  * Added fully featured device driver for the Quectel LCX6G series GNSS modems,
+    matching the devicetree compatibles :dtcompatible:`quectel,lc26g`,
+    :dtcompatible:`quectel,lc76g` and :dtcompatible:`quectel,lc86g`.
+
 * GPIO
 
   * Renesas R-Car GPIO driver now supports Gen4 SoCs
@@ -403,7 +463,8 @@ Drivers and Sensors
   * Added a :dtcompatible:`zephyr,native-linux-evdev` device node for getting
     input events from a Linux evdev device node.
   * Added support for optical encoders and power management to :dtcompatible:`gpio-qdec`.
-  * New drivers :dtcompatible:`espressif,esp32-touch`, :dtcompatible:`analog-axis`.
+  * New driver :dtcompatible:`analog-axis`.
+  * Added ESP32 touch sensor driver including a :dtcompatible:`espressif,esp32-touch`.
 
 * PCIE
 
@@ -426,6 +487,8 @@ Drivers and Sensors
     :kconfig:option:`CONFIG_PM` enabled and :kconfig:option:`CONFIG_DEBUG` disabled.
 
 * PWM
+
+  * Fixed ESP32S3 low frequency PWM issue.
 
 * Regulators
 
@@ -496,6 +559,7 @@ Drivers and Sensors
   * Added LiteOn LTR-F216A illuminance sensor driver.
   * Added Memsic MC3419 accelerometer sensor driver.
   * Added AMD SB temperature sensor driver.
+  * Added ESP32S3 internal temperature sensor driver.
 
 * Serial
 
@@ -533,6 +597,11 @@ Drivers and Sensors
     connection.
   * On compatible STM32 devices, isochronous endpoint are now functional thanks to the
     use of double buffering.
+
+* W1
+
+  * Added 1-Wire GPIO master driver. See the :dtcompatible:`zephyr,w1-gpio`
+    devicetree binding for more information.
 
 * Wi-Fi
 
@@ -870,7 +939,79 @@ Libraries / Subsystems
 
 * File systems
 
+* Logging
+
+  * Added option to remove string literals from the binary when dictionary based logging is used.
+
+  * Optimized the most common logging messages (strings with up to 2 numeric arguments). Optimization
+    is done for code size (significant gain seen on riscv32) and performance.
+
+  * Extended logging frontend API to optionally implement dedicated functions for optimized messages.
+    Optional API is enabled by :kconfig:option:`CONFIG_LOG_FRONTEND_OPT_API`.
+
+  * Added support for runtime message filtering for the logging frontend.
+
+  * Add option to have multiple instances of the UART logging backend.
+
+  * Fixed userspace issue for :c:func:`printk` when :kconfig:option:`CONFIG_LOG_PRINTK` is enabled.
+
+  * Added compile time detection of logging messages which are using character pointers for ``%p``.
+    It must be avoided when dictionary based logging is used and strings are stripped from the
+    binary. When erroneous case is detected then user message is replaced with error message which
+    suggests that pointer casting must be added.
+
+  * Removed remaining references to v2 logging. :c:func:`log2_generic` renamed to :c:func:`log_generic`.
+
 * Modem modules
+
+  * Added ``TRANSMIT_IDLE`` event to the ``modem_pipe`` module which notifies the user of the pipe
+    that the backend has transmitted all bytes placed in its buffer using
+    :c:func:`modem_pipe_transmit()`.
+    The event greatly increases the efficiency of transmitting large quantities of data if used to
+    dynamically manage the delay between calls to :c:func:`modem_pipe_transmit()`.
+
+  * Implemented ``TRANSMIT_IDLE`` event in all modem backends.
+
+  * Extended all modem modules to utilize the ``TRANSMIT_IDLE`` event to dynamically manage the delay
+    between calls to :c:func:`modem_pipe_transmit()`. This addition reduced the utilization of the
+    system workqueue while transmitting large, continuous quantities of data, by 86%, while only
+    reducing the throughput by 12%. This optimization additionally allows lower priority threads,
+    like the deferred logging thread, to run during the transmission (it was blocked by the
+    relentless, continuous calls to :c:func:`modem_pipe_transmit()`).
+
+  * Improved ``modem_pipe`` event dispatching. The ``modem_pipe`` module now invokes the
+    ``RECEIVE_READY`` event every time the pipe is attached using :c:func:`modem_pipe_attach()`
+    if it has data ready to be read, and always invokes ``TRANSMIT_IDLE`` when the pipe is
+    either opened or attached. This ensures event driven users of the modem pipe module can
+    rely solely on the events to start read/transmit work. A test suite has been added to
+    complement the improvements.
+
+  * Extended ``modem_cmux`` module to support acting both as DTE (user application) and DCE (modem).
+    With this addition, two zephyr applications can communicate with each other through their
+    respective ``modem_cmux`` instances.
+
+* Picolibc
+
+  * Update to version 1.8.6. This removes the :c:macro:`_POSIX_C_SOURCE` definition from the build
+    system, so applications will need to add this if they use APIs outside of the Zephyr
+    requirements.
+
+  * Add new :c:func:`printf` modes, :kconfig:option:`CONFIG_PICOLIBC_IO_LONG_LONG` and
+    :kconfig:option:`CONFIG_PICOLIBC_IO_MINIMAL`. These provide applications with finer grained
+    control over the level of support provided by the library to control text space usage. By
+    default, the correct level of support is selected based upon other configuration parameters.
+
+  * Add :kconfig:option:`CONFIG_PICOLIBC_ASSERT_VERBOSE`. This option, which is false by default,
+    controls whether the :c:func:`assert` function displays verbose information, including the file
+    name, line number, function name and failing expression txt, when the assertion fails. Leaving
+    this disabled saves text space.
+
+  * Allow :kconfig:option:`CONFIG_THREAD_LOCAL_STORAGE` to be disabled while using Picolibc. This is
+    very helpful in diagnosing issues when using Picolibc as those are often caused by enabling TLS
+    and not caused by using the library itself.
+
+  * Numerous improvements in the library including code-size reductions in areas like printf and
+    ctype and various fixes in the math library.
 
 * Power management
 
@@ -1050,3 +1191,9 @@ Tests and Samples
 
 * Added a LVGL sample :zephyr:code-sample:`lvgl-accelerometer-chart` showcasing displaying of live
   sensor data in a chart widget.
+
+* Added ESP32-S3 IPM support in :zephyr:code-sample:`ipm-esp32`.
+
+* Added ESP32 memory-mapped flash access sample in :zephyr:code-sample:`esp32-flash-memory-mapped`.
+
+* Added ESP32 PWM loopback test case
