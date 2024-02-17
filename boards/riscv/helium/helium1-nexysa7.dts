@@ -2,8 +2,8 @@
 #include <elements/helium1.dtsi>
 
 / {
-	model = "helium1_ecpix5";
-	compatible = "elements,helium1_ecpix5";
+	model = "helium1_nexysa7";
+	compatible = "elements,helium1_nexysa7";
 
 	chosen {
 		zephyr,console = &uartStdCtrl;
@@ -31,9 +31,9 @@
 
 	keys {
 		compatible = "gpio-keys";
-		sw0: SW0 {
+		btnc: sw0 {
 			gpios = <&gpioStatusCtrl 3 GPIO_ACTIVE_HIGH>;
-			label = "Software 0 Button";
+			label = "Button Center";
 		};
 	};
 };

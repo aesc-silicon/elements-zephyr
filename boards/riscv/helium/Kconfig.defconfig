@@ -3,7 +3,7 @@ config BOARD
     default "helium1-ecpix5"
 endif
 
-if BOARD_HELIUM2_NEXYSA7
+if BOARD_HELIUM1_NEXYSA7
 config BOARD
-    default "helium2-nexysa7"
+    default "helium1-nexysa7"
 endif
