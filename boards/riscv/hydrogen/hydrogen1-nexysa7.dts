@@ -2,8 +2,8 @@
 #include <elements/hydrogen1.dtsi>
 
 / {
-	model = "hydrogen1_ecpix5";
-	compatible = "elements,hydrogen1_ecpix5";
+	model = "hydrogen1_nexysa7";
+	compatible = "elements,hydrogen1_nexysa7";
 
 	chosen {
 		zephyr,console = &uartStdCtrl;
@@ -31,9 +31,9 @@
 
 	keys {
 		compatible = "gpio-keys";
-		sw0: SW0 {
+		btnc: sw0 {
 			gpios = <&gpioStatusCtrl 3 GPIO_ACTIVE_HIGH>;
-			label = "Software 0 Button";
+			label = "Button Center";
 		};
 	};
 };

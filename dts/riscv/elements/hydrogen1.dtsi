@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <hydrogen/hydrogen.dtsi>
+#include <elements/hydrogen.dtsi>
 #include <zephyr/dt-bindings/i2c/i2c.h>
 
 / {
@@ -36,34 +36,9 @@
 			#gpio-cells = <2>;
 			ngpios = <4>;
 		};
-
-		pwmLEDCtrl: pwmLEDCtrl@f0010000 {
-			compatible = "elements,pwm";
-			reg = <0xf0010000 0x1000>;
-			status = "okay";
-			channels = <3>;
-			#pwm-cells = <3>;
-		};
-
-		i2cHDMICtrl: i2cHDMICtrl@f0011000 {
-			compatible = "elements,i2c";
-			reg = <0xf0011000 0x1000>;
-			#address-cells = <1>;
-			#size-cells = <0>;
-			bus-frequency = <I2C_BITRATE_STANDARD>;
-			status = "okay";
-		};
-
-		spiFlashCtrl: spiFlashCtrl@f0012000 {
-			compatible = "elements,spi";
-			reg = <0xf0012000 0x1000>;
-			#address-cells = <1>;
-			#size-cells = <0>;
-			status = "okay";
-		};
 	};
 };
 
 &plic {
-	riscv,ndev = <4>;
+	riscv,ndev = <2>;
 };

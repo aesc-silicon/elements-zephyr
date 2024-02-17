@@ -9,7 +9,7 @@ board_runner_args(openocd --gdb-init "set arch riscv:rv32")
 board_runner_args(openocd --gdb-init "monitor reset halt")
 board_runner_args(openocd --gdb-init "load")
 board_runner_args(openocd --config "tcl/interface/jlink.cfg")
-board_runner_args(openocd --config "${BOARD_DIR}/support/hydrogen1.cfg")
+board_runner_args(openocd --config "${BOARD_DIR}/support/hydrogen.cfg")
 board_runner_args(openocd --openocd "${ZEPHYR_BASE}/../openocd/src/openocd")
 board_runner_args(openocd --openocd-search "${ZEPHYR_BASE}/../openocd")
 

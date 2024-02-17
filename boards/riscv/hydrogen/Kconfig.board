@@ -4,8 +4,8 @@ config BOARD_HYDROGEN1_ECPIX5
     select HAS_DTS
     select RISCV
 
-config BOARD_HYDROGEN2_NEXYSA7
-    bool "Hydrogen2 Nexys A7 board"
+config BOARD_HYDROGEN1_NEXYSA7
+    bool "Hydrogen1 Nexys A7 board"
     depends on SOC_RISCV32_ELEMENTS_VEXRISCV
     select HAS_DTS
     select RISCV

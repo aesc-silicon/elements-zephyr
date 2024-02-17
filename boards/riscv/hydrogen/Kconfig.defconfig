@@ -3,7 +3,7 @@ config BOARD
     default "hydrogen1-ecpix5"
 endif
 
-if BOARD_HYDROGEN2_NEXYSA7
+if BOARD_HYDROGEN1_NEXYSA7
 config BOARD
-    default "hydrogen2-nexysa7"
+    default "hydrogen1-nexysa7"
 endif
