@@ -95,6 +95,12 @@ Bluetooth
 
   * Added deinit implementation for ESP32 controller.
 
+* HCI Driver
+
+  * Split ST HCI SPI Bluetooth driver from the Zephyr one to provide more features
+    based on ST SPI protocols V1 and V2. As a result, :dtcompatible:`st,hci-spi-v1` and
+    :dtcompatible:`st,hci-spi-v2` were introduced.
+
 Boards & SoC Support
 ********************
 
@@ -268,6 +274,10 @@ Drivers and Sensors
     which has 5 ADCs, ADC1 and ADC2 share one IRQ while ADC3, ADC4 and ADC5 each have unique IRQs).
     Enabling all instances in same application is not possible on such devices as of now.
 
+* Auxiliary Display
+
+  * Added Sparkfun SerLCD driver.
+
 * Battery backed up RAM
 
   * STM32WL devices now support BBRAM.
@@ -323,8 +333,6 @@ Drivers and Sensors
   * STM32WB devices now support crypto API through AES block
 
 * DAC
-
-* Disk
 
 * Display
 
@@ -509,6 +517,10 @@ Drivers and Sensors
   * SMBUS is now supported on STM32 devices
 
 * SDHC
+
+  * Added SDHC driver for Cadence SDHC IP
+  * Added SDHC driver for Infineon CAT1 IP
+  * Added support for SDIO commands to iMX USDHC SDHC driver
 
 * Sensor
 
@@ -888,6 +900,9 @@ API
 Bindings
 ========
 
+  * Introduced new SPI properties ``spi-cpol``, ``spi-cpha``, and ``spi-hold-cs`` to be used by
+    the macro :c:macro:`SPI_CONFIG_DT` in order to set SPI mode in a Devicetree file.
+
 Libraries / Subsystems
 **********************
 
@@ -1019,12 +1034,39 @@ Libraries / Subsystems
   * STM32F4 devices now support stop mode thanks to the use of a RTC based idle timer which
     keeps track of tick evolution while cortex systick is off.
 
+  * :c:func:`pm_device_runtime_put_async()` got a parameter to specify a minimum delay to
+    the operation. This is useful to avoid multiple states transitions when a device is used.
+
+  * Devices that don't need to block when suspending or resuming can now be defined as ISR
+    safe (``PM_DEVICE_ISR_SAFE``). For those devices, Zephyr is able to reduces RAM consumption
+    and runtime device power management can be safely used from interruptions.
+
+  * Optimizations in device runtime power management. :c:func:`pm_device_runtime_get` and
+    :c:func:`pm_device_runtime_put` no longer wait for a pending operation to be concluded if it is still
+    in the work queue. In this case the pending work is just canceled and the device state updated.
+
+  * The Kconfig options bellow were added to customize the initialization priority of different
+    power domains.
+
+    * :kconfig:option:`CONFIG_POWER_DOMAIN_GPIO_INIT_PRIORITY`
+    * :kconfig:option:`CONFIG_POWER_DOMAIN_GPIO_MONITOR_INIT_PRIORITY`
+    * :kconfig:option:`CONFIG_POWER_DOMAIN_INTEL_ADSP_INIT_PRIORITY`
+
 * Random
+
+* Crypto
+
+  * mbedTLS updated to 3.5.2. Full release notes can be found in:
+    https://github.com/Mbed-TLS/mbedtls/releases/tag/v3.5.2
 
 * Retention
 
   * Fixed issue whereby :kconfig:option:`CONFIG_RETENTION_BUFFER_SIZE` values over 256 would cause
     an infinite loop due to use of 8-bit variables.
+
+* SD
+
+  * Added support for SDIO devices
 
 * Storage
 
@@ -1069,14 +1111,17 @@ Libraries / Subsystems
 
 * LoRa/LoRaWAN
 
+ * Added LoRaWAN remote multicast support with :kconfig:option:`CONFIG_LORAWAN_REMOTE_MULTICAST`
+   in preparation for OTA firmware upgrade support.
+
 * RTIO
 
 * ZBus
 
-  * Renamed :kconfig:option:`ZBUS_MSG_SUBSCRIBER_NET_BUF_DYNAMIC` and
-    :kconfig:option:`ZBUS_MSG_SUBSCRIBER_NET_BUF_STATIC`
-    with :kconfig:option:`ZBUS_MSG_SUBSCRIBER_BUF_ALLOC_DYNAMIC` and
-    :kconfig:option:`ZBUS_MSG_SUBSCRIBER_BUF_ALLOC_STATIC`
+  * Renamed ``CONFIG_ZBUS_MSG_SUBSCRIBER_NET_BUF_DYNAMIC`` and
+    ``CONFIG_ZBUS_MSG_SUBSCRIBER_NET_BUF_STATIC``
+    to :kconfig:option:`CONFIG_ZBUS_MSG_SUBSCRIBER_BUF_ALLOC_DYNAMIC` and
+    :kconfig:option:`CONFIG_ZBUS_MSG_SUBSCRIBER_BUF_ALLOC_STATIC`
 
 HALs
 ****
