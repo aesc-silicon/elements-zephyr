@@ -209,9 +209,9 @@ class Elements:
         cwd = ZIBAL_ROOT_DIR
         self.check_call(cmd, env, cwd)
 
-    def open(self):
+    def open(self, test_app = "simulate"):
         env = self.get_env()
         cwd = Path(self.build_dir) / self.meta['soc'] / self.meta['board'] / "zibal" / \
-            f"{self.meta['board']}Board"
+            f"{self.meta['board']}Board" / test_app
 
-        self.check_call("gtkwave -o simulate.vcd", env, cwd)
+        self.check_call("gtkwave -o wave.vcd", env, cwd)
