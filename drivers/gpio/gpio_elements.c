@@ -73,7 +73,7 @@ struct gpio_elements_data {
 			      NULL,					     \
 			      &gpio_elements_dev_data_##no,		     \
 			      &gpio_elements_dev_cfg_##no,		     \
-			      PRE_KERNEL_1,				     \
+			      PRE_KERNEL_2,				     \
 			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
 			      (void *)&gpio_elements_driver_api);	     \
 	static void gpio_elements_irq_cfg_func_##no(void) {		     \
@@ -95,7 +95,7 @@ struct gpio_elements_data {
 			      NULL,					     \
 			      &gpio_elements_dev_data_##no,		     \
 			      &gpio_elements_dev_cfg_##no,		     \
-			      PRE_KERNEL_1,				     \
+			      PRE_KERNEL_2,				     \
 			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
 			      (void *)&gpio_elements_driver_api);
 #endif
