@@ -5,6 +5,7 @@
  */
 
 #include <zephyr/kernel.h>
+#include <string.h>
 
 #if DT_HAS_COMPAT_STATUS_OKAY(nxp_imx_flexspi)
 /* FlexSPI memory mapped region is second register property of parent dev */
@@ -49,7 +50,7 @@ int main(void)
 	for (i = 0; i < BUF_SIZE; i++) {
 		memc_write_buffer[i] = (uint8_t)i;
 	}
-	printk("Writing to memory region with base 0x%0x, size 0x%0x\n\n",
+	printk("Writing to memory region with base 0x%0llx, size 0x%0x\n\n",
 		MEMC_BASE, MEMC_SIZE);
 	/* Copy write buffer into memc region */
 	for (i = 0, j = 0; j < (MEMC_SIZE / BUF_SIZE); i += BUF_SIZE, j++) {
