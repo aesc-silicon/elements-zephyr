@@ -1,0 +1,18 @@
+# Copyright (c) 2024, aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+description: Elements Hyperbus Controller.
+
+compatible: "elements,hyperbus"
+
+include: [base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  latency-cycles:
+    type: int
+
+  variable-latency:
+    type: boolean

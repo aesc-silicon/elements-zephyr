@@ -1,0 +1,9 @@
+# Copyright (c) 2024, aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+config MEMC_ELEMENTS_HYPERBUS
+	bool "Elements Hyperbus Memory Controller"
+	default y
+	depends on SOC_RISCV32_ELEMENTS_VEXRISCV
+	help
+	  Enable driver for Elements Hyperbus Memory Controller.
