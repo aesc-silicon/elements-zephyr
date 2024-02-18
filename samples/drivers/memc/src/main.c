@@ -16,6 +16,11 @@
 #define MEMC_SIZE (DT_PROP(DT_ALIAS(sram_ext), size) / 8)
 #endif
 
+#if DT_HAS_COMPAT_STATUS_OKAY(elements_hyperbus)
+#define MEMC_BASE DT_REG_ADDR_BY_IDX(DT_ALIAS(sram_ext), 0)
+#define MEMC_SIZE DT_REG_SIZE_BY_IDX(DT_ALIAS(sram_ext), 0)
+#endif
+
 void dump_memory(uint8_t *p, uint32_t size)
 {
 	uint32_t i, j;
