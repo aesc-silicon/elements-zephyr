@@ -1,0 +1,56 @@
+/dts-v1/;
+#include <elements/lithium1.dtsi>
+
+/ {
+	model = "lithium1_ecpix5";
+	compatible = "elements,lithium1_ecpix5";
+
+	memory {
+		hyperram0: memory@90000000 {
+			device_type = "memory";
+			compatible = "mmio-sram";
+			reg = <0x90000000 DT_SIZE_M(8)>;
+		};
+	};
+
+	aliases {
+		sram-ext = &hyperram0;
+	};
+
+	chosen {
+		zephyr,console = &uartStdCtrl;
+		zephyr,shell-uart = &uartStdCtrl;
+		zephyr,flash = &ram0;
+		zephyr,sram = &hyperram0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		heartbeat: HEARTBEAT {
+			gpios = <&gpioStatusCtrl 0 GPIO_ACTIVE_HIGH>;
+			label = "Heartbeat LED";
+		};
+
+		red: RED {
+			gpios = <&gpioStatusCtrl 1 GPIO_ACTIVE_HIGH>;
+			label = "Red LED";
+		};
+
+		green: GREEN {
+			gpios = <&gpioStatusCtrl 2 GPIO_ACTIVE_HIGH>;
+			label = "Green LED";
+		};
+	};
+
+	keys {
+		compatible = "gpio-keys";
+		sw0: SW0 {
+			gpios = <&gpioStatusCtrl 3 GPIO_ACTIVE_HIGH>;
+			label = "Software 0 Button";
+		};
+	};
+};
+
+&uartStdCtrl {
+	clock-frequency = <100000000>;
+};
