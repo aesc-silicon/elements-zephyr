@@ -21,3 +21,5 @@ if((DEFINED CONFIG_FLASH_MCUX_FLEXSPI_XIP) AND (DEFINED CONFIG_FLASH))
 endif()
 
 zephyr_library_sources_ifdef(CONFIG_MEMC_NXP_S32_QSPI memc_nxp_s32_qspi.c)
+
+zephyr_library_sources_ifdef(CONFIG_MEMC_ELEMENTS_HYPERBUS memc_elements_hyperbus.c)
