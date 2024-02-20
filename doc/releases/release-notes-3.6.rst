@@ -31,6 +31,19 @@ Architectures
 
 * ARM
 
+  * MPU regions are now always cleared before initialization.
+  * Standardized on :c:func:`arch_secondary_cpu_init` to provide consistency
+    across all architectures.
+  * Renamed :c:func:`z_arm_prep_c` as :c:func:`z_prep_c` to provide
+    consistency across all architectures.
+  * Renamed the exception header to be consistent across all architectures.
+  * GDB stubs added (currently only supports Zynq-7000).
+  * Added support for custom interrupt controllers using
+    :kconfig:option:`CONFIG_ARM_CUSTOM_INTERRUPT_CONTROLLER``.
+  * MMU and MPU initialization moved to :c:func:`z_prep_c` for Cortex-A and
+    Cortex-R to enable initialization by individual cores.
+  * Common Cortex-M MPU code moved to ``arch/arm/core/mpu``.
+
 * ARM64
 
 * RISC-V
@@ -277,6 +290,9 @@ Build system and infrastructure
 
 * Deprecated ``CONF_FILE`` ``prj_<build>.conf`` build type.
 
+* Added `-Wdouble-promotion` as a default warning when compiling to warn developers with
+  single-precision floats easily being promoted to double-precision.
+
 Drivers and Sensors
 *******************
 
@@ -510,6 +526,13 @@ Drivers and Sensors
   * Added xmc4xxx MDIO drivers.
   * Fixed build errors caused by mdio.h driver header not including errno.h
 
+* MFD
+
+  * Added support for :dtcompatible:`maxim,max20335`
+  * Added support for :dtcompatible:`adi,ad5592`
+  * Added separate initialisation priorities for :dtcompatible:`nordic,npm1300` and
+    :dtcompatible:`nordic,npm6001`
+
 * PCIE
 
   * Fixed MMIO size calculation by disabling IO/memory decoding beforehand.
@@ -543,6 +566,19 @@ Drivers and Sensors
   * Fixed ESP32S3 low frequency PWM issue.
 
 * Regulators
+
+  * Added new API functions
+    * :c:func:`regulator_set_active_discharge`
+    * :c:func:`regulator_get_active_discharge`
+    * :c:func:`regulator_list_current_limit`
+  * ``startup-delay-us`` and ``off-on-delay-us`` are now supported for all regulators
+  * Added non-multithreading support
+  * Added support for :dtcompatible:`maxim,max20335-regulator`
+  * Added ASYS UVLO configuration for :dtcompatible:`nxp,pca9420`
+  * Added LDO/DCDC support for :dtcompatible:`renesas,smartbond-regulator`
+  * Added LDO soft start configuration for :dtcompatible:`nordic,npm1300-regulator`
+  * Fixed init priority for :dtcompatible:`x-powers,axp192-regulator`
+  * Fixed LDO GPIO control for :dtcompatible:`nordic,npm1300-regulator`
 
 * Reset
 
@@ -1215,6 +1251,14 @@ MCUboot
   * Moved IO functions out of main to separate file.
 
   * Made ``align`` parameter of imgtool optional.
+
+  * Added MCUBoot support for ``mimxrt1010_evk``, ``mimxrt1015_evk``,
+    ``mimxrt1040_evk``, ``lpcxpresso55s06``, ``lpcxpresso55s16``,
+    ``lpcxpresso55s28``, ``lpcxpresso55s36``, ``lpcxpresso55s69_cpu0``.
+
+  * Added :kconfig:option:`CONFIG_MCUBOOT_IMGTOOL_OVERWRITE_ONLY` which passes the --overwrite-only option
+    to imgtool to avoid adding the swap status area size when calculating overflow.
+    It is used by non-swap update modes.
 
   * The MCUboot version in this release is version ``2.1.0+0-dev``.
 
