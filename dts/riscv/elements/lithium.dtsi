@@ -67,7 +67,7 @@
 		hyperram: memory-controller@f0023000 {
 			compatible = "elements,hyperbus";
 			reg = <0xf0023000 0x1000>;
-			latency-cycles = <7>;
+			latency-cycles = <4>;
 		};
 	};
 };
