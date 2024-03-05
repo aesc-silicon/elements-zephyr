@@ -150,16 +150,14 @@ ARC arch:
 ARM arch:
   status: maintained
   maintainers:
-    - microbuilder
+    - ithinuel
   collaborators:
+    - microbuilder
     - carlocaione
     - galak
     - MaureenHelm
     - stephanosio
     - bbolen
-    - povergoing
-    - ithinuel
-    - sgrrzhf
   files:
     - arch/arm/
     - arch/arm/core/offsets/
@@ -524,7 +522,7 @@ Board/SoC configuration:
     - "57300"
   files:
     - soc/Kconfig*
-    - boards/Kconfig
+    - boards/Kconfig*
   labels:
     - "area: Board/SoC configuration"
 
@@ -2536,6 +2534,7 @@ Networking:
     - rlubos
     - jukkar
   collaborators:
+    - pdgendt
     - tbursztyka
     - ssharks
   files:
@@ -2859,6 +2858,7 @@ RISCV arch:
     - edersondisouza
     - carlocaione
     - npitre
+    - ycsin
   files:
     - arch/riscv/
     - boards/qemu/riscv*/
