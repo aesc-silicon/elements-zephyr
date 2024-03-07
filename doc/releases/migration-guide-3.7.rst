@@ -95,6 +95,12 @@ Input
 Interrupt Controller
 ====================
 
+LED Strip
+=========
+
+* The property ``in-gpios`` defined in :dtcompatible:`worldsemi,ws2812-gpio` has been
+  renamed to ``gpios``.
+
 Sensors
 =======
 
@@ -121,6 +127,13 @@ Networking
   the long-duration zperf test show with correct throughput result.
   (:github:`69500`)
 
+* Each IPv4 address assigned to a network interface has an IPv4 netmask
+  tied to it instead of being set for the whole interface.
+  If there is only one IPv4 address specified for a network interface,
+  nothing changes from the user point of view. But, if there is more than
+  one IPv4 address / network interface, the netmask must be specified
+  for each IPv4 address separately. (:github:`68419`)
+
 Other Subsystems
 ****************
 
@@ -141,6 +154,12 @@ Userspace
 
 Architectures
 *************
+
+* x86
+
+  * Kconfigs ``CONFIG_DISABLE_SSBD`` and ``CONFIG_ENABLE_EXTENDED_IBRS``
+    are deprecated. Use :kconfig:option:`CONFIG_X86_DISABLE_SSBD` and
+    :kconfig:option:`CONFIG_X86_ENABLE_EXTENDED_IBRS` instead.
 
 Xtensa
 ======
