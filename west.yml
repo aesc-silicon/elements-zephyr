@@ -183,7 +183,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 5470822384781624efb2fda28cbc6a895a227677
+      revision: 13ac55b5b52c905642e9c54f069109d188aa5840
       path: modules/hal/nordic
       groups:
         - hal
@@ -282,7 +282,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 8b4c70ab6dc03d2826c166dedb56541950defa8c
+      revision: 9fb7ce5d026db42768d63f04cc60ce022d27b555
       path: bootloader/mcuboot
     - name: mipi-sys-t
       path: modules/debug/mipi-sys-t
