@@ -10,6 +10,10 @@
 #include <dt-bindings/i2c/i2c.h>
 
 / {
+	chosen {
+		zephyr,entropy = &trng;
+	};
+
 	cpus {
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -63,6 +67,21 @@
 		compatible = "nxp,lpc-syscon";
 		reg = <0x21000 0x1000>;
 		#clock-cells = <1>;
+	};
+
+	trng: random@14000 {
+		compatible = "nxp,kinetis-trng";
+		reg = <0x14000 0x1000>;
+		status = "okay";
+		interrupts = <123 0>;
+	};
+
+	wwdt: watchdog@e000 {
+		compatible = "nxp,lpc-wwdt";
+		reg = <0xe000 0x1000>;
+		interrupts = <0 0>;
+		status = "disabled";
+		clk-divider = <1>;
 	};
 
 	hsgpio0: hsgpio@0 {
