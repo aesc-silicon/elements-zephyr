@@ -72,6 +72,11 @@ Drivers and Sensors
 
 * Audio
 
+* Battery
+
+  * Added ``re-charge-voltage-microvolt`` property to the ``battery`` binding. This allows to set
+    limit to automatically start charging again.
+
 * Battery backed up RAM
 
 * CAN
@@ -92,6 +97,13 @@ Drivers and Sensors
   * Updated the CAN timing functions to take the minimum supported bitrate into consideration when
     validating the bitrate.
   * Made the ``sample-point`` and ``sample-point-data`` devicetree properties optional.
+
+* Charger
+
+  * Added ``chgin-to-sys-current-limit-microamp`` property to ``maxim,max20335-charger``.
+  * Added ``system-voltage-min-threshold-microvolt`` property to ``maxim,max20335-charger``.
+  * Added ``re-charge-threshold-microvolt`` property to ``maxim,max20335-charger``.
+  * Added ``thermistor-monitoring-mode`` property to ``maxim,max20335-charger``.
 
 * Clock control
 
