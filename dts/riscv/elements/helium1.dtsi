@@ -34,7 +34,7 @@
 			interrupts = <2 1>;
 			gpio-controller;
 			#gpio-cells = <2>;
-			ngpios = <2>;
+			ngpios = <4>;
 		};
 	};
 };

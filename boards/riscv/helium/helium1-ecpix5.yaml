@@ -1,5 +1,5 @@
 identifier: helium1-ecpix5
-name: Elements Helium1 / ECPIX-5 Board
+name: Elements Hlium1 / ECPIX-5 Board
 type: mcu
 arch: riscv32
 toolchain:

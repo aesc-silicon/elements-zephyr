@@ -1,5 +1,5 @@
-identifier: helium1-nexysa7
-name: Elements Helium1 / Nexys A7
+identifier: helium1-nexys4ddr
+name: Elements Helium1 / Nexys4DDR
 type: mcu
 arch: riscv32
 toolchain:
