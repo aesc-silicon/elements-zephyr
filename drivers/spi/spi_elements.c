@@ -82,7 +82,7 @@ struct spi_elements_regs {
 			      NULL,					     \
 			      &spi_elements_dev_data_##no,		     \
 			      &spi_elements_dev_cfg_##no,		     \
-			      PRE_KERNEL_1,				     \
+			      PRE_KERNEL_2,				     \
 			      CONFIG_KERNEL_INIT_PRIORITY_DEVICE,	     \
 			      (void *)&spi_elements_driver_api);
 
