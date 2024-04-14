@@ -1,0 +1,4 @@
+if BOARD_ARGON1_ECPIX5
+config BOARD
+    default "argon1-ecpix5"
+endif

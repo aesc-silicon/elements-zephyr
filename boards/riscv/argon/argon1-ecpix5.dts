@@ -1,9 +1,9 @@
 /dts-v1/;
-#include <elements/lithium1.dtsi>
+#include <elements/argon1.dtsi>
 
 / {
-	model = "lithium1_ecpix5";
-	compatible = "elements,lithium1_ecpix5";
+	model = "argon1_ecpix5";
+	compatible = "elements,argon1_ecpix5";
 
 	memory {
 		hyperram0: memory@90000000 {

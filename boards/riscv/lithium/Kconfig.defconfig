@@ -1,4 +1,0 @@
-if BOARD_LITHIUM1_ECPIX5
-config BOARD
-    default "lithium1-ecpix5"
-endif

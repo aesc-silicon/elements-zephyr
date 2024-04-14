@@ -1,5 +1,5 @@
-identifier: lithium1-ecpix5
-name: Elements Lithium1 / ECPIX-5 Board
+identifier: argon1-ecpix5
+name: Elements Argon1 / ECPIX-5 Board
 type: mcu
 arch: riscv32
 toolchain:

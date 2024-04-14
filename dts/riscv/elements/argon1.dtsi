@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <elements/lithium.dtsi>
+#include <elements/argon.dtsi>
 #include <zephyr/dt-bindings/i2c/i2c.h>
 
 / {
@@ -14,7 +14,7 @@
 	soc {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "elements,lithium-soc", "simple-bus";
+		compatible = "elements,argon-soc", "simple-bus";
 		ranges;
 
 		uartStdCtrl: uartStdCtrl@f0000000 {
