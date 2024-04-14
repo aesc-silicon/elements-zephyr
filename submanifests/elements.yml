@@ -5,7 +5,7 @@
 manifest:
   defaults:
     remote: aesc-silicon
-    revision: main
+    revision: release-v23.2
 
   remotes:
     - name: aesc-silicon
