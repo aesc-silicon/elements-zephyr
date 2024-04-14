@@ -1,0 +1,11 @@
+identifier: nitrogen1-ecpix5
+name: Elements Lithium1 / ECPIX-5 Board
+type: mcu
+arch: riscv32
+toolchain:
+  - zephyr
+ram: 4
+rom: 8192
+supported:
+  - gpio
+  - uart

@@ -1,0 +1,5 @@
+config BOARD_NITROGEN1_ECPIX5
+    bool "Nitrogen1 ECPIX-5 Board"
+    depends on SOC_RISCV32_ELEMENTS_VEXRISCV
+    select HAS_DTS
+    select RISCV

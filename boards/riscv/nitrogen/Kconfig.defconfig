@@ -1,0 +1,4 @@
+if BOARD_NITROGEN1_ECPIX5
+config BOARD
+    default "nitrogen1-ecpix5"
+endif
