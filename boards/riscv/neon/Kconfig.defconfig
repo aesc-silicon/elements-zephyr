@@ -1,0 +1,9 @@
+if BOARD_NEON1_NEXYSA7
+config BOARD
+    default "neon1-nexysa7"
+endif
+
+if BOARD_NEON1_ECPIX5
+config BOARD
+    default "neon1-ecpix5"
+endif
