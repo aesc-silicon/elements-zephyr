@@ -72,7 +72,7 @@
 	static inline sys_ ## __nname ## _t *				     \
 	sys_ ## __lname ## _peek_next(sys_ ## __nname ## _t *node)	     \
 	{								     \
-		return node != NULL ?                                        \
+		return (node != NULL) ?                                        \
 			sys_ ## __lname ## _peek_next_no_check(node) :       \
 			      NULL;					     \
 	}
@@ -232,6 +232,31 @@
 		}							 \
 									 \
 		return false;						 \
+	}
+
+#define Z_GENLIST_FIND(__lname, __nname)                                                 \
+	static inline bool sys_##__lname##_find(                                         \
+		sys_##__lname##_t *list, sys_##__nname##_t *node, sys_##__nname##_t **prev)        \
+	{                                                                                          \
+		sys_##__nname##_t *current = NULL;                                                 \
+		sys_##__nname##_t *previous = NULL;                                                \
+                                                                                                   \
+		Z_GENLIST_FOR_EACH_NODE(__lname, list, current) {                                  \
+			if (current == node) {                                                     \
+				if (prev != NULL) {                                                \
+					*prev = previous;                                          \
+				}                                                                  \
+				return true;                                                       \
+			}                                                                          \
+                                                                                                   \
+			previous = current;                                                        \
+		}                                                                                  \
+                                                                                                   \
+		if (prev != NULL) {                                                                \
+			*prev = previous;                                                          \
+		}                                                                                  \
+                                                                                                   \
+		return false;                                                                      \
 	}
 
 #define Z_GENLIST_LEN(__lname, __nname)                                                            \

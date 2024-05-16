@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, NXP
+ * Copyright 2020, 2024 NXP
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -311,6 +311,10 @@
 		reg = <0x30000 0x1000>;
 		interrupts = <32 0>;
 		status = "disabled";
+		rtc_highres: rtc_highres {
+			compatible = "nxp,lpc-rtc-highres";
+			status = "disabled";
+		};
 	};
 
 	trng: random@138000 {
@@ -383,6 +387,7 @@
 		offset-value-a = <10>;
 		offset-value-b = <10>;
 		#io-channel-cells = <1>;
+		clocks = <&clkctl1 MCUX_LPADC1_CLK>;
 	};
 
 	ctimer0: ctimer@28000 {
@@ -497,6 +502,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 	status = "disabled";
+	clocks = <&clkctl1 MCUX_FLEXSPI_CLK>;
 };
 
 &nvic {

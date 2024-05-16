@@ -5,6 +5,7 @@
  */
 
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/check.h>
 
 #include "cap_internal.h"
 #include "csip_internal.h"
@@ -16,7 +17,6 @@ LOG_MODULE_REGISTER(bt_cap_common, CONFIG_BT_CAP_COMMON_LOG_LEVEL);
 static struct bt_cap_common_client bt_cap_common_clients[CONFIG_BT_MAX_CONN];
 static const struct bt_uuid *cas_uuid = BT_UUID_CAS;
 static struct bt_cap_common_proc active_proc;
-static bt_cap_common_discover_func_t discover_cb_func;
 
 struct bt_cap_common_proc *bt_cap_common_get_active_proc(void)
 {
@@ -51,6 +51,24 @@ bool bt_cap_common_subproc_is_type(enum bt_cap_common_subproc_type subproc_type)
 }
 #endif /* CONFIG_BT_CAP_INITIATOR_UNICAST */
 
+struct bt_conn *bt_cap_common_get_member_conn(enum bt_cap_set_type type,
+					      const union bt_cap_set_member *member)
+{
+	if (type == BT_CAP_SET_TYPE_CSIP) {
+		struct bt_cap_common_client *client;
+
+		/* We have verified that `client` won't be NULL in
+		 * `valid_change_volume_param`.
+		 */
+		client = bt_cap_common_get_client_by_csis(member->csip);
+		if (client != NULL) {
+			return client->conn;
+		}
+	}
+
+	return member->member;
+}
+
 bool bt_cap_common_proc_is_active(void)
 {
 	return atomic_test_bit(active_proc.proc_state_flags, BT_CAP_COMMON_PROC_STATE_ACTIVE);
@@ -61,7 +79,7 @@ bool bt_cap_common_proc_is_aborted(void)
 	return atomic_test_bit(active_proc.proc_state_flags, BT_CAP_COMMON_PROC_STATE_ABORTED);
 }
 
-bool bt_cap_common_proc_all_streams_handled(void)
+bool bt_cap_common_proc_all_handled(void)
 {
 	return active_proc.proc_done_cnt == active_proc.proc_initiated_cnt;
 }
@@ -97,21 +115,45 @@ static bool active_proc_is_initiator(void)
 }
 #endif /* CONFIG_BT_CAP_INITIATOR_UNICAST */
 
+#if defined(CONFIG_BT_CAP_COMMANDER)
+static bool active_proc_is_commander(void)
+{
+	switch (active_proc.proc_type) {
+	case BT_CAP_COMMON_PROC_TYPE_VOLUME_CHANGE:
+	case BT_CAP_COMMON_PROC_TYPE_VOLUME_OFFSET_CHANGE:
+	case BT_CAP_COMMON_PROC_TYPE_VOLUME_MUTE_CHANGE:
+	case BT_CAP_COMMON_PROC_TYPE_MICROPHONE_GAIN_CHANGE:
+	case BT_CAP_COMMON_PROC_TYPE_MICROPHONE_MUTE_CHANGE:
+	case BT_CAP_COMMON_PROC_TYPE_BROADCAST_RECEPTION_START:
+		return true;
+	default:
+		return false;
+	}
+}
+#endif /* CONFIG_BT_CAP_INITIATOR_UNICAST */
+
 bool bt_cap_common_conn_in_active_proc(const struct bt_conn *conn)
 {
 	if (!bt_cap_common_proc_is_active()) {
 		return false;
 	}
 
+	for (size_t i = 0U; i < active_proc.proc_initiated_cnt; i++) {
 #if defined(CONFIG_BT_CAP_INITIATOR_UNICAST)
-	if (active_proc_is_initiator()) {
-		for (size_t i = 0U; i < active_proc.proc_initiated_cnt; i++) {
+		if (active_proc_is_initiator()) {
 			if (active_proc.proc_param.initiator[i].stream->bap_stream.conn == conn) {
 				return true;
 			}
 		}
-	}
 #endif /* CONFIG_BT_CAP_INITIATOR_UNICAST */
+#if defined(CONFIG_BT_CAP_COMMANDER)
+		if (active_proc_is_commander()) {
+			if (active_proc.proc_param.commander[i].conn == conn) {
+				return true;
+			}
+		}
+#endif /* CONFIG_BT_CAP_INITIATOR_UNICAST */
+	}
 
 	return false;
 }
@@ -180,13 +222,49 @@ bt_cap_common_get_client_by_csis(const struct bt_csip_set_coordinator_csis_inst 
 	return NULL;
 }
 
+struct bt_cap_common_client *bt_cap_common_get_client(enum bt_cap_set_type type,
+						      const union bt_cap_set_member *member)
+{
+	struct bt_cap_common_client *client = NULL;
+
+	if (type == BT_CAP_SET_TYPE_AD_HOC) {
+		CHECKIF(member->member == NULL) {
+			LOG_DBG("member->member is NULL");
+			return NULL;
+		}
+
+		client = bt_cap_common_get_client_by_acl(member->member);
+	} else if (type == BT_CAP_SET_TYPE_CSIP) {
+		CHECKIF(member->csip == NULL) {
+			LOG_DBG("member->csip is NULL");
+			return NULL;
+		}
+
+		client = bt_cap_common_get_client_by_csis(member->csip);
+		if (client == NULL) {
+			LOG_DBG("CSIS was not found for member");
+			return NULL;
+		}
+	}
+
+	if (client == NULL || !client->cas_found) {
+		LOG_DBG("CAS was not found for member %p", member);
+		return NULL;
+	}
+
+	return client;
+}
+
 static void cap_common_discover_complete(struct bt_conn *conn, int err,
 					 const struct bt_csip_set_coordinator_csis_inst *csis_inst)
 {
-	if (discover_cb_func != NULL) {
-		const bt_cap_common_discover_func_t cb_func = discover_cb_func;
+	struct bt_cap_common_client *client;
 
-		discover_cb_func = NULL;
+	client = bt_cap_common_get_client_by_acl(conn);
+	if (client != NULL && client->discover_cb_func != NULL) {
+		const bt_cap_common_discover_func_t cb_func = client->discover_cb_func;
+
+		client->discover_cb_func = NULL;
 		cb_func(conn, err, csis_inst);
 	}
 }
@@ -240,7 +318,6 @@ static uint8_t bt_cap_common_discover_included_cb(struct bt_conn *conn,
 		client->csis_start_handle = included_service->start_handle;
 		client->csis_inst = bt_csip_set_coordinator_csis_inst_by_handle(
 			conn, client->csis_start_handle);
-
 		if (client->csis_inst == NULL) {
 			static struct bt_csip_set_coordinator_cb csis_client_cb = {
 				.discover = csis_client_discover_cb,
@@ -312,23 +389,35 @@ static uint8_t bt_cap_common_discover_cas_cb(struct bt_conn *conn, const struct 
 int bt_cap_common_discover(struct bt_conn *conn, bt_cap_common_discover_func_t func)
 {
 	struct bt_gatt_discover_params *param;
+	struct bt_cap_common_client *client;
 	int err;
 
-	if (discover_cb_func != NULL) {
+	client = bt_cap_common_get_client_by_acl(conn);
+	if (client->discover_cb_func != NULL) {
 		return -EBUSY;
 	}
 
-	param = &bt_cap_common_clients[bt_conn_index(conn)].param;
+	param = &client->param;
 	param->func = bt_cap_common_discover_cas_cb;
 	param->uuid = cas_uuid;
 	param->type = BT_GATT_DISCOVER_PRIMARY;
 	param->start_handle = BT_ATT_FIRST_ATTRIBUTE_HANDLE;
 	param->end_handle = BT_ATT_LAST_ATTRIBUTE_HANDLE;
 
+	client->discover_cb_func = func;
+
 	err = bt_gatt_discover(conn, param);
-	if (err == 0) {
-		discover_cb_func = func;
+	if (err != 0) {
+		client->discover_cb_func = NULL;
+
+		/* Report expected possible errors */
+		if (err == -ENOTCONN || err == -ENOMEM) {
+			return err;
+		}
+
+		LOG_DBG("Unexpected err %d from bt_gatt_discover", err);
+		return -ENOEXEC;
 	}
 
-	return err;
+	return 0;
 }

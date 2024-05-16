@@ -90,8 +90,8 @@
 
 /* Datasheet maximum frequency definitions */
 #if defined(CONFIG_SOC_STM32H743XX) ||\
-	defined(CONFIG_SOC_STM32H745XX) ||\
-	defined(CONFIG_SOC_STM32H747XX) ||\
+	defined(CONFIG_SOC_STM32H745XX_M7) || defined(CONFIG_SOC_STM32H745XX_M4) ||\
+	defined(CONFIG_SOC_STM32H747XX_M7) || defined(CONFIG_SOC_STM32H747XX_M4) ||\
 	defined(CONFIG_SOC_STM32H750XX) ||\
 	defined(CONFIG_SOC_STM32H753XX)
 /* All h7 SoC with maximum 480MHz SYSCLK */
@@ -360,6 +360,7 @@ static inline int stm32_clock_control_on(const struct device *dev,
 					 clock_control_subsys_t sub_system)
 {
 	struct stm32_pclken *pclken = (struct stm32_pclken *)(sub_system);
+	volatile int temp;
 
 	ARG_UNUSED(dev);
 
@@ -371,6 +372,11 @@ static inline int stm32_clock_control_on(const struct device *dev,
 	z_stm32_hsem_lock(CFG_HW_RCC_SEMID, HSEM_LOCK_DEFAULT_RETRY);
 
 	sys_set_bits(STM32H7_BUS_CLK_REG + pclken->bus, pclken->enr);
+	/* Delay after enabling the clock, to allow it to become active.
+	 * See RM0433 8.5.10 "Clock enabling delays"
+	 */
+	temp = sys_read32(STM32H7_BUS_CLK_REG + pclken->bus);
+	UNUSED(temp);
 
 	z_stm32_hsem_unlock(CFG_HW_RCC_SEMID);
 
@@ -824,14 +830,13 @@ static int set_up_plls(void)
 	return 0;
 }
 
-#if defined(CONFIG_CPU_CORTEX_M7)
 int stm32_clock_control_init(const struct device *dev)
 {
+	int r = 0;
+
+#if defined(CONFIG_CPU_CORTEX_M7)
 	uint32_t old_hclk_freq = 0;
 	uint32_t new_hclk_freq = 0;
-	int r;
-
-	ARG_UNUSED(dev);
 
 	/* HW semaphore Clock enable */
 #if defined(CONFIG_SOC_STM32H7A3XX) || defined(CONFIG_SOC_STM32H7A3XXQ) || \
@@ -917,23 +922,15 @@ int stm32_clock_control_init(const struct device *dev)
 	optimize_regulator_voltage_scale(CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC);
 
 	z_stm32_hsem_unlock(CFG_HW_RCC_SEMID);
+#endif /* CONFIG_CPU_CORTEX_M7 */
+
+	ARG_UNUSED(dev);
 
 	/* Update CMSIS variable */
 	SystemCoreClock = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
 
 	return r;
 }
-#else
-int stm32_clock_control_init(const struct device *dev)
-{
-	ARG_UNUSED(dev);
-
-	/* Update CMSIS variable */
-	SystemCoreClock = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
-
-	return 0;
-}
-#endif /* CONFIG_CPU_CORTEX_M7 */
 
 #if defined(STM32_HSE_CSS)
 void __weak stm32_hse_css_callback(void) {}

@@ -120,7 +120,7 @@ endfunction()
 #                     invocation if the sysbuild cache has changed. It is
 #                     advised to always use this flag. Not using this flag can
 #                     reduce build time, but only do so if application is
-#                     guranteed to be up-to-date.
+#                     guaranteed to be up-to-date.
 #
 function(sysbuild_cache)
   cmake_parse_arguments(SB_CACHE "CREATE;CMAKE_RERUN" "APPLICATION" "" ${ARGN})
@@ -146,9 +146,9 @@ function(sysbuild_cache)
     endif()
   endforeach()
   if(DEFINED BOARD_REVISION)
-    list(APPEND sysbuild_cache_strings "BOARD:STRING=${BOARD}@${BOARD_REVISION}\n")
+    list(APPEND sysbuild_cache_strings "BOARD:STRING=${BOARD}@${BOARD_REVISION}${BOARD_QUALIFIERS}\n")
   else()
-    list(APPEND sysbuild_cache_strings "BOARD:STRING=${BOARD}\n")
+    list(APPEND sysbuild_cache_strings "BOARD:STRING=${BOARD}${BOARD_QUALIFIERS}\n")
   endif()
   list(APPEND sysbuild_cache_strings "SYSBUILD_NAME:STRING=${SB_CACHE_APPLICATION}\n")
 
@@ -268,14 +268,12 @@ function(ExternalZephyrProject_Add)
       )
     endif()
 
-     # Check for sysbuild related configuration fragments.
-     # The contents of these are appended to the image existing configuration
-     # when user is not specifying custom fragments.
-    if(NOT "${CONF_FILE_BUILD_TYPE}" STREQUAL "")
-      set(sysbuild_image_conf_fragment ${sysbuild_image_conf_dir}/${ZBUILD_APPLICATION}_${CONF_FILE_BUILD_TYPE}.conf)
-    else()
-      set(sysbuild_image_conf_fragment ${sysbuild_image_conf_dir}/${ZBUILD_APPLICATION}.conf)
-    endif()
+    # Check for sysbuild related configuration fragments.
+    # The contents of these are appended to the image existing configuration
+    # when user is not specifying custom fragments.
+    zephyr_file(CONF_FILES ${sysbuild_image_conf_dir} KCONF sysbuild_image_conf_fragment
+                NAMES ${ZBUILD_APPLICATION}.conf SUFFIX ${FILE_SUFFIX}
+    )
 
     if (NOT (${ZBUILD_APPLICATION}_OVERLAY_CONFIG OR ${ZBUILD_APPLICATION}_EXTRA_CONF_FILE)
         AND EXISTS ${sysbuild_image_conf_fragment}
@@ -374,10 +372,13 @@ function(ExternalZephyrProject_Add)
     set_target_properties(${ZBUILD_APPLICATION} PROPERTIES MAIN_APP True)
   endif()
 
+  set(image_default "${CMAKE_SOURCE_DIR}/image_configurations/ALL_image_default.cmake")
+
   if(DEFINED ZBUILD_APP_TYPE)
-    set(image_default "${CMAKE_SOURCE_DIR}/image_configurations/${ZBUILD_APP_TYPE}_image_default.cmake")
-    set_target_properties(${ZBUILD_APPLICATION} PROPERTIES IMAGE_CONF_SCRIPT ${image_default})
+    list(APPEND image_default "${CMAKE_SOURCE_DIR}/image_configurations/${ZBUILD_APP_TYPE}_image_default.cmake")
   endif()
+
+  set_target_properties(${ZBUILD_APPLICATION} PROPERTIES IMAGE_CONF_SCRIPT "${image_default}")
 
   if(DEFINED ZBUILD_BOARD)
     # Only set image specific board if provided.
@@ -596,7 +597,7 @@ function(sysbuild_cache_set)
     return()
   elseif(VARS_REMOVE_DUPLICATES AND NOT VARS_APPEND)
     message(FATAL_ERROR
-            "sysbuild_set(VAR <var> APPEND REMOVE_DUPLICATES ...) missing required APPEND option")
+            "sysbuild_cache_set(VAR <var> APPEND REMOVE_DUPLICATES ...) missing required APPEND option")
   endif()
 
   get_property(var_type CACHE ${VARS_VAR} PROPERTY TYPE)
@@ -614,9 +615,7 @@ function(sysbuild_cache_set)
     # Search for these exact items in the existing value and prevent adding
     # them if they are already present which avoids issues with double addition
     # when cmake is reran.
-    string(FIND "$CACHE{${VARS_VAR}}" "${VARS_UNPARSED_ARGUMENTS}" index)
-
-    if(NOT ${index} EQUAL -1)
+    if("${VARS_UNPARSED_ARGUMENTS}" IN_LIST var_new)
       return()
     endif()
 

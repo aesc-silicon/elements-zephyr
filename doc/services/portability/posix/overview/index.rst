@@ -38,11 +38,13 @@ Benefits of POSIX support in Zephyr include:
 POSIX Subprofiles
 =================
 
-While Zephyr supports running multiple `threads <threads_v2>`_ (possibly in an `SMP <smp_arch>`_
-configuration), as well as `Virtual Memory and MMUs <memory_management_api>`_, Zephyr code and data
-normally share a common address space. The Zephyr kernel executable code and the application
-executable code are typically compiled into the same binary artifact. From that perspective, Zephyr
-apps can be seen as running in the context of a single process.
+While Zephyr supports running multiple :ref:`threads <threads_v2>` (possibly in an
+:ref:`SMP <smp_arch>` configuration), as well as
+:ref:`Virtual Memory and MMUs <memory_management_api>`, Zephyr code and data normally share a
+common address space that is partitioned into separate :ref:`Memory Domains <memory_domain>`. The
+Zephyr kernel executable code and the application executable code are typically compiled into the
+same binary artifact. From that perspective, Zephyr apps can be seen as running in the context of
+a single process.
 
 While multi-purpose operating systems (OS) offer full POSIX conformance, Real-Time Operating
 Systems (RTOS) such as Zephyr typically serve a fixed-purpose, have limited hardware resources,
@@ -50,7 +52,15 @@ and experience limited user interaction. In such systems, full POSIX conformance
 impractical and unnecessary.
 
 For that reason, POSIX defined the following :ref:`Application Environment Profiles (AEP)<posix_aep>`
-as part of `IEEE 1003.13-2003`_ (also known as POSIX.13-2003).
+as part of `IEEE 1003.13-2003`_ (also known as POSIX.13-2003). Each AEP adds incrementally more
+features over the required :ref:`POSIX System Interfaces <posix_system_interfaces>`.
+
+..  figure:: aep.svg
+    :align: center
+    :scale: 150%
+    :alt: POSIX Application Environment Profiles (AEP)
+
+    POSIX Application Environment Profiles (AEP)
 
 * Minimal Realtime System Profile (:ref:`PSE51 <posix_aep_pse51>`)
 * Realtime Controller System Profile (:ref:`PSE52 <posix_aep_pse52>`)
@@ -59,7 +69,9 @@ as part of `IEEE 1003.13-2003`_ (also known as POSIX.13-2003).
 
 POSIX.13-2003 AEP were formalized in 2003 via "Units of Functionality" but the specification is now
 inactive (for reference only). Nevertheless, the intent is still captured as part of POSIX-1.2017
-via :ref:`Options<posix_options>` and :ref:`Option Groups<posix_option_groups>`, in Appendix E.
+via :ref:`Options<posix_options>` and :ref:`Option Groups<posix_option_groups>`.
+
+For more information, please see `IEEE 1003.1-2017, Section E, Subprofiling Considerations`_.
 
 .. _posix_apps:
 
@@ -101,8 +113,7 @@ leverages the ``nanosleep()`` and ``perror()`` POSIX functions.
         return 0;
     }
 
-..
-    TODO: insert a link to a list of all samples tagged with 'posix'
+For more examples of POSIX applications, please see the :ref:`POSIX sample applications<posix-samples>`.
 
 .. _posix_config:
 
@@ -133,3 +144,5 @@ Alternatively, users may enable one of the Kconfig options below as a shortcut t
 .. _IEEE Computer Society: https://www.computer.org/
 .. _IEEE 1003.1-2017: https://standards.ieee.org/ieee/1003.1/7101/
 .. _IEEE 1003.13-2003: https://standards.ieee.org/ieee/1003.13/3322/
+.. _IEEE 1003.1-2017, Section E, Subprofiling Considerations:
+    https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_subprofiles.html

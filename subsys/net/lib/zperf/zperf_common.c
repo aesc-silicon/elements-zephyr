@@ -109,8 +109,8 @@ int zperf_get_ipv4_addr(char *host, struct in_addr *addr)
 	return 0;
 }
 
-int zperf_prepare_upload_sock(const struct sockaddr *peer_addr, int tos,
-			      int priority, int proto)
+int zperf_prepare_upload_sock(const struct sockaddr *peer_addr, uint8_t tos,
+			      int priority, int tcp_nodelay, int proto)
 {
 	socklen_t addrlen = peer_addr->sa_family == AF_INET6 ?
 			    sizeof(struct sockaddr_in6) :
@@ -189,6 +189,14 @@ int zperf_prepare_upload_sock(const struct sockaddr *peer_addr, int tos,
 		}
 	}
 
+	if (proto == IPPROTO_TCP && tcp_nodelay &&
+	    zsock_setsockopt(sock, IPPROTO_TCP, TCP_NODELAY,
+			     &tcp_nodelay,
+			     sizeof(tcp_nodelay)) != 0) {
+		NET_WARN("Failed to set IPPROTO_TCP - TCP_NODELAY socket option.");
+		return -EINVAL;
+	}
+
 	ret = zsock_connect(sock, peer_addr, addrlen);
 	if (ret < 0) {
 		NET_ERR("Connect failed (%d)", errno);
@@ -222,8 +230,6 @@ static int zperf_init(void)
 
 	zperf_udp_uploader_init();
 	zperf_tcp_uploader_init();
-	zperf_udp_receiver_init();
-	zperf_tcp_receiver_init();
 
 	zperf_session_init();
 

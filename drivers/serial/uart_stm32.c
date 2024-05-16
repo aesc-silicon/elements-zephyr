@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2016 Open-RnD Sp. z o.o.
  * Copyright (c) 2016 Linaro Limited.
+ * Copyright (c) 2024 STMicroelectronics
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -38,6 +39,12 @@
 #if defined(CONFIG_PM) && defined(IS_UART_WAKEUP_FROMSTOP_INSTANCE)
 #include <stm32_ll_exti.h>
 #endif /* CONFIG_PM */
+
+#ifdef CONFIG_DCACHE
+#include <zephyr/linker/linker-defs.h>
+#include <zephyr/mem_mgmt/mem_attr.h>
+#include <zephyr/dt-bindings/memory-attr/memory-attr-arm.h>
+#endif /* CONFIG_DCACHE */
 
 #include <zephyr/logging/log.h>
 #include <zephyr/irq.h>
@@ -96,6 +103,9 @@ static void uart_stm32_pm_policy_state_lock_get(const struct device *dev)
 	if (!data->pm_policy_state_on) {
 		data->pm_policy_state_on = true;
 		pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
+		if (IS_ENABLED(CONFIG_PM_S2RAM)) {
+			pm_policy_state_lock_get(PM_STATE_SUSPEND_TO_RAM, PM_ALL_SUBSTATES);
+		}
 	}
 }
 
@@ -106,6 +116,9 @@ static void uart_stm32_pm_policy_state_lock_put(const struct device *dev)
 	if (data->pm_policy_state_on) {
 		data->pm_policy_state_on = false;
 		pm_policy_state_lock_put(PM_STATE_SUSPEND_TO_IDLE, PM_ALL_SUBSTATES);
+		if (IS_ENABLED(CONFIG_PM_S2RAM)) {
+			pm_policy_state_lock_put(PM_STATE_SUSPEND_TO_RAM, PM_ALL_SUBSTATES);
+		}
 	}
 }
 #endif /* CONFIG_PM */
@@ -567,7 +580,7 @@ static int uart_stm32_configure(const struct device *dev,
 
 	LL_USART_Disable(config->usart);
 
-	/* Set basic parmeters, such as data-/stop-bit, parity, and baudrate */
+	/* Set basic parameters, such as data-/stop-bit, parity, and baudrate */
 	uart_stm32_parameters_set(dev, cfg);
 
 	LL_USART_Enable(config->usart);
@@ -1295,6 +1308,32 @@ static void uart_stm32_isr(const struct device *dev)
 
 #ifdef CONFIG_UART_ASYNC_API
 
+#ifdef CONFIG_DCACHE
+static bool buf_in_nocache(uintptr_t buf, size_t len_bytes)
+{
+	bool buf_within_nocache = false;
+
+#ifdef CONFIG_NOCACHE_MEMORY
+	buf_within_nocache = (buf >= ((uintptr_t)_nocache_ram_start)) &&
+		((buf + len_bytes - 1) <= ((uintptr_t)_nocache_ram_end));
+	if (buf_within_nocache) {
+		return true;
+	}
+#endif /* CONFIG_NOCACHE_MEMORY */
+
+	buf_within_nocache = mem_attr_check_buf(
+		(void *)buf, len_bytes, DT_MEM_ARM_MPU_RAM_NOCACHE) == 0;
+	if (buf_within_nocache) {
+		return true;
+	}
+
+	buf_within_nocache = (buf >= ((uintptr_t)__rodata_region_start)) &&
+		((buf + len_bytes - 1) <= ((uintptr_t)__rodata_region_end));
+
+	return buf_within_nocache;
+}
+#endif /* CONFIG_DCACHE */
+
 static int uart_stm32_async_callback_set(const struct device *dev,
 					 uart_callback_t callback,
 					 void *user_data)
@@ -1506,6 +1545,13 @@ static int uart_stm32_async_tx(const struct device *dev,
 		return -EBUSY;
 	}
 
+#ifdef CONFIG_DCACHE
+	if (!buf_in_nocache((uintptr_t)tx_data, buf_size)) {
+		LOG_ERR("Tx buffer should be placed in a nocache memory region");
+		return -EFAULT;
+	}
+#endif /* CONFIG_DCACHE */
+
 	data->dma_tx.buffer = (uint8_t *)tx_data;
 	data->dma_tx.buffer_length = buf_size;
 	data->dma_tx.timeout = timeout;
@@ -1565,6 +1611,13 @@ static int uart_stm32_async_rx_enable(const struct device *dev,
 		LOG_WRN("RX was already enabled");
 		return -EBUSY;
 	}
+
+#ifdef CONFIG_DCACHE
+	if (!buf_in_nocache((uintptr_t)rx_buf, buf_size)) {
+		LOG_ERR("Rx buffer should be placed in a nocache memory region");
+		return -EFAULT;
+	}
+#endif /* CONFIG_DCACHE */
 
 	data->dma_rx.offset = 0;
 	data->dma_rx.buffer = rx_buf;
@@ -1678,12 +1731,31 @@ static int uart_stm32_async_rx_buf_rsp(const struct device *dev, uint8_t *buf,
 				       size_t len)
 {
 	struct uart_stm32_data *data = dev->data;
+	unsigned int key;
+	int err = 0;
 
 	LOG_DBG("replace buffer (%d)", len);
-	data->rx_next_buffer = buf;
-	data->rx_next_buffer_len = len;
 
-	return 0;
+	key = irq_lock();
+
+	if (data->rx_next_buffer != NULL) {
+		err = -EBUSY;
+	} else if (!data->dma_rx.enabled) {
+		err = -EACCES;
+	} else {
+#ifdef CONFIG_DCACHE
+		if (!buf_in_nocache((uintptr_t)buf, len)) {
+			LOG_ERR("Rx buffer should be placed in a nocache memory region");
+			return -EFAULT;
+		}
+#endif /* CONFIG_DCACHE */
+		data->rx_next_buffer = buf;
+		data->rx_next_buffer_len = len;
+	}
+
+	irq_unlock(key);
+
+	return err;
 }
 
 static int uart_stm32_async_init(const struct device *dev)
@@ -1913,7 +1985,7 @@ static int uart_stm32_registers_configure(const struct device *dev)
 	LL_USART_SetTransferDirection(config->usart,
 				      LL_USART_DIRECTION_TX_RX);
 
-	/* Set basic parmeters, such as data-/stop-bit, parity, and baudrate */
+	/* Set basic parameters, such as data-/stop-bit, parity, and baudrate */
 	uart_stm32_parameters_set(dev, uart_cfg);
 
 	/* Enable the single wire / half-duplex mode */
@@ -2081,18 +2153,28 @@ static int uart_stm32_pm_action(const struct device *dev,
 			return err;
 		}
 
-		/* enable clock */
-		err = clock_control_on(data->clock, (clock_control_subsys_t)&config->pclken[0]);
-		if (err != 0) {
+		/* Enable clock */
+		err = clock_control_on(data->clock,
+					(clock_control_subsys_t)&config->pclken[0]);
+		if (err < 0) {
 			LOG_ERR("Could not enable (LP)UART clock");
 			return err;
+		}
+
+		if ((IS_ENABLED(CONFIG_PM_S2RAM)) &&
+			(!LL_USART_IsEnabled(config->usart))) {
+			/* When exiting low power mode, check whether UART is enabled.
+			 * If not, it means we are exiting Suspend to RAM mode (STM32
+			 * Standby), and the driver needs to be reinitialized.
+			 */
+			uart_stm32_init(dev);
 		}
 		break;
 	case PM_DEVICE_ACTION_SUSPEND:
 		uart_stm32_suspend_setup(dev);
 		/* Stop device clock. Note: fixed clocks are not handled yet. */
 		err = clock_control_off(data->clock, (clock_control_subsys_t)&config->pclken[0]);
-		if (err != 0) {
+		if (err < 0) {
 			LOG_ERR("Could not enable (LP)UART clock");
 			return err;
 		}
@@ -2330,8 +2412,8 @@ static const struct uart_stm32_config uart_stm32_cfg_##index = {	\
 	.pclken = pclken_##index,					\
 	.pclk_len = DT_INST_NUM_CLOCKS(index),				\
 	.pcfg = PINCTRL_DT_INST_DEV_CONFIG_GET(index),			\
-	.single_wire = DT_INST_PROP_OR(index, single_wire, false),	\
-	.tx_rx_swap = DT_INST_PROP_OR(index, tx_rx_swap, false),	\
+	.single_wire = DT_INST_PROP(index, single_wire),		\
+	.tx_rx_swap = DT_INST_PROP(index, tx_rx_swap),			\
 	.rx_invert = DT_INST_PROP(index, rx_invert),			\
 	.tx_invert = DT_INST_PROP(index, tx_invert),			\
 	.de_enable = DT_INST_PROP(index, de_enable),			\

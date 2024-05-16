@@ -15,6 +15,11 @@ add_subdirectory_ifdef(CONFIG_NET_CAPTURE            capture)
 add_subdirectory_ifdef(CONFIG_NET_ZPERF              zperf)
 add_subdirectory_ifdef(CONFIG_NET_SHELL              shell)
 add_subdirectory_ifdef(CONFIG_NET_TRICKLE            trickle)
+add_subdirectory_ifdef(CONFIG_NET_DHCPV6             dhcpv6)
+
+if (CONFIG_NET_DHCPV4 OR CONFIG_NET_DHCPV4_SERVER)
+  add_subdirectory(dhcpv4)
+endif()
 
 if (CONFIG_DNS_RESOLVER
     OR CONFIG_MDNS_RESPONDER
@@ -22,7 +27,7 @@ if (CONFIG_DNS_RESOLVER
   add_subdirectory(dns)
 endif()
 
-if(CONFIG_HTTP_PARSER_URL OR CONFIG_HTTP_PARSER OR CONFIG_HTTP_CLIENT)
+if(CONFIG_HTTP)
   add_subdirectory(http)
 endif()
 

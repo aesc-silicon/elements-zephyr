@@ -64,7 +64,7 @@ multiple processes.
     pthread_setcanceltype(),yes
     pthread_setspecific(),yes
     pthread_sigmask(),yes
-    pthread_testcancel(),
+    pthread_testcancel(),yes
 
 .. _posix_option_group_posix_threads_ext:
 
@@ -77,8 +77,8 @@ This table lists service support status in Zephyr:
    :header: API, Supported
    :widths: 50,10
 
-    pthread_attr_getguardsize(),
-    pthread_attr_setguardsize(),
+    pthread_attr_getguardsize(),yes
+    pthread_attr_setguardsize(),yes
     pthread_mutexattr_gettype(),yes
     pthread_mutexattr_settype(),yes
 
@@ -102,123 +102,79 @@ This table lists service support status in Zephyr:
     pthread_getconcurrency(),yes
     pthread_setconcurrency(),yes
 
+.. _posix_option_group_c_lang_jump:
+
+POSIX_C_LANG_JUMP
+=================
+
+The ``POSIX_C_LANG_JUMP`` Option Group is included in the ISO C standard.
+
+.. note::
+   When using Newlib, Picolibc, or other C libraries conforming to the ISO C Standard, the
+   ``POSIX_C_LANG_JUMP`` Option Group is considered supported.
+
+.. csv-table:: POSIX_C_LANG_JUMP
+   :header: API, Supported
+   :widths: 50,10
+
+    setjmp(), yes
+    longjmp(), yes
+
+.. _posix_option_group_c_lang_math:
+
+POSIX_C_LANG_MATH
+=================
+
+The ``POSIX_C_LANG_MATH`` Option Group is included in the ISO C standard.
+
+.. note::
+   When using Newlib, Picolibc, or other C libraries conforming to the ISO C Standard, the
+   ``POSIX_C_LANG_MATH`` Option Group is considered supported.
+
+Please refer to `Subprofiling Considerations`_ for details on the ``POSIX_C_LANG_MATH`` Option
+Group.
+
 .. _posix_option_group_c_lang_support:
 
 POSIX_C_LANG_SUPPORT
 ====================
 
-The POSIX_C_LANG_SUPPORT option group contains the general ISO C
-Library.
+The POSIX_C_LANG_SUPPORT option group contains the general ISO C Library.
 
-.. csv-table:: POSIX_C_LANG_SUPPORT
+.. note::
+   When using Newlib, Picolibc, or other C libraries conforming to the ISO C Standard, the entire
+   ``POSIX_C_LANG_SUPPORT`` Option Group is considered supported.
+
+Please refer to `Subprofiling Considerations`_ for details on the ``POSIX_C_LANG_SUPPORT`` Option
+Group.
+
+For more information on developing Zephyr applications in the C programming language, please refer
+to :ref:`details<language_support>`.
+
+.. _posix_option_group_realtime_signals:
+
+POSIX_REALTIME_SIGNALS
+======================
+
+.. csv-table:: POSIX_REALTIME_SIGNALS
    :header: API, Supported
    :widths: 50,10
 
-    abs(),yes
-    asctime(),
-    asctime_r(),
-    atof(),
-    atoi(),yes
-    atol(),
-    atoll(),
-    bsearch(),yes
-    calloc(),yes
-    ctime(),
-    ctime_r(),
-    difftime(),
-    div(),
-    feclearexcept(),
-    fegetenv(),
-    fegetexceptflag(),
-    fegetround(),
-    feholdexcept(),
-    feraiseexcept(),
-    fesetenv(),
-    fesetexceptflag(),
-    fesetround(),
-    fetestexcept(),
-    feupdateenv(),
-    free(),yes
-    gmtime(),yes
-    gmtime_r(),yes
-    imaxabs(),
-    imaxdiv(),
-    isalnum(),yes
-    isalpha(),yes
-    isblank(),
-    iscntrl(),yes
-    isdigit(),yes
-    isgraph(),yes
-    islower(),
-    isprint(),yes
-    ispunct(),
-    isspace(),yes
-    isupper(),yes
-    isxdigit(),yes
-    labs(),yes
-    ldiv(),
-    llabs(),yes
-    lldiv(),
-    localeconv(),
-    localtime(),yes
-    localtime_r(),
-    malloc(),yes
-    memchr(),yes
-    memcmp(),yes
-    memcpy(),yes
-    memmove(),yes
-    memset(),yes
-    mktime(),yes
-    qsort(),yes
-    rand(),yes
-    rand_r(),yes
-    realloc(),yes
-    setlocale(),
-    snprintf(),yes
-    sprintf(),yes
-    srand(),yes
-    sscanf(),
-    strcat(),yes
-    strchr(),yes
-    strcmp(),yes
-    strcoll(),
-    strcpy(),yes
-    strcspn(),yes
-    strerror(),yes
-    strerror_r(),yes
-    strftime(),
-    strlen(),yes
-    strncat(),yes
-    strncmp(),yes
-    strncpy(),yes
-    strpbrk(),
-    strrchr(),yes
-    strspn(),yes
-    strstr(),yes
-    strtod(),
-    strtof(),
-    strtoimax(),
-    strtok(),yes
-    strtok_r(),yes
-    strtol(),yes
-    strtold(),
-    strtoll(),yes
-    strtoul(),yes
-    strtoull(),yes
-    strtoumax(),
-    strxfrm(),
-    time(),yes
-    tolower(),yes
-    toupper(),yes
-    tzname(),
-    tzset(),
-    va_arg(),yes
-    va_copy(),yes
-    va_end(),yes
-    va_start(),yes
-    vsnprintf(),yes
-    vsprintf(),yes
-    vsscanf(),
+    sigqueue(),
+    sigtimedwait(),
+    sigwaitinfo(),
+
+.. _posix_option_group_signal_jump:
+
+POSIX_SIGNAL_JUMP
+=================
+
+.. csv-table:: POSIX_SIGNAL_JUMP
+   :header: API, Supported
+   :widths: 50,10
+
+    siglongjmp(),
+    sigsetjmp(),
 
 .. _posix_option_group_single_process:
 
@@ -232,14 +188,14 @@ process applications.
    :header: API, Supported
    :widths: 50,10
 
-    confstr(),
-    environ,
+    confstr(),yes
+    environ,yes
     errno,yes
-    getenv(),
-    setenv(),
-    sysconf(),
+    getenv(),yes
+    setenv(),yes
+    sysconf(),yes
     uname(),yes
-    unsetenv()
+    unsetenv(),yes
 
 .. _posix_option_group_signals:
 
@@ -266,8 +222,8 @@ required for error and event handling.
     sigismember(),yes
     signal(),
     sigpending(),
-    sigprocmask(),
-    igsuspend(),
+    sigprocmask(),yes
+    sigsuspend(),
     sigwait(),
     strsignal(),yes
 
@@ -358,6 +314,116 @@ POSIX_CLOCK_SELECTION
     pthread_condattr_setclock(),yes
     clock_nanosleep(),yes
 
+.. _posix_option_group_file_system:
+
+POSIX_FILE_SYSTEM
+=================
+
+.. csv-table:: POSIX_FILE_SYSTEM
+   :header: API, Supported
+   :widths: 50,10
+
+    access(),
+    chdir(),
+    closedir(), yes
+    creat(),
+    fchdir(),
+    fpathconf(),
+    fstat(),
+    fstatvfs(),
+    getcwd(),
+    link(),
+    mkdir(), yes
+    mkstemp(),
+    opendir(), yes
+    pathconf(),
+    readdir(), yes
+    remove(),
+    rename(), yes
+    rewinddir(),
+    rmdir(),
+    stat(), yes
+    statvfs(),
+    tmpfile(),
+    tmpnam(),
+    truncate(),
+    unlink(), yes
+    utime(),
+
+.. _posix_option_group_networking:
+
+POSIX_NETWORKING
+================
+
+.. csv-table:: POSIX_NETWORKING
+   :header: API, Supported
+   :widths: 50,10
+
+    accept(),yes
+    bind(),yes
+    connect(),yes
+    endhostent(),yes
+    endnetent(),yes
+    endprotoent(),yes
+    endservent(),yes
+    freeaddrinfo(),yes
+    gai_strerror(),yes
+    getaddrinfo(),yes
+    gethostent(),yes
+    gethostname(),yes
+    getnameinfo(),yes
+    getnetbyaddr(),yes
+    getnetbyname(),yes
+    getnetent(),yes
+    getpeername(),yes
+    getprotobyname(),yes
+    getprotobynumber(),yes
+    getprotoent(),yes
+    getservbyname(),yes
+    getservbyport(),yes
+    getservent(),yes
+    getsockname(),yes
+    getsockopt(),yes
+    htonl(),yes
+    htons(),yes
+    if_freenameindex(),yes
+    if_indextoname(),yes
+    if_nameindex(),yes
+    if_nametoindex(),yes
+    inet_addr(),yes
+    inet_ntoa(),yes
+    inet_ntop(),yes
+    inet_pton(),yes
+    listen(),yes
+    ntohl(),yes
+    ntohs(),yes
+    recv(),yes
+    recvfrom(),yes
+    recvmsg(),yes
+    send(),yes
+    sendmsg(),yes
+    sendto(),yes
+    sethostent(),yes
+    setnetent(),yes
+    setprotoent(),yes
+    setservent(),yes
+    setsockopt(),yes
+    shutdown(),yes
+    socket(),yes
+    sockatmark(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    socketpair(),yes
+
+.. _posix_option_group_pipe:
+
+POSIX_PIPE
+==========
+
+.. csv-table:: POSIX_PIPE
+   :header: API, Supported
+   :widths: 50,10
+
+    pipe(),
+
 .. _posix_option_group_semaphores:
 
 POSIX_SEMAPHORES
@@ -367,14 +433,14 @@ POSIX_SEMAPHORES
    :header: API, Supported
    :widths: 50,10
 
-    sem_close(),
+    sem_close(),yes
     sem_destroy(),yes
     sem_getvalue(),yes
     sem_init(),yes
-    sem_open(),
+    sem_open(),yes
     sem_post(),yes
     sem_trywait(),yes
-    sem_unlink(),
+    sem_unlink(),yes
     sem_wait(),yes
 
 .. _posix_option_group_spin_locks:
@@ -401,7 +467,7 @@ POSIX_TIMERS
    :header: API, Supported
    :widths: 50,10
 
-    clock_getres(),
+    clock_getres(),yes
     clock_gettime(),yes
     clock_settime(),yes
     nanosleep(),yes
@@ -411,11 +477,106 @@ POSIX_TIMERS
     timer_getoverrun(),yes
     timer_settime(),yes
 
+.. _posix_option_group_fd_mgmt:
+
+POSIX_FD_MGMT
+=============
+
+This table lists service support status in Zephyr for `POSIX_FD_MGMT`:
+
+.. csv-table:: POSIX_FD_MGMT
+   :header: API, Supported
+   :widths: 50,10
+
+    dup(),
+    dup2(),
+    fcntl(),
+    fgetpos(),
+    fseek(),
+    fseeko(),
+    fsetpos(),
+    ftell(),
+    ftello(),
+    ftruncate(),yes
+    lseek(),
+    rewind(),
+
+.. _posix_option_group_file_locking:
+
+POSIX_FILE_LOCKING
+==================
+
+This table lists service support status in Zephyr for `POSIX_FD_MGMT`:
+
+.. csv-table:: POSIX_FILE_LOCKING
+   :header: API, Supported
+   :widths: 50,10
+
+    flockfile(),
+    ftrylockfile(),
+    funlockfile(),
+    getc_unlocked(),
+    getchar_unlocked(),
+    putc_unlocked(),
+    putchar_unlocked(),
 
 .. _posix_options:
 
 Additional POSIX Options
 ========================
+
+.. _posix_option_asynchronous_io:
+
+_POSIX_ASYNCHRONOUS_IO
+++++++++++++++++++++++
+
+.. csv-table:: _POSIX_ASYNCHRONOUS_IO
+   :header: API, Supported
+   :widths: 50,10
+
+    aio_cancel(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    aio_error(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    aio_fsync(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    aio_read(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    aio_return(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    aio_suspend(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    aio_write(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    lio_listio(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+
+.. _posix_option_fsync:
+
+_POSIX_FSYNC
+++++++++++++
+
+.. csv-table:: _POSIX_FSYNC
+   :header: API, Supported
+   :widths: 50,10
+
+    fsync(),yes
+
+.. _posix_option_memlock:
+
+_POSIX_MEMLOCK
+++++++++++++++
+
+.. csv-table:: _POSIX_MEMLOCK
+   :header: API, Supported
+   :widths: 50,10
+
+    mlockall(),
+    munlockall(),
+
+.. _posix_option_memlock_range:
+
+_POSIX_MEMLOCK_RANGE
+++++++++++++++++++++
+
+.. csv-table:: _POSIX_MEMLOCK_RANGE
+   :header: API, Supported
+   :widths: 50,10
+
+    mlock(),
+    munlock(),
 
 .. _posix_option_message_passing:
 
@@ -428,17 +589,28 @@ _POSIX_MESSAGE_PASSING
 
     mq_close(),yes
     mq_getattr(),yes
-    mq_notify(),
+    mq_notify(),yes
     mq_open(),yes
     mq_receive(),yes
     mq_send(),yes
     mq_setattr(),yes
     mq_unlink(),yes
 
-_POSIX_PRIORITY_SCHEDULING
-++++++++++++++++++++++++++
+.. _posix_option_monotonic_clock:
+
+_POSIX_MONOTONIC_CLOCK
+++++++++++++++++++++++
+
+.. csv-table:: _POSIX_MONOTONIC_CLOCK
+   :header: API, Supported
+   :widths: 50,10
+
+    CLOCK_MONOTONIC,yes
 
 .. _posix_option_priority_scheduling:
+
+_POSIX_PRIORITY_SCHEDULING
+++++++++++++++++++++++++++
 
 .. csv-table:: _POSIX_PRIORITY_SCHEDULING
    :header: API, Supported
@@ -446,11 +618,11 @@ _POSIX_PRIORITY_SCHEDULING
 
     sched_get_priority_max(),yes
     sched_get_priority_min(),yes
-    sched_getparam(),
-    sched_getscheduler(),
-    sched_rr_get_interval(),
-    sched_setparam(),
-    sched_setscheduler(),
+    sched_getparam(),yes
+    sched_getscheduler(),yes
+    sched_rr_get_interval(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    sched_setparam(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    sched_setscheduler(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
     sched_yield(),yes
 
 .. _posix_option_reader_writer_locks:
@@ -470,9 +642,36 @@ _POSIX_READER_WRITER_LOCKS
     pthread_rwlock_unlock(),yes
     pthread_rwlock_wrlock(),yes
     pthread_rwlockattr_destroy(),yes
-    pthread_rwlockattr_getpshared(),
+    pthread_rwlockattr_getpshared(),yes
     pthread_rwlockattr_init(),yes
-    pthread_rwlockattr_setpshared(),
+    pthread_rwlockattr_setpshared(),yes
+
+.. _posix_shared_memory_objects:
+
+_POSIX_SHARED_MEMORY_OBJECTS
+++++++++++++++++++++++++++++
+
+.. csv-table:: _POSIX_SHARED_MEMORY_OBJECTS
+   :header: API, Supported
+   :widths: 50,10
+
+    mmap(),
+    munmap(),
+    shm_open(),
+    shm_unlink(),
+
+.. _posix_option_synchronized_io:
+
+_POSIX_SYNCHRONIZED_IO
+++++++++++++++++++++++
+
+.. csv-table:: _POSIX_SYNCHRONIZED_IO
+   :header: API, Supported
+   :widths: 50,10
+
+    fdatasync(),
+    fsync(),yes
+    msync(),
 
 .. _posix_option_thread_attr_stackaddr:
 
@@ -485,6 +684,18 @@ _POSIX_THREAD_ATTR_STACKADDR
 
     pthread_attr_getstackaddr(),yes
     pthread_attr_setstackaddr(),yes
+
+.. _posix_option_thread_cputime:
+
+_POSIX_THREAD_CPUTIME
++++++++++++++++++++++
+
+.. csv-table:: _POSIX_THREAD_CPUTIME
+   :header: API, Supported
+   :widths: 50,10
+
+    CLOCK_THREAD_CPUTIME_ID,yes
+    pthread_getcpuclockid(),yes
 
 .. _posix_option_thread_attr_stacksize:
 
@@ -507,15 +718,44 @@ _POSIX_THREAD_PRIORITY_SCHEDULING
    :header: API, Supported
    :widths: 50,10
 
-    pthread_attr_getinheritsched(),
+    pthread_attr_getinheritsched(),yes
     pthread_attr_getschedpolicy(),yes
-    pthread_attr_getscope(),
-    pthread_attr_setinheritsched(),
+    pthread_attr_getscope(),yes
+    pthread_attr_setinheritsched(),yes
     pthread_attr_setschedpolicy(),yes
-    pthread_attr_setscope(),
+    pthread_attr_setscope(),yes
     pthread_getschedparam(),yes
     pthread_setschedparam(),yes
     pthread_setschedprio(),yes
+
+.. _posix_thread_safe_functions:
+
+_POSIX_THREAD_SAFE_FUNCTIONS
+++++++++++++++++++++++++++++
+
+.. csv-table:: _POSIX_THREAD_SAFE_FUNCTIONS
+    :header: API, Supported
+    :widths: 50,10
+
+    asctime_r(),
+    ctime_r(),
+    flockfile(),
+    ftrylockfile(),
+    funlockfile(),
+    getc_unlocked(), yes
+    getchar_unlocked(), yes
+    getgrgid_r(),
+    getgrnam_r(),
+    getpwnam_r(),
+    getpwuid_r(),
+    gmtime_r(), yes
+    localtime_r(),
+    putc_unlocked(), yes
+    putchar_unlocked(), yes
+    rand_r(), yes
+    readdir_r(),
+    strerror_r(), yes
+    strtok_r(), yes
 
 .. _posix_option_timeouts:
 
@@ -526,8 +766,8 @@ _POSIX_TIMEOUTS
    :header: API, Supported
    :widths: 50,10
 
-    mq_timedreceive(),
-    mq_timedsend(),
+    mq_timedreceive(),yes
+    mq_timedsend(),yes
     pthread_mutex_timedlock(),yes
     pthread_rwlock_timedrdlock(),yes
     pthread_rwlock_timedwrlock(),yes
@@ -543,11 +783,14 @@ _XOPEN_STREAMS
    :header: API, Supported
    :widths: 50,10
 
-    fattach(),
-    fdetach(),
-    getmsg(),
-    getpmsg(),
+    fattach(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    fdetach(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    getmsg(),  yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    getpmsg(),  yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
     ioctl(),yes
-    isastream(),
-    putmsg(),
+    isastream(),yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
+    putmsg(), yes (will fail with ``ENOSYS``:ref:`†<posix_undefined_behaviour>`)
     putpmsg(),
+
+.. _Subprofiling Considerations:
+    https://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_subprofiles.html

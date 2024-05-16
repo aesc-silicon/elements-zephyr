@@ -279,9 +279,7 @@ static inline uint8_t *get_mac(const struct device *dev)
 	struct cc2520_context *cc2520 = dev->data;
 
 #if defined(CONFIG_IEEE802154_CC2520_RANDOM_MAC)
-	uint32_t *ptr = (uint32_t *)(cc2520->mac_addr + 4);
-
-	UNALIGNED_PUT(sys_rand32_get(), ptr);
+	sys_rand_get(&cc2520->mac_addr[4], 4U);
 
 	cc2520->mac_addr[7] = (cc2520->mac_addr[7] & ~0x01) | 0x02;
 #else
@@ -1057,7 +1055,7 @@ static const struct cc2520_config cc2520_config = {
 
 static struct cc2520_context cc2520_context_data;
 
-static struct ieee802154_radio_api cc2520_radio_api = {
+static const struct ieee802154_radio_api cc2520_radio_api = {
 	.iface_api.init	= cc2520_iface_init,
 
 	.get_capabilities	= cc2520_get_capabilities,

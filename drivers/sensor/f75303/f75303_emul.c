@@ -104,7 +104,7 @@ static int f75303_emul_init(const struct emul *target, const struct device *pare
 }
 
 static int f75303_emul_set_channel(const struct emul *target, enum sensor_channel chan,
-				   q31_t value, int8_t shift)
+				   const q31_t *value, int8_t shift)
 {
 	struct f75303_emul_data *data = target->data;
 	int64_t scaled_value;
@@ -129,7 +129,7 @@ static int f75303_emul_set_channel(const struct emul *target, enum sensor_channe
 		return -ENOTSUP;
 	}
 
-	scaled_value = (int64_t)value << shift;
+	scaled_value = (int64_t)*value << shift;
 	millicelsius = scaled_value * 1000 / ((int64_t)INT32_MAX + 1);
 	reg_value = CLAMP(millicelsius / 125, 0, 0x7ff);
 
@@ -160,7 +160,7 @@ static const struct i2c_emul_api f75303_emul_api_i2c = {
 	.transfer = f75303_emul_transfer_i2c,
 };
 
-static const struct emul_sensor_backend_api f75303_emul_api_sensor = {
+static const struct emul_sensor_driver_api f75303_emul_api_sensor = {
 	.set_channel = f75303_emul_set_channel,
 	.get_sample_range = f75303_emul_get_sample_range,
 };

@@ -341,7 +341,7 @@ int arm_core_mpu_get_max_available_dyn_regions(void)
  *
  * Presumes the background mapping is NOT user accessible.
  */
-int arm_core_mpu_buffer_validate(void *addr, size_t size, int write)
+int arm_core_mpu_buffer_validate(const void *addr, size_t size, int write)
 {
 	return mpu_buffer_validate(addr, size, write);
 }
@@ -457,6 +457,11 @@ int z_arm_mpu_init(void)
 	if (mpu_configure_regions_from_dt(&static_regions_num) == -EINVAL) {
 		__ASSERT(0, "Failed to allocate MPU regions from DT\n");
 		return -EINVAL;
+	}
+
+	/* Clear all regions before enabling MPU */
+	for (int i = static_regions_num; i < get_num_regions(); i++) {
+		mpu_clear_region(i);
 	}
 
 	arm_core_mpu_enable();

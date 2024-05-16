@@ -11,6 +11,8 @@ menuconfig ETH_STM32_HAL
 	select USE_STM32_HAL_ETH
 	select NOCACHE_MEMORY if SOC_SERIES_STM32H7X && CPU_CORTEX_M7
 	select HWINFO
+	select ETH_DSA_SUPPORT
+	select MDIO if SOC_SERIES_STM32H5X || SOC_SERIES_STM32H7X
 	imply CRC
 	help
 	  Enable STM32 HAL based Ethernet driver. It is available for
@@ -137,7 +139,7 @@ config ETH_STM32_AUTO_NEGOTIATION_ENABLE
 
 config ETH_STM32_HW_CHECKSUM
 	bool "Use TX and RX hardware checksum"
-	depends on (!SOC_SERIES_STM32H7X && !SOC_SERIES_STM32H5X )
+	depends on !SOC_SERIES_STM32H5X
 	help
 	  Enable receive and transmit checksum offload to enhance throughput
 	  performances.

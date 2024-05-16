@@ -299,7 +299,7 @@ class ImgtoolSigner(Signer):
                 log.inf(f'unsigned bin: {in_bin}')
                 log.inf(f'signed bin:   {out_bin}')
                 log.dbg(quote_sh_list(sign_bin))
-            subprocess.check_call(sign_bin)
+            subprocess.check_call(sign_bin, stdout=subprocess.PIPE if args.quiet else None)
         if in_hex:
             out_hex = args.shex or str(b / 'zephyr' / 'zephyr.signed.hex')
             sign_hex = sign_base + [in_hex, out_hex]
@@ -307,7 +307,7 @@ class ImgtoolSigner(Signer):
                 log.inf(f'unsigned hex: {in_hex}')
                 log.inf(f'signed hex:   {out_hex}')
                 log.dbg(quote_sh_list(sign_hex))
-            subprocess.check_call(sign_hex)
+            subprocess.check_call(sign_hex, stdout=subprocess.PIPE if args.quiet else None)
 
     @staticmethod
     def find_imgtool(command, args):
@@ -406,7 +406,7 @@ class ImgtoolSigner(Signer):
 
         # The partitions node, and its subnode, must provide
         # the size of slot1_partition or slot0_partition partition via the regs property.
-        slot_key = 'slot0_partition' if 'slot1_partition' in slots else 'slot0_partition'
+        slot_key = 'slot1_partition' if 'slot1_partition' in slots else 'slot0_partition'
         if not slots[slot_key].regs:
             log.die(f'{slot_key} flash partition has no regs property;',
                     "can't determine size of slot")
@@ -438,11 +438,26 @@ class RimageSigner(Signer):
         'Runs the C pre-processor on config_dir/toml_basename.h'
 
         compiler_path = self.cmake_cache.get("CMAKE_C_COMPILER")
-        preproc_cmd = [compiler_path, '-P', '-E', str(config_dir / (toml_basename + '.h'))]
+        preproc_cmd = [compiler_path, '-E', str(config_dir / (toml_basename + '.h'))]
+        # -P removes line markers to keep the .toml output reproducible.  To
+        # trace #includes, temporarily comment out '-P' (-f*-prefix-map
+        # unfortunately don't seem to make any difference here and they're
+        # gcc-specific)
+        preproc_cmd += ['-P']
+
+        # "REM" escapes _leading_ '#' characters from cpp and allows
+        # such comments to be preserved in generated/*.toml files:
+        #
+        #      REM # my comment...
+        #
+        # Note _trailing_ '#' characters and comments are ignored by cpp
+        # and don't need any REM trick.
+        preproc_cmd += ['-DREM=']
+
         preproc_cmd += ['-I', str(self.sof_src_dir / 'src')]
         preproc_cmd += ['-imacros',
                         str(pathlib.Path('zephyr') / 'include' / 'generated' / 'autoconf.h')]
-        preproc_cmd += ['-o', str(subdir / toml_basename)]
+        preproc_cmd += ['-o', str(subdir / 'rimage_config.toml')]
         self.command.inf(quote_sh_list(preproc_cmd))
         subprocess.run(preproc_cmd, check=True, cwd=self.build_dir)
 
@@ -573,13 +588,12 @@ class RimageSigner(Signer):
                 command.die(f"Cannot have both {toml_basename + '.h'} and {toml_basename} in {conf_dir}")
 
             if (conf_dir / (toml_basename + '.h')).exists():
-                toml_subdir = pathlib.Path('zephyr') / 'misc' / 'generated'
-                self.preprocess_toml(conf_dir, toml_basename, toml_subdir)
-                toml_dir = b / toml_subdir
+                generated_subdir = pathlib.Path('zephyr') / 'misc' / 'generated'
+                self.preprocess_toml(conf_dir, toml_basename, generated_subdir)
+                extra_ri_args += ['-c', str(b / generated_subdir / 'rimage_config.toml')]
             else:
                 toml_dir = conf_dir
-
-            extra_ri_args += ['-c', str(toml_dir / toml_basename)]
+                extra_ri_args += ['-c', str(toml_dir / toml_basename)]
 
         # Warning: while not officially supported (yet?), the rimage --option that is last
         # on the command line currently wins in case of duplicate options. So pay

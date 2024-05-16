@@ -21,6 +21,7 @@
  */
 #include <zephyr/types.h>
 #include <zephyr/device.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,7 +73,9 @@ static inline void z_impl_mdio_bus_enable(const struct device *dev)
 	const struct mdio_driver_api *api =
 		(const struct mdio_driver_api *)dev->api;
 
-	return api->bus_enable(dev);
+	if (api->bus_enable != NULL) {
+		api->bus_enable(dev);
+	}
 }
 
 /**
@@ -88,7 +91,9 @@ static inline void z_impl_mdio_bus_disable(const struct device *dev)
 	const struct mdio_driver_api *api =
 		(const struct mdio_driver_api *)dev->api;
 
-	return api->bus_disable(dev);
+	if (api->bus_disable != NULL) {
+		api->bus_disable(dev);
+	}
 }
 
 /**

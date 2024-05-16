@@ -90,7 +90,7 @@ extern int z_arm_mmu_init(void);
 #endif
 
 /* Called from Zephyr initialization */
-void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz, arch_cpustart_t fn, void *arg)
+void arch_cpu_start(int cpu_num, k_thread_stack_t *stack, int sz, arch_cpustart_t fn, void *arg)
 {
 	int cpu_count, i, j;
 	uint32_t cpu_mpid = 0;
@@ -120,16 +120,16 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz, arch_cpustart_
 	}
 
 	/* Pass stack address to secondary core */
-	arm_cpu_boot_params.irq_sp = Z_KERNEL_STACK_BUFFER(stack) + sz;
-	arm_cpu_boot_params.fiq_sp = Z_KERNEL_STACK_BUFFER(z_arm_fiq_stack[cpu_num])
+	arm_cpu_boot_params.irq_sp = K_KERNEL_STACK_BUFFER(stack) + sz;
+	arm_cpu_boot_params.fiq_sp = K_KERNEL_STACK_BUFFER(z_arm_fiq_stack[cpu_num])
 				     + CONFIG_ARMV7_FIQ_STACK_SIZE;
-	arm_cpu_boot_params.abt_sp = Z_KERNEL_STACK_BUFFER(z_arm_abort_stack[cpu_num])
+	arm_cpu_boot_params.abt_sp = K_KERNEL_STACK_BUFFER(z_arm_abort_stack[cpu_num])
 				     + CONFIG_ARMV7_EXCEPTION_STACK_SIZE;
-	arm_cpu_boot_params.udf_sp = Z_KERNEL_STACK_BUFFER(z_arm_undef_stack[cpu_num])
+	arm_cpu_boot_params.udf_sp = K_KERNEL_STACK_BUFFER(z_arm_undef_stack[cpu_num])
 				     + CONFIG_ARMV7_EXCEPTION_STACK_SIZE;
-	arm_cpu_boot_params.svc_sp = Z_KERNEL_STACK_BUFFER(z_arm_svc_stack[cpu_num])
+	arm_cpu_boot_params.svc_sp = K_KERNEL_STACK_BUFFER(z_arm_svc_stack[cpu_num])
 				     + CONFIG_ARMV7_SVC_STACK_SIZE;
-	arm_cpu_boot_params.sys_sp = Z_KERNEL_STACK_BUFFER(z_arm_sys_stack[cpu_num])
+	arm_cpu_boot_params.sys_sp = K_KERNEL_STACK_BUFFER(z_arm_sys_stack[cpu_num])
 				     + CONFIG_ARMV7_SYS_STACK_SIZE;
 
 	arm_cpu_boot_params.fn = fn;
@@ -148,7 +148,7 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz, arch_cpustart_
 	 *  \todo Support PSCI
 	 */
 
-	/* Wait secondary cores up, see z_arm64_secondary_start */
+	/* Wait secondary cores up, see arch_secondary_cpu_init */
 	while (arm_cpu_boot_params.fn) {
 		wfe();
 	}
@@ -159,7 +159,7 @@ void arch_start_cpu(int cpu_num, k_thread_stack_t *stack, int sz, arch_cpustart_
 }
 
 /* the C entry of secondary cores */
-void z_arm_secondary_start(void)
+void arch_secondary_cpu_init(void)
 {
 	int cpu_num = arm_cpu_boot_params.cpu_num;
 	arch_cpustart_t fn;
@@ -245,7 +245,7 @@ void arch_sched_ipi(void)
 	broadcast_ipi(SGI_SCHED_IPI);
 }
 
-static int arm_smp_init(void)
+int arch_smp_init(void)
 {
 	cpu_map[0] = MPIDR_TO_CORE(GET_MPIDR());
 
@@ -259,6 +259,6 @@ static int arm_smp_init(void)
 	return 0;
 }
 
-SYS_INIT(arm_smp_init, PRE_KERNEL_2, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
+SYS_INIT(arch_smp_init, PRE_KERNEL_2, CONFIG_KERNEL_INIT_PRIORITY_DEFAULT);
 
 #endif

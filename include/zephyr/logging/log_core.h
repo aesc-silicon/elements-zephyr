@@ -378,6 +378,13 @@ static inline char z_log_minimal_level_to_char(int level)
 /** @brief Number of slots in one word. */
 #define LOG_FILTERS_NUM_OF_SLOTS (32 / LOG_FILTER_SLOT_SIZE)
 
+/** @brief Maximum number of backends supported when runtime filtering is enabled. */
+#define LOG_FILTERS_MAX_BACKENDS \
+	(LOG_FILTERS_NUM_OF_SLOTS - (1 + IS_ENABLED(CONFIG_LOG_FRONTEND)))
+
+/** @brief Slot reserved for the frontend. Last slot is used. */
+#define LOG_FRONTEND_SLOT_ID (LOG_FILTERS_NUM_OF_SLOTS - 1)
+
 /** @brief Slot mask. */
 #define LOG_FILTER_SLOT_MASK (BIT(LOG_FILTER_SLOT_SIZE) - 1U)
 
@@ -494,7 +501,7 @@ void z_log_printf_arg_checker(const char *fmt, ...)
 }
 
 /**
- * @brief Writes a generic log message to the logging v2.
+ * @brief Write a generic log message.
  *
  * @note This function is intended to be used when porting other log systems.
  *
@@ -502,7 +509,7 @@ void z_log_printf_arg_checker(const char *fmt, ...)
  * @param fmt            String to format.
  * @param ap             Pointer to arguments list.
  */
-static inline void log2_generic(uint8_t level, const char *fmt, va_list ap)
+static inline void log_generic(uint8_t level, const char *fmt, va_list ap)
 {
 	z_log_msg_runtime_vcreate(Z_LOG_LOCAL_DOMAIN_ID, NULL, level,
 				   NULL, 0, 0, fmt, ap);

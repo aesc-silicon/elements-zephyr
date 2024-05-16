@@ -621,14 +621,6 @@ static void test_vocs_location_set(void)
 		return;
 	}
 
-	invalid_location = BT_AUDIO_LOCATION_PROHIBITED;
-
-	err = bt_vocs_location_set(vcp_included.vocs[0], invalid_location);
-	if (err == 0) {
-		FAIL("bt_vocs_location_set with location 0x%08X did not fail", invalid_location);
-		return;
-	}
-
 	invalid_location = BT_AUDIO_LOCATION_ANY + 1;
 
 	err = bt_vocs_location_set(vcp_included.vocs[0], invalid_location);
@@ -1040,7 +1032,7 @@ static void test_main(void)
 
 	printk("VCP initialized\n");
 
-	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, AD_SIZE, NULL, 0);
+	err = bt_le_adv_start(BT_LE_ADV_CONN, ad, AD_SIZE, NULL, 0);
 	if (err != 0) {
 		FAIL("Advertising failed to start (err %d)\n", err);
 		return;

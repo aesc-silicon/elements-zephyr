@@ -11,6 +11,7 @@ from colorama import Fore
 import xml.etree.ElementTree as ET
 import string
 from datetime import datetime
+from pathlib import PosixPath
 
 logger = logging.getLogger('twister')
 logger.setLevel(logging.DEBUG)
@@ -26,6 +27,7 @@ class Reporting:
         self.env = env
         self.timestamp = datetime.now().isoformat()
         self.outdir = os.path.abspath(env.options.outdir)
+        self.instance_fail_count = plan.instance_fail_count
 
     @staticmethod
     def process_log(log_file):
@@ -234,12 +236,23 @@ class Reporting:
 
     def json_report(self, filename, version="NA", platform=None):
         logger.info(f"Writing JSON report {filename}")
+
+        if self.env.options.report_all_options:
+            report_options = vars(self.env.options)
+        else:
+            report_options = self.env.non_default_options()
+
+        # Resolve known JSON serialization problems.
+        for k,v in report_options.items():
+            report_options[k] = str(v) if type(v) in [PosixPath] else v
+
         report = {}
         report["environment"] = {"os": os.name,
                                  "zephyr_version": version,
                                  "toolchain": self.env.toolchain,
                                  "commit_date": self.env.commit_date,
-                                 "run_date": self.env.run_date
+                                 "run_date": self.env.run_date,
+                                 "options": report_options
                                  }
         suites = []
 
@@ -404,7 +417,7 @@ class Reporting:
         logger.debug("running footprint_reports")
         deltas = self.compare_metrics(report)
         warnings = 0
-        if deltas and show_footprint:
+        if deltas:
             for i, metric, value, delta, lower_better in deltas:
                 if not all_deltas and ((delta < 0 and lower_better) or
                                        (delta > 0 and not lower_better)):
@@ -417,31 +430,51 @@ class Reporting:
                 if not all_deltas and (percentage < (footprint_threshold / 100.0)):
                     continue
 
-                logger.info("{:<25} {:<60} {}{}{}: {} {:<+4}, is now {:6} {:+.2%}".format(
-                    i.platform.name, i.testsuite.name, Fore.YELLOW,
-                    "INFO" if all_deltas else "WARNING", Fore.RESET,
-                    metric, delta, value, percentage))
+                if show_footprint:
+                    logger.log(
+                        logging.INFO if all_deltas else logging.WARNING,
+                        "{:<25} {:<60} {} {:<+4}, is now {:6} {:+.2%}".format(
+                        i.platform.name, i.testsuite.name,
+                        metric, delta, value, percentage))
+
                 warnings += 1
 
         if warnings:
-            logger.warning("Deltas based on metrics from last %s" %
-                           ("release" if not last_metrics else "run"))
+            logger.warning("Found {} footprint deltas to {} as a baseline.".format(
+                           warnings,
+                           (report if not last_metrics else "the last twister run.")))
 
     def synopsis(self):
+        if self.env.options.report_summary == 0:
+            count = self.instance_fail_count
+            log_txt = f"The following issues were found (showing the all {count} items):"
+        elif self.env.options.report_summary:
+            count = self.env.options.report_summary
+            log_txt = f"The following issues were found "
+            if count > self.instance_fail_count:
+                log_txt += f"(presenting {self.instance_fail_count} out of the {count} items requested):"
+            else:
+                log_txt += f"(showing the {count} of {self.instance_fail_count} items):"
+        else:
+            count = 10
+            log_txt = f"The following issues were found (showing the top {count} items):"
         cnt = 0
         example_instance = None
         detailed_test_id = self.env.options.detailed_test_id
         for instance in self.instances.values():
             if instance.status not in ["passed", "filtered", "skipped"]:
-                cnt = cnt + 1
+                cnt += 1
                 if cnt == 1:
                     logger.info("-+" * 40)
-                    logger.info("The following issues were found (showing the top 10 items):")
+                    logger.info(log_txt)
 
                 logger.info(f"{cnt}) {instance.testsuite.name} on {instance.platform.name} {instance.status} ({instance.reason})")
                 example_instance = instance
-            if cnt == 10:
+            if cnt == count:
                 break
+        if cnt == 0 and self.env.options.report_summary is not None:
+            logger.info("-+" * 40)
+            logger.info(f"No errors/fails found")
 
         if cnt and example_instance:
             logger.info("")
@@ -456,13 +489,13 @@ class Reporting:
                         f"{example_instance.testsuite.source_dir_rel} -T {example_instance.testsuite.id}")
             logger.info("-+" * 40)
 
-    def summary(self, results, unrecognized_sections, duration):
+    def summary(self, results, ignore_unrecognized_sections, duration):
         failed = 0
         run = 0
         for instance in self.instances.values():
             if instance.status == "failed":
                 failed += 1
-            elif instance.metrics.get("unrecognized") and not unrecognized_sections:
+            elif not ignore_unrecognized_sections and instance.metrics.get("unrecognized"):
                 logger.error("%sFAILED%s: %s has unrecognized binary sections: %s" %
                              (Fore.RED, Fore.RESET, instance.name,
                               str(instance.metrics.get("unrecognized", []))))
@@ -545,13 +578,13 @@ class Reporting:
 
 
     def target_report(self, json_file, outdir, suffix):
-        platforms = {inst.platform.name for _, inst in self.instances.items()}
-        for platform in platforms:
+        platforms = {repr(inst.platform):inst.platform for _, inst in self.instances.items()}
+        for platform in platforms.values():
             if suffix:
-                filename = os.path.join(outdir,"{}_{}.xml".format(platform, suffix))
-                json_platform_file = os.path.join(outdir,"{}_{}.json".format(platform, suffix))
+                filename = os.path.join(outdir,"{}_{}.xml".format(platform.normalized_name, suffix))
+                json_platform_file = os.path.join(outdir,"{}_{}.json".format(platform.normalized_name, suffix))
             else:
-                filename = os.path.join(outdir,"{}.xml".format(platform))
-                json_platform_file = os.path.join(outdir,"{}.json".format(platform))
-            self.xunit_report(json_file, filename, platform, full_report=True)
-            self.json_report(json_platform_file, version=self.env.version, platform=platform)
+                filename = os.path.join(outdir,"{}.xml".format(platform.normalized_name))
+                json_platform_file = os.path.join(outdir,"{}.json".format(platform.normalized_name))
+            self.xunit_report(json_file, filename, platform.name, full_report=True)
+            self.json_report(json_platform_file, version=self.env.version, platform=platform.name)

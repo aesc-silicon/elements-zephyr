@@ -56,9 +56,9 @@ void k_free(void *ptr)
 	}
 }
 
-#if (CONFIG_HEAP_MEM_POOL_SIZE > 0)
+#if (K_HEAP_MEM_POOL_SIZE > 0)
 
-K_HEAP_DEFINE(_system_heap, CONFIG_HEAP_MEM_POOL_SIZE);
+K_HEAP_DEFINE(_system_heap, K_HEAP_MEM_POOL_SIZE);
 #define _SYSTEM_HEAP (&_system_heap)
 
 void *k_aligned_alloc(size_t align, size_t size)
@@ -119,7 +119,7 @@ void k_thread_system_pool_assign(struct k_thread *thread)
 }
 #else
 #define _SYSTEM_HEAP	NULL
-#endif
+#endif /* K_HEAP_MEM_POOL_SIZE */
 
 void *z_thread_aligned_alloc(size_t align, size_t size)
 {

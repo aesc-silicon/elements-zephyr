@@ -52,7 +52,7 @@ static int test_task(const struct device *dma, uint32_t chan_id, uint32_t blen)
 	dma_cfg.dest_burst_length = blen;
 	dma_cfg.dma_callback = test_done;
 	dma_cfg.complete_callback_en = 0U;
-	dma_cfg.error_callback_en = 1U;
+	dma_cfg.error_callback_dis = 0U;
 	dma_cfg.block_count = 1U;
 	dma_cfg.head_block = &dma_block_cfg;
 #ifdef CONFIG_DMA_MCUX_TEST_SLOT_START
@@ -91,7 +91,7 @@ static int test_task(const struct device *dma, uint32_t chan_id, uint32_t blen)
 	return TC_PASS;
 }
 
-#define DMA_NAME(i, _) test_dma##i
+#define DMA_NAME(i, _) tst_dma##i
 #define DMA_LIST       LISTIFY(CONFIG_DMA_LOOP_TRANSFER_NUMBER_OF_DMAS, DMA_NAME, (,))
 
 #if CONFIG_DMA_TRANSFER_BURST16

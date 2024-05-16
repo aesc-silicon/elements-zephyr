@@ -7,8 +7,11 @@
 #include "argparse.h"
 #include <bs_pc_backchannel.h>
 #include "mesh/crypto.h"
+#include <zephyr/bluetooth/hci.h>
 
 #define LOG_MODULE_NAME mesh_test
+#define COMPANY_ID_LF 0x05F1
+#define COMPANY_ID_NORDIC_SEMI 0x05F9
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
@@ -161,6 +164,15 @@ static struct bt_mesh_health_srv health_srv;
 static struct bt_mesh_model_pub health_pub = {
 	.msg = NET_BUF_SIMPLE(BT_MESH_TX_SDU_MAX),
 };
+static const uint8_t health_tests[] = {
+	BT_MESH_HEALTH_TEST_INFO(COMPANY_ID_LF, 6, 0x01, 0x02, 0x03, 0x04, 0x34, 0x15),
+	BT_MESH_HEALTH_TEST_INFO(COMPANY_ID_NORDIC_SEMI, 3, 0x01, 0x02, 0x03),
+};
+
+const struct bt_mesh_models_metadata_entry health_srv_meta[] = {
+	BT_MESH_HEALTH_TEST_INFO_METADATA(health_tests),
+	BT_MESH_MODELS_METADATA_END,
+};
 
 #if defined(CONFIG_BT_MESH_SAR_CFG)
 static struct bt_mesh_sar_cfg_cli sar_cfg_cli;
@@ -178,7 +190,7 @@ static const struct bt_mesh_model models[] = {
 	BT_MESH_MODEL_CFG_SRV,
 	BT_MESH_MODEL_CFG_CLI(&cfg_cli),
 	BT_MESH_MODEL_CB(TEST_MOD_ID, model_op, &pub, NULL, &test_model_cb),
-	BT_MESH_MODEL_HEALTH_SRV(&health_srv, &health_pub),
+	BT_MESH_MODEL_HEALTH_SRV(&health_srv, &health_pub, health_srv_meta),
 #if defined(CONFIG_BT_MESH_SAR_CFG)
 	BT_MESH_MODEL_SAR_CFG_SRV,
 	BT_MESH_MODEL_SAR_CFG_CLI(&sar_cfg_cli),
@@ -545,6 +557,50 @@ uint16_t bt_mesh_test_own_addr_get(uint16_t start_addr)
 {
 	return start_addr + get_device_nbr();
 }
+
+void bt_mesh_test_send_over_adv(void *data, size_t len)
+{
+	struct bt_mesh_adv *adv = bt_mesh_adv_create(BT_MESH_ADV_DATA, BT_MESH_ADV_TAG_LOCAL,
+						     BT_MESH_TRANSMIT(0, 20), K_NO_WAIT);
+	net_buf_simple_add_mem(&adv->b, data, len);
+	bt_mesh_adv_send(adv, NULL, NULL);
+}
+
+int bt_mesh_test_wait_for_packet(bt_le_scan_cb_t scan_cb, struct k_sem *observer_sem, uint16_t wait)
+{
+	struct bt_le_scan_param scan_param = {
+		.type       = BT_HCI_LE_SCAN_PASSIVE,
+		.options    = BT_LE_SCAN_OPT_NONE,
+		.interval   = BT_MESH_ADV_SCAN_UNIT(1000),
+		.window     = BT_MESH_ADV_SCAN_UNIT(1000)
+	};
+	int err;
+	int returned_value = 0;
+
+	err = bt_le_scan_start(&scan_param, scan_cb);
+	if (err && err != -EALREADY) {
+		LOG_ERR("Starting scan failed (err %d)", err);
+		return err;
+	}
+
+	err = k_sem_take(observer_sem, K_SECONDS(wait));
+	if (err == -EAGAIN) {
+		LOG_WRN("Taking sem timed out (err %d)", err);
+		returned_value = -ETIMEDOUT;
+	} else if (err) {
+		LOG_ERR("Taking sem failed (err %d)", err);
+		return err;
+	}
+
+	err = bt_le_scan_stop();
+	if (err && err != -EALREADY) {
+		LOG_ERR("Stopping scan failed (err %d)", err);
+		return err;
+	}
+
+	return returned_value;
+}
+
 
 #if defined(CONFIG_BT_MESH_SAR_CFG)
 void bt_mesh_test_sar_conf_set(struct bt_mesh_sar_tx *tx_set, struct bt_mesh_sar_rx *rx_set)

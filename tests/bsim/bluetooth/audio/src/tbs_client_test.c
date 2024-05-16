@@ -460,11 +460,25 @@ static void test_signal_interval(uint8_t index)
 	printk("Client signal interval test success\n");
 }
 
+static void discover_tbs(void)
+{
+	int err;
+
+	discovery_complete = false;
+
+	err = bt_tbs_client_discover(default_conn);
+	if (err) {
+		FAIL("Failed to discover TBS: %d", err);
+		return;
+	}
+
+	WAIT_FOR_COND(discovery_complete);
+}
+
 static void test_main(void)
 {
 	int err;
 	int index = 0;
-	int tbs_client_err;
 
 	err = bt_enable(bt_ready);
 
@@ -480,7 +494,7 @@ static void test_main(void)
 
 	printk("Audio Server: Bluetooth discovered\n");
 
-	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, AD_SIZE, NULL, 0);
+	err = bt_le_adv_start(BT_LE_ADV_CONN, ad, AD_SIZE, NULL, 0);
 	if (err != 0) {
 		FAIL("Advertising failed to start (err %d)\n", err);
 		return;
@@ -490,12 +504,8 @@ static void test_main(void)
 
 	WAIT_FOR_COND(is_connected);
 
-	tbs_client_err = bt_tbs_client_discover(default_conn);
-	if (tbs_client_err) {
-		FAIL("Failed to discover TBS_CLIENT for connection %d", tbs_client_err);
-	}
-
-	WAIT_FOR_COND(discovery_complete);
+	discover_tbs();
+	discover_tbs(); /* test that we can discover twice */
 
 	printk("GTBS %sfound\n", is_gtbs_found ? "" : "not ");
 

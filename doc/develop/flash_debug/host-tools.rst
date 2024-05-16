@@ -221,6 +221,24 @@ LinkServer is compatible with the following debug probes:
 - :ref:`mcu-link-cmsis-onboard-debug-probe`
 - :ref:`opensda-daplink-onboard-debug-probe`
 
+To use LinkServer with West commands, the install folder should be added to the
+:envvar:`PATH` :ref:`environment variable <env_vars>`.  The default installation
+path to add is:
+
+.. tabs::
+
+   .. group-tab:: Linux
+
+      .. code-block:: console
+
+         /usr/local/LinkServer
+
+   .. group-tab:: Windows
+
+      .. code-block:: console
+
+         c:\nxp\LinkServer_<version>
+
 Supported west commands:
 
 1. flash
@@ -251,6 +269,10 @@ LinkServer west runner   ``--probe`` option to pass the probe index.
 .. code-block:: console
 
    west flash --runner=linkserver --override /device/memory/5/flash-driver=MIMXRT500_SFDP_MXIC_OSPI_S.cfx
+
+4. LinkServer does not install an implicit breakpoint at the reset handler. If
+   you would like to single step from the start of their application, you
+   will need to add a breakpoint at ``main`` or the reset handler manually.
 
 .. _jlink-debug-host-tools:
 
@@ -321,6 +343,8 @@ Started Guide. pyOCD includes support for Zephyr RTOS-awareness.
 
 These debug host tools are compatible with the following debug probes:
 
+- :ref:`lpclink2-cmsis-onboard-debug-probe`
+- :ref:`mcu-link-cmsis-onboard-debug-probe`
 - :ref:`opensda-daplink-onboard-debug-probe`
 - :ref:`stlink-v21-onboard-debug-probe`
 
@@ -477,7 +501,7 @@ afterwards detach the debug session:
 	https://www.nxp.com/design/software/development-software/mcuxpresso-software-and-tools-/mcuxpresso-for-visual-studio-code:MCUXPRESSO-VSC
 
 .. _MCUXpresso Installer:
-	https://www.nxp.com/lgfiles/updates/mcuxpresso/MCUXpressoInstaller.exe
+	https://github.com/nxp-mcuxpresso/vscode-for-mcux/wiki/Dependency-Installation
 
 .. _NXP S32 Design Studio for S32 Platform:
    https://www.nxp.com/design/software/development-software/s32-design-studio-ide/s32-design-studio-for-s32-platform:S32DS-S32PLATFORM

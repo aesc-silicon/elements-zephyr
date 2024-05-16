@@ -6,7 +6,6 @@ Configuration Options
 This is a non-exhaustive list of specific :ref:`kconfig` options relating to Zephyr's
 implementation of the POSIX API.
 
-* :kconfig:option:`CONFIG_APP_LINK_WITH_POSIX_SUBSYS`
 * :kconfig:option:`CONFIG_EVENTFD`
 * :kconfig:option:`CONFIG_EVENTFD_MAX`
 * :kconfig:option:`CONFIG_FDTABLE`
@@ -25,7 +24,6 @@ implementation of the POSIX API.
 * :kconfig:option:`CONFIG_NET_SOCKETPAIR`
 * :kconfig:option:`CONFIG_NET_SOCKETS`
 * :kconfig:option:`CONFIG_NET_SOCKETS_POLL_MAX`
-* :kconfig:option:`CONFIG_NET_SOCKETS_POSIX_NAMES`
 * :kconfig:option:`CONFIG_POSIX_API`
 * :kconfig:option:`CONFIG_POSIX_CLOCK`
 * :kconfig:option:`CONFIG_POSIX_FS`

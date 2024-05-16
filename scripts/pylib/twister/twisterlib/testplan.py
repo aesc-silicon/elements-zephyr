@@ -17,7 +17,9 @@ import copy
 import shutil
 import random
 import snippets
+from colorama import Fore
 from pathlib import Path
+from argparse import Namespace
 
 logger = logging.getLogger('twister')
 logger.setLevel(logging.DEBUG)
@@ -34,7 +36,7 @@ from twisterlib.config_parser import TwisterConfigParser
 from twisterlib.testinstance import TestInstance
 from twisterlib.quarantine import Quarantine
 
-
+import list_boards
 from zephyr_module import parse_modules
 
 ZEPHYR_BASE = os.getenv("ZEPHYR_BASE")
@@ -58,7 +60,7 @@ class Filters:
     TESTSUITE = 'testsuite filter'
     # filters in the testplan yaml definition
     TESTPLAN = 'testplan filter'
-    # filters realted to platform definition
+    # filters related to platform definition
     PLATFORM = 'Platform related filter'
     # in case a test suite was quarantined.
     QUARANTINE = 'Quarantine filter'
@@ -106,6 +108,7 @@ class TestPlan:
         self.default_platforms = []
         self.load_errors = 0
         self.instances = dict()
+        self.instance_fail_count = 0
         self.warnings = 0
 
         self.scenarios = []
@@ -216,7 +219,7 @@ class TestPlan:
         else:
             last_run = os.path.join(self.options.outdir, "twister.json")
 
-        if self.options.only_failed:
+        if self.options.only_failed or self.options.report_summary is not None:
             self.load_from_file(last_run)
             self.selected_platforms = set(p.platform.name for p in self.instances.values())
         elif self.options.load_tests:
@@ -348,13 +351,13 @@ class TestPlan:
             print("- {}".format(t))
 
     def report_test_tree(self):
-        all_tests = self.get_all_tests()
+        tests_list = self.get_tests_list()
 
         testsuite = Node("Testsuite")
         samples = Node("Samples", parent=testsuite)
         tests = Node("Tests", parent=testsuite)
 
-        for test in sorted(all_tests):
+        for test in sorted(tests_list):
             if test.startswith("sample."):
                 sec = test.split(".")
                 area = find(samples, lambda node: node.name == sec[1] and node.parent == samples)
@@ -378,17 +381,14 @@ class TestPlan:
             print("%s%s" % (pre, node.name))
 
     def report_test_list(self):
-        cnt = 0
-        all_tests = self.get_all_tests()
+        tests_list = self.get_tests_list()
 
-        for test in sorted(all_tests):
+        cnt = 0
+        for test in sorted(tests_list):
             cnt = cnt + 1
             print(" - {}".format(test))
-
         print("{} total.".format(cnt))
 
-    def config(self):
-        logger.info("coverage platform: {}".format(self.coverage_platform))
 
     # Debug Functions
     @staticmethod
@@ -396,15 +396,37 @@ class TestPlan:
         sys.stdout.write(what + "\n")
         sys.stdout.flush()
 
-
     def add_configurations(self):
-        for board_root in self.env.board_roots:
-            board_root = os.path.abspath(board_root)
-            logger.debug("Reading platform configuration files under %s..." %
-                         board_root)
+        board_dirs = set()
+        # Create a list of board roots as defined by the build system in general
+        # Note, internally in twister a board root includes the `boards` folder
+        # but in Zephyr build system, the board root is without the `boards` in folder path.
+        board_roots = [Path(os.path.dirname(root)) for root in self.env.board_roots]
+        lb_args = Namespace(arch_roots=[Path(ZEPHYR_BASE)], soc_roots=[Path(ZEPHYR_BASE),
+                            Path(ZEPHYR_BASE) / 'subsys' / 'testsuite'],
+                            board_roots=board_roots, board=None, board_dir=None)
+        v1_boards = list_boards.find_boards(lb_args)
+        v2_dirs = list_boards.find_v2_board_dirs(lb_args)
+        for b in v1_boards:
+            board_dirs.add(b.dir)
+        board_dirs.update(v2_dirs)
+        logger.debug("Reading platform configuration files under %s..." % self.env.board_roots)
 
-            platform_config = self.test_config.get('platforms', {})
-            for file in glob.glob(os.path.join(board_root, "*", "*", "*.yaml")):
+        platform_config = self.test_config.get('platforms', {})
+        for folder in board_dirs:
+            for file in glob.glob(os.path.join(folder, "*.yaml")):
+                # If the user set a platform filter, we can, if no other option would increase
+                # the allowed platform pool, save on time by not loading YAMLs of any boards
+                # that do not start with the required names.
+                if self.options.platform and \
+                    not self.options.all and \
+                    not self.options.integration and \
+                    not any([
+                        os.path.basename(file).startswith(
+                            re.split('[/@]', p)[0]
+                        ) for p in self.options.platform
+                    ]):
+                    continue
                 try:
                     platform = Platform()
                     platform.load(file)
@@ -436,7 +458,7 @@ class TestPlan:
                             # cmake/modules/extensions.cmake.
                             revision_patterns = ["[A-Z]",
                                                     "[0-9]+",
-                                                    "(0|[1-9][0-9]*)(_[0-9]+)*(_[0-9]+)*"]
+                                                    "(0|[1-9][0-9]*)(_[0-9]+){0,2}"]
 
                             for pattern in revision_patterns:
                                 result = re.match(f"{platform.name}_(?P<revision>{pattern})\\.conf", item)
@@ -447,6 +469,7 @@ class TestPlan:
                                         platform_revision = copy.deepcopy(platform)
                                         revision = revision.replace("_", ".")
                                         platform_revision.name = f"{platform.name}@{revision}"
+                                        platform_revision.normalized_name = platform_revision.name.replace("/", "_")
                                         platform_revision.default = False
                                         self.platforms.append(platform_revision)
 
@@ -465,6 +488,26 @@ class TestPlan:
             for case in ts.testcases:
                 testcases.append(case.name)
 
+        return testcases
+
+    def get_tests_list(self):
+        testcases = []
+        if tag_filter := self.options.tag:
+            for _, ts in self.testsuites.items():
+                if ts.tags.intersection(tag_filter):
+                    for case in ts.testcases:
+                        testcases.append(case.name)
+        else:
+            for _, ts in self.testsuites.items():
+                for case in ts.testcases:
+                    testcases.append(case.name)
+
+        if exclude_tag := self.options.exclude_tag:
+            for _, ts in self.testsuites.items():
+                if ts.tags.intersection(exclude_tag):
+                    for case in ts.testcases:
+                        if case.name in testcases:
+                            testcases.remove(case.name)
         return testcases
 
     def add_testsuites(self, testsuite_filter=[]):
@@ -506,7 +549,8 @@ class TestPlan:
                         suite = TestSuite(root, suite_path, name, data=suite_dict, detailed_test_id=self.options.detailed_test_id)
                         suite.add_subcases(suite_dict, subcases, ztest_suite_names)
                         if testsuite_filter:
-                            if suite.name and suite.name in testsuite_filter:
+                            scenario = os.path.basename(suite.name)
+                            if suite.name and (suite.name in testsuite_filter or scenario in testsuite_filter):
                                 self.testsuites[suite.name] = suite
                         else:
                             self.testsuites[suite.name] = suite
@@ -527,71 +571,95 @@ class TestPlan:
                 break
         return selected_platform
 
+    def handle_quarantined_tests(self, instance: TestInstance, plat: Platform):
+        if self.quarantine:
+            matched_quarantine = self.quarantine.get_matched_quarantine(
+                instance.testsuite.id, plat.name, plat.arch, plat.simulation
+            )
+            if matched_quarantine and not self.options.quarantine_verify:
+                instance.add_filter("Quarantine: " + matched_quarantine, Filters.QUARANTINE)
+                return
+            if not matched_quarantine and self.options.quarantine_verify:
+                instance.add_filter("Not under quarantine", Filters.QUARANTINE)
+
     def load_from_file(self, file, filter_platform=[]):
-        with open(file, "r") as json_test_plan:
-            jtp = json.load(json_test_plan)
-            instance_list = []
-            for ts in jtp.get("testsuites", []):
-                logger.debug(f"loading {ts['name']}...")
-                testsuite = ts["name"]
+        try:
+            with open(file, "r") as json_test_plan:
+                jtp = json.load(json_test_plan)
+                instance_list = []
+                for ts in jtp.get("testsuites", []):
+                    logger.debug(f"loading {ts['name']}...")
+                    testsuite = ts["name"]
 
-                platform = self.get_platform(ts["platform"])
-                if filter_platform and platform.name not in filter_platform:
-                    continue
-                instance = TestInstance(self.testsuites[testsuite], platform, self.env.outdir)
-                if ts.get("run_id"):
-                    instance.run_id = ts.get("run_id")
+                    platform = self.get_platform(ts["platform"])
+                    if filter_platform and platform.name not in filter_platform:
+                        continue
+                    instance = TestInstance(self.testsuites[testsuite], platform, self.env.outdir)
+                    if ts.get("run_id"):
+                        instance.run_id = ts.get("run_id")
 
-                if self.options.device_testing:
-                    tfilter = 'runnable'
-                else:
-                    tfilter = 'buildable'
-                instance.run = instance.check_runnable(
-                    self.options.enable_slow,
-                    tfilter,
-                    self.options.fixture,
-                    self.hwm
-                )
+                    if self.options.device_testing:
+                        tfilter = 'runnable'
+                    else:
+                        tfilter = 'buildable'
+                    instance.run = instance.check_runnable(
+                        self.options.enable_slow,
+                        tfilter,
+                        self.options.fixture,
+                        self.hwm
+                    )
 
-                instance.metrics['handler_time'] = ts.get('execution_time', 0)
-                instance.metrics['used_ram'] = ts.get("used_ram", 0)
-                instance.metrics['used_rom']  = ts.get("used_rom",0)
-                instance.metrics['available_ram'] = ts.get('available_ram', 0)
-                instance.metrics['available_rom'] = ts.get('available_rom', 0)
+                    instance.metrics['handler_time'] = ts.get('execution_time', 0)
+                    instance.metrics['used_ram'] = ts.get("used_ram", 0)
+                    instance.metrics['used_rom']  = ts.get("used_rom",0)
+                    instance.metrics['available_ram'] = ts.get('available_ram', 0)
+                    instance.metrics['available_rom'] = ts.get('available_rom', 0)
 
-                status = ts.get('status', None)
-                reason = ts.get("reason", "Unknown")
-                if status in ["error", "failed"]:
-                    instance.status = None
-                    instance.reason = None
-                    instance.retries += 1
-                # test marked as passed (built only) but can run when
-                # --test-only is used. Reset status to capture new results.
-                elif status == 'passed' and instance.run and self.options.test_only:
-                    instance.status = None
-                    instance.reason = None
-                else:
-                    instance.status = status
-                    instance.reason = reason
+                    status = ts.get('status', None)
+                    reason = ts.get("reason", "Unknown")
+                    if status in ["error", "failed"]:
+                        if self.options.report_summary is not None:
+                            if status == "error": status = "ERROR"
+                            elif status == "failed": status = "FAILED"
+                            instance.status = Fore.RED + status + Fore.RESET
+                            instance.reason = reason
+                            self.instance_fail_count += 1
+                        else:
+                            instance.status = None
+                            instance.reason = None
+                            instance.retries += 1
+                    # test marked as passed (built only) but can run when
+                    # --test-only is used. Reset status to capture new results.
+                    elif status == 'passed' and instance.run and self.options.test_only:
+                        instance.status = None
+                        instance.reason = None
+                    else:
+                        instance.status = status
+                        instance.reason = reason
 
-                for tc in ts.get('testcases', []):
-                    identifier = tc['identifier']
-                    tc_status = tc.get('status', None)
-                    tc_reason = None
-                    # we set reason only if status is valid, it might have been
-                    # reset above...
-                    if instance.status:
-                        tc_reason = tc.get('reason')
-                    if tc_status:
-                        case = instance.set_case_status_by_name(identifier, tc_status, tc_reason)
-                        case.duration = tc.get('execution_time', 0)
-                        if tc.get('log'):
-                            case.output = tc.get('log')
+                    self.handle_quarantined_tests(instance, platform)
+
+                    for tc in ts.get('testcases', []):
+                        identifier = tc['identifier']
+                        tc_status = tc.get('status', None)
+                        tc_reason = None
+                        # we set reason only if status is valid, it might have been
+                        # reset above...
+                        if instance.status:
+                            tc_reason = tc.get('reason')
+                        if tc_status:
+                            case = instance.set_case_status_by_name(identifier, tc_status, tc_reason)
+                            case.duration = tc.get('execution_time', 0)
+                            if tc.get('log'):
+                                case.output = tc.get('log')
 
 
-                instance.create_overlay(platform, self.options.enable_asan, self.options.enable_ubsan, self.options.enable_coverage, self.options.coverage_platform)
-                instance_list.append(instance)
-            self.add_instances(instance_list)
+                    instance.create_overlay(platform, self.options.enable_asan, self.options.enable_ubsan, self.options.enable_coverage, self.options.coverage_platform)
+                    instance_list.append(instance)
+                self.add_instances(instance_list)
+        except FileNotFoundError as e:
+            logger.error(f"{e}")
+            return 1
 
     def apply_filters(self, **kwargs):
 
@@ -667,11 +735,21 @@ class TestPlan:
         for ts_name, ts in self.testsuites.items():
             if ts.build_on_all and not platform_filter and platform_config.get('increased_platform_scope', True):
                 platform_scope = self.platforms
-            elif ts.integration_platforms and self.options.integration:
-                self.verify_platforms_existence(
-                    ts.integration_platforms, f"{ts_name} - integration_platforms")
-                platform_scope = list(filter(lambda item: item.name in ts.integration_platforms, \
-                                         self.platforms))
+            elif ts.integration_platforms:
+                integration_platforms = list(filter(lambda item: item.name in ts.integration_platforms,
+                                                    self.platforms))
+                if self.options.integration:
+                    self.verify_platforms_existence(
+                        ts.integration_platforms, f"{ts_name} - integration_platforms")
+                    platform_scope = integration_platforms
+                else:
+                    # if not in integration mode, still add integration platforms to the list
+                    if not platform_filter:
+                        self.verify_platforms_existence(
+                            ts.integration_platforms, f"{ts_name} - integration_platforms")
+                        platform_scope = platforms + integration_platforms
+                    else:
+                        platform_scope = platforms
             else:
                 platform_scope = platforms
 
@@ -717,9 +795,12 @@ class TestPlan:
 
                 if self.options.level:
                     tl = self.get_level(self.options.level)
-                    planned_scenarios = tl.scenarios
-                    if ts.id not in planned_scenarios and not set(ts.levels).intersection(set(tl.levels)):
-                        instance.add_filter("Not part of requested test plan", Filters.TESTPLAN)
+                    if tl is None:
+                        instance.add_filter(f"Unknown test level '{self.options.level}'", Filters.TESTPLAN)
+                    else:
+                        planned_scenarios = tl.scenarios
+                        if ts.id not in planned_scenarios and not set(ts.levels).intersection(set(tl.levels)):
+                            instance.add_filter("Not part of requested test plan", Filters.TESTPLAN)
 
                 if runnable and not instance.run:
                     instance.add_filter("Not runnable on device", Filters.CMD_LINE)
@@ -739,8 +820,10 @@ class TestPlan:
                 if exclude_tag and ts.tags.intersection(exclude_tag):
                     instance.add_filter("Command line testsuite exclude filter", Filters.CMD_LINE)
 
-                if testsuite_filter and ts_name not in testsuite_filter:
-                    instance.add_filter("TestSuite name filter", Filters.CMD_LINE)
+                if testsuite_filter:
+                    normalized_f = [os.path.basename(_ts) for _ts in testsuite_filter]
+                    if ts.id not in normalized_f:
+                        instance.add_filter("Testsuite name filter", Filters.CMD_LINE)
 
                 if arch_filter and plat.arch not in arch_filter:
                     instance.add_filter("Command line testsuite arch filter", Filters.CMD_LINE)
@@ -806,7 +889,7 @@ class TestPlan:
                 if ts.required_snippets:
                     missing_snippet = False
                     snippet_args = {"snippets": ts.required_snippets}
-                    found_snippets = snippets.find_snippets_in_roots(snippet_args, [Path(ZEPHYR_BASE), Path(ts.source_dir)])
+                    found_snippets = snippets.find_snippets_in_roots(snippet_args, [*self.env.snippet_roots, Path(ts.source_dir)])
 
                     # Search and check that all required snippet files are found
                     for this_snippet in snippet_args['snippets']:
@@ -820,7 +903,7 @@ class TestPlan:
                     if not missing_snippet:
                         # Look for required snippets and check that they are applicable for these
                         # platforms/boards
-                        for this_snippet in found_snippets:
+                        for this_snippet in snippet_args['snippets']:
                             matched_snippet_board = False
 
                             # If the "appends" key is present with at least one entry then this
@@ -844,15 +927,7 @@ class TestPlan:
                                 break
 
                 # handle quarantined tests
-                if self.quarantine:
-                    matched_quarantine = self.quarantine.get_matched_quarantine(
-                        instance.testsuite.id, plat.name, plat.arch, plat.simulation
-                    )
-                    if matched_quarantine and not self.options.quarantine_verify:
-                        instance.add_filter("Quarantine: " + matched_quarantine, Filters.QUARANTINE)
-                    if not matched_quarantine and self.options.quarantine_verify:
-                        instance.add_filter("Not under quarantine", Filters.QUARANTINE)
-
+                self.handle_quarantined_tests(instance, plat)
 
                 # platform_key is a list of unique platform attributes that form a unique key a test
                 # will match against to determine if it should be scheduled to run. A key containing a
@@ -906,7 +981,10 @@ class TestPlan:
                     else:
                         self.add_instances(instance_list)
                 else:
-                    instances = list(filter(lambda ts: ts.platform.name in self.default_platforms, instance_list))
+                    # add integration platforms to the list of default
+                    # platforms, even if we are not in integration mode
+                    _platforms = self.default_platforms + ts.integration_platforms
+                    instances = list(filter(lambda ts: ts.platform.name in _platforms, instance_list))
                     self.add_instances(instances)
             elif integration:
                 instances = list(filter(lambda item:  item.platform.name in ts.integration_platforms, instance_list))
@@ -994,7 +1072,7 @@ class TestPlan:
         link_path = os.path.join(links_dir_path, link_name)
 
         if os.name == "nt":  # if OS is Windows
-            command = ["mklink", "/J", f"{link_path}", f"{instance.build_dir}"]
+            command = ["mklink", "/J", f"{link_path}", os.path.normpath(instance.build_dir)]
             subprocess.call(command, shell=True)
         else:  # for Linux and MAC OS
             os.symlink(instance.build_dir, link_path)

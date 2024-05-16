@@ -49,6 +49,8 @@ enum wifi_security_type {
 	WIFI_SECURITY_TYPE_WEP,
 	/** WPA-PSK security. */
 	WIFI_SECURITY_TYPE_WPA_PSK,
+	/** WPA/WPA2/WPA3 PSK security. */
+	WIFI_SECURITY_TYPE_WPA_AUTO_PERSONAL,
 
 	__WIFI_SECURITY_TYPE_AFTER_LAST,
 	WIFI_SECURITY_TYPE_MAX = __WIFI_SECURITY_TYPE_AFTER_LAST - 1,
@@ -137,6 +139,18 @@ enum wifi_iface_state {
 	WIFI_STATE_MAX = __WIFI_STATE_AFTER_LAST - 1,
 	WIFI_STATE_UNKNOWN
 };
+
+/* We rely on the strict order of the enum values, so, let's check it */
+BUILD_ASSERT(WIFI_STATE_DISCONNECTED < WIFI_STATE_INTERFACE_DISABLED &&
+	     WIFI_STATE_INTERFACE_DISABLED < WIFI_STATE_INACTIVE &&
+	     WIFI_STATE_INACTIVE < WIFI_STATE_SCANNING &&
+	     WIFI_STATE_SCANNING < WIFI_STATE_AUTHENTICATING &&
+	     WIFI_STATE_AUTHENTICATING < WIFI_STATE_ASSOCIATING &&
+	     WIFI_STATE_ASSOCIATING < WIFI_STATE_ASSOCIATED &&
+	     WIFI_STATE_ASSOCIATED < WIFI_STATE_4WAY_HANDSHAKE &&
+	     WIFI_STATE_4WAY_HANDSHAKE < WIFI_STATE_GROUP_HANDSHAKE &&
+	     WIFI_STATE_GROUP_HANDSHAKE < WIFI_STATE_COMPLETED);
+
 
 /** Helper function to get user-friendly interface state name. */
 const char *wifi_state_txt(enum wifi_iface_state state);
@@ -343,6 +357,14 @@ enum wifi_twt_fail_reason {
 	WIFI_TWT_FAIL_IP_NOT_ASSIGNED,
 	/** Flow already exists */
 	WIFI_TWT_FAIL_FLOW_ALREADY_EXISTS,
+};
+
+/** Wi-Fi Target Wake Time (TWT) teradown status. */
+enum wifi_twt_teardown_status {
+	/** TWT teardown success */
+	WIFI_TWT_TEARDOWN_SUCCESS = 0,
+	/** TWT teardown failure */
+	WIFI_TWT_TEARDOWN_FAILED,
 };
 
 /** @cond INTERNAL_HIDDEN */

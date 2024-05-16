@@ -81,8 +81,14 @@ struct modem_chat_match {
 #define MODEM_CHAT_MATCH_DEFINE(_sym, _match, _separators, _callback)                              \
 	const static struct modem_chat_match _sym = MODEM_CHAT_MATCH(_match, _separators, _callback)
 
+/* Helper struct to match any response without callback. */
+extern const struct modem_chat_match modem_chat_any_match;
+
 #define MODEM_CHAT_MATCHES_DEFINE(_sym, ...)                                                       \
 	const static struct modem_chat_match _sym[] = {__VA_ARGS__}
+
+/* Helper struct to match nothing. */
+extern const struct modem_chat_match modem_chat_empty_matches[0];
 
 /**
  * @brief Modem chat script chat
@@ -118,17 +124,20 @@ struct modem_chat_script_chat {
 		.timeout = 0,                                                                      \
 	}
 
-#define MODEM_CHAT_SCRIPT_CMD_RESP_NONE(_request, _timeout)                                        \
+#define MODEM_CHAT_SCRIPT_CMD_RESP_NONE(_request, _timeout_ms)                                     \
 	{                                                                                          \
 		.request = (uint8_t *)(_request),                                                  \
 		.request_size = (uint16_t)(sizeof(_request) - 1),                                  \
 		.response_matches = NULL,                                                          \
 		.response_matches_size = 0,                                                        \
-		.timeout = _timeout,                                                               \
+		.timeout = _timeout_ms,                                                            \
 	}
 
 #define MODEM_CHAT_SCRIPT_CMDS_DEFINE(_sym, ...)                                                   \
 	const struct modem_chat_script_chat _sym[] = {__VA_ARGS__}
+
+/* Helper struct to have no chat script command. */
+extern const struct modem_chat_script_chat modem_chat_empty_script_chats[0];
 
 enum modem_chat_script_result {
 	MODEM_CHAT_SCRIPT_RESULT_SUCCESS,
@@ -166,7 +175,7 @@ struct modem_chat_script {
 	uint32_t timeout;
 };
 
-#define MODEM_CHAT_SCRIPT_DEFINE(_sym, _script_chats, _abort_matches, _callback, _timeout)         \
+#define MODEM_CHAT_SCRIPT_DEFINE(_sym, _script_chats, _abort_matches, _callback, _timeout_s)       \
 	const static struct modem_chat_script _sym = {                                             \
 		.name = #_sym,                                                                     \
 		.script_chats = _script_chats,                                                     \
@@ -174,8 +183,15 @@ struct modem_chat_script {
 		.abort_matches = _abort_matches,                                                   \
 		.abort_matches_size = ARRAY_SIZE(_abort_matches),                                  \
 		.callback = _callback,                                                             \
-		.timeout = _timeout,                                                               \
+		.timeout = _timeout_s,                                                             \
 	}
+
+#define MODEM_CHAT_SCRIPT_NO_ABORT_DEFINE(_sym, _script_chats, _callback, _timeout_s)              \
+	MODEM_CHAT_SCRIPT_DEFINE(_sym, _script_chats, modem_chat_empty_matches,                    \
+				 _callback, _timeout_s)
+
+#define MODEM_CHAT_SCRIPT_EMPTY_DEFINE(_sym)                                                       \
+	MODEM_CHAT_SCRIPT_NO_ABORT_DEFINE(_sym, modem_chat_empty_script_chats, NULL, 0)
 
 enum modem_chat_script_send_state {
 	/* No data to send */
@@ -240,9 +256,9 @@ struct modem_chat {
 	struct k_sem script_stopped_sem;
 
 	/* Script sending */
-	uint16_t script_send_request_pos;
-	uint16_t script_send_delimiter_pos;
-	struct k_work_delayable script_send_work;
+	enum modem_chat_script_send_state script_send_state;
+	uint16_t script_send_pos;
+	struct k_work script_send_work;
 	struct k_work_delayable script_send_timeout_work;
 
 	/* Match parsing */
@@ -252,8 +268,7 @@ struct modem_chat {
 	uint16_t parse_match_type;
 
 	/* Process received data */
-	struct k_work_delayable process_work;
-	k_timeout_t process_timeout;
+	struct k_work receive_work;
 };
 
 /**
@@ -282,8 +297,6 @@ struct modem_chat_config {
 	const struct modem_chat_match *unsol_matches;
 	/** Elements in array of unsolicited matches */
 	uint16_t unsol_matches_size;
-	/** Delay from receive ready event to pipe receive occurs */
-	k_timeout_t process_timeout;
 };
 
 /**

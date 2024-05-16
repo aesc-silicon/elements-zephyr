@@ -16,7 +16,6 @@
 #include <zephyr/kernel.h>
 #include <kernel_arch_data.h>
 #include <gen_offset.h>
-#include <kernel_offsets.h>
 
 #ifdef CONFIG_RISCV_SOC_CONTEXT_SAVE
 #include <soc_context.h>
@@ -24,6 +23,8 @@
 #ifdef CONFIG_RISCV_SOC_OFFSETS
 #include <soc_offsets.h>
 #endif
+
+#include <kernel_offsets.h>
 
 /* struct _callee_saved member offsets */
 GEN_OFFSET_SYM(_callee_saved_t, sp);
@@ -124,6 +125,10 @@ GEN_SOC_OFFSET_SYMS();
 #endif
 
 GEN_ABSOLUTE_SYM(__z_arch_esf_t_SIZEOF, sizeof(z_arch_esf_t));
+
+#ifdef CONFIG_EXCEPTION_DEBUG
+GEN_ABSOLUTE_SYM(__callee_saved_t_SIZEOF, ROUND_UP(sizeof(_callee_saved_t), ARCH_STACK_PTR_ALIGN));
+#endif /* CONFIG_EXCEPTION_DEBUG */
 
 #ifdef CONFIG_USERSPACE
 GEN_OFFSET_SYM(_cpu_arch_t, user_exc_sp);

@@ -132,7 +132,7 @@ happens on a single CPU before other CPUs are brought online.
 Just before entering the application :c:func:`main` function, the kernel
 calls :c:func:`z_smp_init` to launch the SMP initialization process.  This
 enumerates over the configured CPUs, calling into the architecture
-layer using :c:func:`arch_start_cpu` for each one.  This function is
+layer using :c:func:`arch_cpu_start` for each one.  This function is
 passed a memory region to use as a stack on the foreign CPU (in
 practice it uses the area that will become that CPU's interrupt
 stack), the address of a local :c:func:`smp_init_top` callback function to
@@ -302,7 +302,7 @@ registers only when :c:func:`arch_switch` is called to minimize context
 switching latency. Such architectures must use NULL as the argument to
 :c:func:`z_get_next_switch_handle` to determine if there is a new thread
 to schedule, and follow through with their own :c:func:`arch_switch` or
-derrivative if so, or directly leave interrupt mode otherwise.
+derivative if so, or directly leave interrupt mode otherwise.
 In the former case it is up to that switch code to store the handle
 resulting from the thread that is being switched out in that thread's
 "switch_handle" field after its context has fully been saved.

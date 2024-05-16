@@ -80,7 +80,7 @@ config COAP_ACK_RANDOM_PERCENT
 config COAP_MAX_RETRANSMIT
 	int "Max retransmission of a CoAP packet"
 	default 4
-	range 1 10
+	range 1 100
 
 config COAP_BACKOFF_PERCENT
 	int "Retransmission backoff factor for ACK timeout described as percentage"
@@ -201,12 +201,6 @@ config COAP_SERVICE_PENDING_MESSAGES
 	default 10
 	help
 	  Maximum number of pending CoAP messages to retransmit per active service.
-
-config COAP_SERVICE_PENDING_RETRANSMITS
-	int "CoAP retransmit count"
-	default 2
-	help
-	  Maximum number of retries to send a pending message.
 
 config COAP_SERVICE_OBSERVERS
 	int "CoAP service observers"

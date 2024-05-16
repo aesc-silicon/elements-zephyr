@@ -506,7 +506,8 @@ struct bt_mesh_model_op {
  *  @param _pub       Model publish parameters.
  *  @param _user_data User data for the model.
  *  @param _cb        Callback structure, or NULL to keep no callbacks.
- *  @param _metadata  Metadata structure.
+ *  @param _metadata  Metadata structure. Used if @kconfig{CONFIG_BT_MESH_LARGE_COMP_DATA_SRV}
+ *		      is enabled.
  */
 #if defined(CONFIG_BT_MESH_LARGE_COMP_DATA_SRV)
 #define BT_MESH_MODEL_METADATA_CB(_id, _op, _pub, _user_data, _cb, _metadata)                    \
@@ -560,8 +561,10 @@ struct bt_mesh_model_op {
  *  @param _pub       Model publish parameters.
  *  @param _user_data User data for the model.
  *  @param _cb        Callback structure, or NULL to keep no callbacks.
- *  @param _metadata  Metadata structure.
+ *  @param _metadata  Metadata structure. Used if @kconfig{CONFIG_BT_MESH_LARGE_COMP_DATA_SRV}
+ *		      is enabled.
  */
+#if defined(CONFIG_BT_MESH_LARGE_COMP_DATA_SRV)
 #define BT_MESH_MODEL_VND_METADATA_CB(_company, _id, _op, _pub, _user_data, _cb, _metadata)      \
 {                                                                            \
 	.vnd.company = (_company),                                           \
@@ -577,7 +580,10 @@ struct bt_mesh_model_op {
 	.cb = _cb,                                                           \
 	.metadata = _metadata,                                               \
 }
-
+#else
+#define BT_MESH_MODEL_VND_METADATA_CB(_company, _id, _op, _pub, _user_data, _cb, _metadata)      \
+	BT_MESH_MODEL_VND_CB(_company, _id, _op, _pub, _user_data, _cb)
+#endif
 /**
  *  @brief Composition data SIG model entry.
  *
@@ -713,6 +719,8 @@ struct bt_mesh_model_pub {
 	uint8_t  period_div:4, /**< Divisor for the Period. */
 		 count:4;      /**< Transmissions left. */
 
+	uint8_t delayable:1;   /**< Use random delay for publishing. */
+
 	uint32_t period_start; /**< Start of the current period. */
 
 	/** @brief Publication buffer, containing the publication message.
@@ -775,7 +783,7 @@ struct bt_mesh_models_metadata_entry {
 	const uint16_t id;
 
 	/* Pointer to raw data */
-	void *data;
+	const void * const data;
 };
 
 /**
@@ -922,7 +930,7 @@ struct bt_mesh_model {
 
 #if defined(CONFIG_BT_MESH_LARGE_COMP_DATA_SRV) || defined(__DOXYGEN__)
 	/* Pointer to the array of model metadata entries. */
-	struct bt_mesh_models_metadata_entry **metadata;
+	const struct bt_mesh_models_metadata_entry * const metadata;
 #endif
 };
 

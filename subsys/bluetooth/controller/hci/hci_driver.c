@@ -35,9 +35,9 @@
 
 #include "hal/ccm.h"
 
-#if defined(CONFIG_SOC_FAMILY_NRF)
+#if defined(CONFIG_SOC_FAMILY_NORDIC_NRF)
 #include "hal/radio.h"
-#endif /* CONFIG_SOC_FAMILY_NRF */
+#endif /* CONFIG_SOC_FAMILY_NORDIC_NRF */
 
 #include "ll_sw/pdu_df.h"
 #include "lll/pdu_vendor.h"
@@ -73,7 +73,7 @@ struct k_thread prio_recv_thread_data;
 static K_KERNEL_STACK_DEFINE(prio_recv_thread_stack,
 			     CONFIG_BT_CTLR_RX_PRIO_STACK_SIZE);
 struct k_thread recv_thread_data;
-static K_KERNEL_STACK_DEFINE(recv_thread_stack, CONFIG_BT_RX_STACK_SIZE);
+static K_KERNEL_STACK_DEFINE(recv_thread_stack, CONFIG_BT_CTLR_RX_STACK_SIZE);
 
 #if defined(CONFIG_BT_HCI_ACL_FLOW_CONTROL)
 static struct k_poll_signal hbuf_signal;
@@ -81,9 +81,64 @@ static sys_slist_t hbuf_pend;
 static int32_t hbuf_count;
 #endif
 
+#define BT_HCI_EVT_FLAG_RECV_PRIO BIT(0)
+#define BT_HCI_EVT_FLAG_RECV      BIT(1)
+
+/** @brief Get HCI event flags.
+ *
+ * Helper for the HCI driver to get HCI event flags that describes rules that.
+ * must be followed.
+ *
+ * @param evt HCI event code.
+ *
+ * @return HCI event flags for the specified event.
+ */
+static inline uint8_t bt_hci_evt_get_flags(uint8_t evt)
+{
+	switch (evt) {
+	case BT_HCI_EVT_DISCONN_COMPLETE:
+		return BT_HCI_EVT_FLAG_RECV | BT_HCI_EVT_FLAG_RECV_PRIO;
+		/* fallthrough */
+#if defined(CONFIG_BT_CONN) || defined(CONFIG_BT_ISO)
+	case BT_HCI_EVT_NUM_COMPLETED_PACKETS:
+#if defined(CONFIG_BT_CONN)
+	case BT_HCI_EVT_DATA_BUF_OVERFLOW:
+		__fallthrough;
+#endif /* defined(CONFIG_BT_CONN) */
+#endif /* CONFIG_BT_CONN ||  CONFIG_BT_ISO */
+	case BT_HCI_EVT_CMD_COMPLETE:
+	case BT_HCI_EVT_CMD_STATUS:
+		return BT_HCI_EVT_FLAG_RECV_PRIO;
+	default:
+		return BT_HCI_EVT_FLAG_RECV;
+	}
+}
+
+/* Copied here from `hci_raw.c`, which would be used in
+ * conjunction with this driver when serializing HCI over wire.
+ * This serves as a converter from the historical (removed from
+ * tree) 'recv blocking' API to the normal single-receiver
+ * `bt_recv` API.
+ */
+static int bt_recv_prio(struct net_buf *buf)
+{
+	if (bt_buf_get_type(buf) == BT_BUF_EVT) {
+		struct bt_hci_evt_hdr *hdr = (void *)buf->data;
+		uint8_t evt_flags = bt_hci_evt_get_flags(hdr->evt);
+
+		if ((evt_flags & BT_HCI_EVT_FLAG_RECV_PRIO) &&
+		    (evt_flags & BT_HCI_EVT_FLAG_RECV)) {
+			/* Avoid queuing the event twice */
+			return 0;
+		}
+	}
+
+	return bt_recv(buf);
+}
+
 #if defined(CONFIG_BT_CTLR_ISO)
 
-#define SDU_HCI_HDR_SIZE (BT_HCI_ISO_HDR_SIZE + BT_HCI_ISO_TS_DATA_HDR_SIZE)
+#define SDU_HCI_HDR_SIZE (BT_HCI_ISO_HDR_SIZE + BT_HCI_ISO_SDU_TS_HDR_SIZE)
 
 isoal_status_t sink_sdu_alloc_hci(const struct isoal_sink    *sink_ctx,
 				  const struct isoal_pdu_rx  *valid_pdu,
@@ -112,7 +167,7 @@ isoal_status_t sink_sdu_emit_hci(const struct isoal_sink             *sink_ctx,
 				 const struct isoal_emitted_sdu_frag *sdu_frag,
 				 const struct isoal_emitted_sdu      *sdu)
 {
-	struct bt_hci_iso_ts_data_hdr *data_hdr;
+	struct bt_hci_iso_sdu_ts_hdr *sdu_hdr;
 	uint16_t packet_status_flag;
 	struct bt_hci_iso_hdr *hdr;
 	uint16_t handle_packed;
@@ -175,14 +230,14 @@ isoal_status_t sink_sdu_emit_hci(const struct isoal_sink             *sink_ctx,
 		ts = (pb & 0x1) == 0x0;
 
 		if (ts) {
-			data_hdr = net_buf_push(buf, BT_HCI_ISO_TS_DATA_HDR_SIZE);
+			sdu_hdr = net_buf_push(buf, BT_HCI_ISO_SDU_TS_HDR_SIZE);
 			slen_packed = bt_iso_pkt_len_pack(total_len, packet_status_flag);
 
-			data_hdr->ts = sys_cpu_to_le32((uint32_t) sdu_frag->sdu.timestamp);
-			data_hdr->data.sn   = sys_cpu_to_le16((uint16_t) sdu_frag->sdu.sn);
-			data_hdr->data.slen = sys_cpu_to_le16(slen_packed);
+			sdu_hdr->ts = sys_cpu_to_le32((uint32_t) sdu_frag->sdu.timestamp);
+			sdu_hdr->sdu.sn   = sys_cpu_to_le16((uint16_t) sdu_frag->sdu.sn);
+			sdu_hdr->sdu.slen = sys_cpu_to_le16(slen_packed);
 
-			len += BT_HCI_ISO_TS_DATA_HDR_SIZE;
+			len += BT_HCI_ISO_SDU_TS_HDR_SIZE;
 		}
 
 		hdr = net_buf_push(buf, BT_HCI_ISO_HDR_SIZE);
@@ -201,9 +256,12 @@ isoal_status_t sink_sdu_emit_hci(const struct isoal_sink             *sink_ctx,
 }
 
 isoal_status_t sink_sdu_write_hci(void *dbuf,
+				  const size_t sdu_written,
 				  const uint8_t *pdu_payload,
 				  const size_t consume_len)
 {
+	ARG_UNUSED(sdu_written);
+
 	struct net_buf *buf = (struct net_buf *) dbuf;
 
 	LL_ASSERT(buf);
@@ -407,7 +465,7 @@ static inline struct net_buf *encode_node(struct node_rx_pdu *node_rx,
 				if (dp && dp->path_id == BT_HCI_DATAPATH_ID_HCI) {
 					/* If HCI datapath pass to ISO AL here */
 					struct isoal_pdu_rx pckt_meta = {
-						.meta = &node_rx->hdr.rx_iso_meta,
+						.meta = &node_rx->rx_iso_meta,
 						.pdu  = (void *)&node_rx->pdu[0],
 					};
 
@@ -434,8 +492,9 @@ static inline struct net_buf *encode_node(struct node_rx_pdu *node_rx,
 			/* Check validity of the data path sink. FIXME: A channel disconnect race
 			 * may cause ISO data pending without valid data path.
 			 */
-			if (stream && stream->dp) {
-				isoal_rx.meta = &node_rx->hdr.rx_iso_meta;
+			if (stream && stream->dp &&
+			    (stream->dp->path_id == BT_HCI_DATAPATH_ID_HCI)) {
+				isoal_rx.meta = &node_rx->rx_iso_meta;
 				isoal_rx.pdu = (void *)node_rx->pdu;
 				err = isoal_rx_pdu_recombine(stream->dp->sink_hdl, &isoal_rx);
 

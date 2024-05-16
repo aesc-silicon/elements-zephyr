@@ -17,12 +17,6 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(bt_hci_driver_esp32);
 
-#define HCI_CMD                 0x01
-#define HCI_ACL                 0x02
-#define HCI_SCO                 0x03
-#define HCI_EVT                 0x04
-#define HCI_ISO                 0x05
-
 #define HCI_BT_ESP32_TIMEOUT K_MSEC(2000)
 
 static K_SEM_DEFINE(hci_send_sem, 1, 1);
@@ -32,7 +26,7 @@ static bool is_hci_event_discardable(const uint8_t *evt_data)
 	uint8_t evt_type = evt_data[0];
 
 	switch (evt_type) {
-#if defined(CONFIG_BT_BREDR)
+#if defined(CONFIG_BT_CLASSIC)
 	case BT_HCI_EVT_INQUIRY_RESULT_WITH_RSSI:
 	case BT_HCI_EVT_EXTENDED_INQUIRY_RESULT:
 		return true;
@@ -196,15 +190,15 @@ static int hci_esp_host_rcv_pkt(uint8_t *data, uint16_t len)
 	remaining -= sizeof(pkt_indicator);
 
 	switch (pkt_indicator) {
-	case HCI_EVT:
+	case BT_HCI_H4_EVT:
 		buf = bt_esp_evt_recv(data, remaining);
 		break;
 
-	case HCI_ACL:
+	case BT_HCI_H4_ACL:
 		buf = bt_esp_acl_recv(data, remaining);
 		break;
 
-	case HCI_SCO:
+	case BT_HCI_H4_SCO:
 		buf = bt_esp_iso_recv(data, remaining);
 		break;
 
@@ -241,13 +235,13 @@ static int bt_esp32_send(struct net_buf *buf)
 
 	switch (bt_buf_get_type(buf)) {
 	case BT_BUF_ACL_OUT:
-		pkt_indicator = HCI_ACL;
+		pkt_indicator = BT_HCI_H4_ACL;
 		break;
 	case BT_BUF_CMD:
-		pkt_indicator = HCI_CMD;
+		pkt_indicator = BT_HCI_H4_CMD;
 		break;
 	case BT_BUF_ISO_OUT:
-		pkt_indicator = HCI_ISO;
+		pkt_indicator = BT_HCI_H4_ISO;
 		break;
 	default:
 		LOG_ERR("Unknown type %u", bt_buf_get_type(buf));
@@ -280,7 +274,7 @@ static int bt_esp32_ble_init(void)
 	int ret;
 	esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
 
-#if defined(CONFIG_BT_BREDR) && defined(CONFIG_SOC_SERIES_ESP32)
+#if defined(CONFIG_BT_CLASSIC) && defined(CONFIG_SOC_SERIES_ESP32)
 	esp_bt_mode_t mode = ESP_BT_MODE_BTDM;
 #else
 	esp_bt_mode_t mode = ESP_BT_MODE_BLE;
@@ -303,6 +297,25 @@ static int bt_esp32_ble_init(void)
 	return 0;
 }
 
+static int bt_esp32_ble_deinit(void)
+{
+	int ret;
+
+	ret = esp_bt_controller_disable();
+	if (ret) {
+		LOG_ERR("Bluetooth controller disable failed %d", ret);
+		return ret;
+	}
+
+	ret = esp_bt_controller_deinit();
+	if (ret) {
+		LOG_ERR("Bluetooth controller deinit failed %d", ret);
+		return ret;
+	}
+
+	return 0;
+}
+
 static int bt_esp32_open(void)
 {
 	int err;
@@ -317,10 +330,25 @@ static int bt_esp32_open(void)
 	return 0;
 }
 
+static int bt_esp32_close(void)
+{
+	int err;
+
+	err = bt_esp32_ble_deinit();
+	if (err) {
+		return err;
+	}
+
+	LOG_DBG("ESP32 BT stopped");
+
+	return 0;
+}
+
 static const struct bt_hci_driver drv = {
 	.name           = "BT ESP32",
 	.open           = bt_esp32_open,
 	.send           = bt_esp32_send,
+	.close          = bt_esp32_close,
 	.bus            = BT_HCI_DRIVER_BUS_IPM,
 #if defined(CONFIG_BT_DRIVER_QUIRK_NO_AUTO_DLE)
 	.quirks         = BT_QUIRK_NO_AUTO_DLE,
@@ -329,7 +357,6 @@ static const struct bt_hci_driver drv = {
 
 static int bt_esp32_init(void)
 {
-
 	bt_hci_driver_register(&drv);
 
 	return 0;

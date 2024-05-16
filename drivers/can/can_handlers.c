@@ -45,16 +45,21 @@ static inline int z_vrfy_can_get_core_clock(const struct device *dev,
 }
 #include <syscalls/can_get_core_clock_mrsh.c>
 
-static inline int z_vrfy_can_get_max_bitrate(const struct device *dev,
-					     uint32_t *max_bitrate)
+static inline uint32_t z_vrfy_can_get_bitrate_min(const struct device *dev)
 {
-	/* Optional API function */
 	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
-	K_OOPS(K_SYSCALL_MEMORY_WRITE(max_bitrate, sizeof(*max_bitrate)));
 
-	return z_impl_can_get_max_bitrate(dev, max_bitrate);
+	return z_impl_can_get_bitrate_min(dev);
 }
-#include <syscalls/can_get_max_bitrate_mrsh.c>
+#include <syscalls/can_get_bitrate_min_mrsh.c>
+
+static inline uint32_t z_vrfy_can_get_bitrate_max(const struct device *dev)
+{
+	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
+
+	return z_impl_can_get_bitrate_max(dev);
+}
+#include <syscalls/can_get_bitrate_max_mrsh.c>
 
 static inline const struct can_timing *z_vrfy_can_get_timing_min(const struct device *dev)
 {
@@ -147,6 +152,14 @@ static inline int z_vrfy_can_get_capabilities(const struct device *dev, can_mode
 }
 #include <syscalls/can_get_capabilities_mrsh.c>
 
+static inline const struct device *z_vrfy_can_get_transceiver(const struct device *dev)
+{
+	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
+
+	return z_impl_can_get_transceiver(dev);
+}
+#include <syscalls/can_get_transceiver_mrsh.c>
+
 static inline int z_vrfy_can_start(const struct device *dev)
 {
 	K_OOPS(K_SYSCALL_DRIVER_CAN(dev, start));
@@ -170,6 +183,14 @@ static inline int z_vrfy_can_set_mode(const struct device *dev, can_mode_t mode)
 	return z_impl_can_set_mode(dev, mode);
 }
 #include <syscalls/can_set_mode_mrsh.c>
+
+static inline can_mode_t z_vrfy_can_get_mode(const struct device *dev)
+{
+	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
+
+	return z_impl_can_get_mode(dev);
+}
+#include <syscalls/can_get_mode_mrsh.c>
 
 static inline int z_vrfy_can_set_bitrate(const struct device *dev, uint32_t bitrate)
 {
@@ -234,15 +255,16 @@ static inline int z_vrfy_can_get_state(const struct device *dev, enum can_state 
 }
 #include <syscalls/can_get_state_mrsh.c>
 
-#ifndef CONFIG_CAN_AUTO_BUS_OFF_RECOVERY
+#ifdef CONFIG_CAN_MANUAL_RECOVERY_MODE
 static inline int z_vrfy_can_recover(const struct device *dev, k_timeout_t timeout)
 {
-	K_OOPS(K_SYSCALL_DRIVER_CAN(dev, recover));
+	/* Optional API function */
+	K_OOPS(K_SYSCALL_OBJ(dev, K_OBJ_DRIVER_CAN));
 
 	return z_impl_can_recover(dev, timeout);
 }
 #include <syscalls/can_recover_mrsh.c>
-#endif /* CONFIG_CAN_AUTO_BUS_OFF_RECOVERY */
+#endif /* CONFIG_CAN_MANUAL_RECOVERY_MODE */
 
 #ifdef CONFIG_CAN_STATS
 

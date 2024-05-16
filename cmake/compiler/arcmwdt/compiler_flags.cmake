@@ -1,5 +1,3 @@
-set_property(GLOBAL PROPERTY CSTD gnu99)
-
 # List the warnings that are not supported for C++ compilations
 list(APPEND CXX_EXCLUDED_OPTIONS
   -Werror=implicit-int
@@ -32,6 +30,9 @@ set_compiler_property(PROPERTY warning_base
                       -Wno-incompatible-pointer-types-discards-qualifiers
                       -Wno-typedef-redefinition
 )
+
+# C implicit promotion rules will want to make floats into doubles very easily
+check_set_compiler_property(APPEND PROPERTY warning_base -Wdouble-promotion)
 
 check_set_compiler_property(APPEND PROPERTY warning_base -Wno-pointer-sign)
 

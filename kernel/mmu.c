@@ -16,13 +16,15 @@
 #include <zephyr/toolchain.h>
 #include <zephyr/linker/linker-defs.h>
 #include <zephyr/sys/bitarray.h>
+#include <zephyr/sys/check.h>
+#include <zephyr/sys/math_extras.h>
 #include <zephyr/timing/timing.h>
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(os, CONFIG_KERNEL_LOG_LEVEL);
 
 #ifdef CONFIG_DEMAND_PAGING
 #include <zephyr/kernel/mm/demand_paging.h>
-#endif
+#endif /* CONFIG_DEMAND_PAGING */
 
 /*
  * General terminology:
@@ -74,12 +76,15 @@ static bool page_frames_initialized;
 #define COLOR(x)	printk(_CONCAT(ANSI_, x))
 #else
 #define COLOR(x)	do { } while (false)
-#endif
+#endif /* COLOR_PAGE_FRAMES */
 
 /* LCOV_EXCL_START */
 static void page_frame_dump(struct z_page_frame *pf)
 {
-	if (z_page_frame_is_reserved(pf)) {
+	if (z_page_frame_is_free(pf)) {
+		COLOR(GREY);
+		printk("-");
+	} else if (z_page_frame_is_reserved(pf)) {
 		COLOR(CYAN);
 		printk("R");
 	} else if (z_page_frame_is_busy(pf)) {
@@ -379,7 +384,7 @@ static void *virt_region_alloc(size_t size, size_t align)
  * This implies in the future there may be multiple slists managing physical
  * pages. Each page frame will still just have one snode link.
  */
-static sys_slist_t free_page_frame_list;
+static sys_sflist_t free_page_frame_list;
 
 /* Number of unused and available free page frames.
  * This information may go stale immediately.
@@ -393,15 +398,16 @@ static size_t z_free_page_count;
 /* Get an unused page frame. don't care which one, or NULL if there are none */
 static struct z_page_frame *free_page_frame_list_get(void)
 {
-	sys_snode_t *node;
+	sys_sfnode_t *node;
 	struct z_page_frame *pf = NULL;
 
-	node = sys_slist_get(&free_page_frame_list);
+	node = sys_sflist_get(&free_page_frame_list);
 	if (node != NULL) {
 		z_free_page_count--;
 		pf = CONTAINER_OF(node, struct z_page_frame, node);
-		PF_ASSERT(pf, z_page_frame_is_available(pf),
-			 "unavailable but somehow on free list");
+		PF_ASSERT(pf, z_page_frame_is_free(pf),
+			 "on free list but not free");
+		pf->va_and_flags = 0;
 	}
 
 	return pf;
@@ -412,21 +418,20 @@ static void free_page_frame_list_put(struct z_page_frame *pf)
 {
 	PF_ASSERT(pf, z_page_frame_is_available(pf),
 		 "unavailable page put on free list");
-	/* The structure is packed, which ensures that this is true */
-	void *node = pf;
 
-	sys_slist_append(&free_page_frame_list, node);
+	sys_sfnode_init(&pf->node, Z_PAGE_FRAME_FREE);
+	sys_sflist_append(&free_page_frame_list, &pf->node);
 	z_free_page_count++;
 }
 
 static void free_page_frame_list_init(void)
 {
-	sys_slist_init(&free_page_frame_list);
+	sys_sflist_init(&free_page_frame_list);
 }
 
 static void page_frame_free_locked(struct z_page_frame *pf)
 {
-	pf->flags = 0;
+	pf->va_and_flags = 0;
 	free_page_frame_list_put(pf);
 }
 
@@ -439,6 +444,8 @@ static void page_frame_free_locked(struct z_page_frame *pf)
  */
 static void frame_mapped_set(struct z_page_frame *pf, void *addr)
 {
+	PF_ASSERT(pf, !z_page_frame_is_free(pf),
+		  "attempted to map a page frame on the free list");
 	PF_ASSERT(pf, !z_page_frame_is_reserved(pf),
 		  "attempted to map a reserved page frame");
 
@@ -448,10 +455,14 @@ static void frame_mapped_set(struct z_page_frame *pf, void *addr)
 	 * Zephyr equivalent of VSDOs
 	 */
 	PF_ASSERT(pf, !z_page_frame_is_mapped(pf) || z_page_frame_is_pinned(pf),
-		 "non-pinned and already mapped to %p", pf->addr);
+		 "non-pinned and already mapped to %p",
+		 z_page_frame_to_virt(pf));
 
-	pf->flags |= Z_PAGE_FRAME_MAPPED;
-	pf->addr = addr;
+	uintptr_t flags_mask = CONFIG_MMU_PAGE_SIZE - 1;
+	uintptr_t va = (uintptr_t)addr & ~flags_mask;
+
+	pf->va_and_flags &= flags_mask;
+	pf->va_and_flags |= va | Z_PAGE_FRAME_MAPPED;
 }
 
 /* LCOV_EXCL_START */
@@ -473,7 +484,7 @@ static int virt_to_page_frame(void *virt, uintptr_t *phys)
 
 	Z_PAGE_FRAME_FOREACH(paddr, pf) {
 		if (z_page_frame_is_mapped(pf)) {
-			if (virt == pf->addr) {
+			if (virt == z_page_frame_to_virt(pf)) {
 				ret = 0;
 				if (phys != NULL) {
 					*phys = z_page_frame_to_phys(pf);
@@ -511,7 +522,6 @@ static int map_anon_page(void *addr, uint32_t flags)
 	struct z_page_frame *pf;
 	uintptr_t phys;
 	bool lock = (flags & K_MEM_MAP_LOCK) != 0U;
-	bool uninit = (flags & K_MEM_MAP_UNINIT) != 0U;
 
 	pf = free_page_frame_list_get();
 	if (pf == NULL) {
@@ -522,7 +532,8 @@ static int map_anon_page(void *addr, uint32_t flags)
 
 		pf = k_mem_paging_eviction_select(&dirty);
 		__ASSERT(pf != NULL, "failed to get a page frame");
-		LOG_DBG("evicting %p at 0x%lx", pf->addr,
+		LOG_DBG("evicting %p at 0x%lx",
+			z_page_frame_to_virt(pf),
 			z_page_frame_to_phys(pf));
 		ret = page_frame_prepare_locked(pf, &dirty, false, &location);
 		if (ret != 0) {
@@ -531,7 +542,7 @@ static int map_anon_page(void *addr, uint32_t flags)
 		if (dirty) {
 			do_backing_store_page_out(location);
 		}
-		pf->flags = 0;
+		pf->va_and_flags = 0;
 #else
 		return -ENOMEM;
 #endif /* CONFIG_DEMAND_PAGING */
@@ -541,29 +552,23 @@ static int map_anon_page(void *addr, uint32_t flags)
 	arch_mem_map(addr, phys, CONFIG_MMU_PAGE_SIZE, flags | K_MEM_CACHE_WB);
 
 	if (lock) {
-		pf->flags |= Z_PAGE_FRAME_PINNED;
+		z_page_frame_set(pf, Z_PAGE_FRAME_PINNED);
 	}
 	frame_mapped_set(pf, addr);
 
 	LOG_DBG("memory mapping anon page %p -> 0x%lx", addr, phys);
 
-	if (!uninit) {
-		/* If we later implement mappings to a copy-on-write
-		 * zero page, won't need this step
-		 */
-		memset(addr, 0, CONFIG_MMU_PAGE_SIZE);
-	}
-
 	return 0;
 }
 
-void *k_mem_map(size_t size, uint32_t flags)
+void *k_mem_map_impl(uintptr_t phys, size_t size, uint32_t flags, bool is_anon)
 {
 	uint8_t *dst;
 	size_t total_size;
 	int ret;
 	k_spinlock_key_t key;
 	uint8_t *pos;
+	bool uninit = (flags & K_MEM_MAP_UNINIT) != 0U;
 
 	__ASSERT(!(((flags & K_MEM_PERM_USER) != 0U) &&
 		   ((flags & K_MEM_MAP_UNINIT) != 0U)),
@@ -571,16 +576,22 @@ void *k_mem_map(size_t size, uint32_t flags)
 	__ASSERT(size % CONFIG_MMU_PAGE_SIZE == 0U,
 		 "unaligned size %zu passed to %s", size, __func__);
 	__ASSERT(size != 0, "zero sized memory mapping");
-	__ASSERT(page_frames_initialized, "%s called too early", __func__);
+	__ASSERT(!is_anon || (is_anon && page_frames_initialized),
+		 "%s called too early", __func__);
 	__ASSERT((flags & K_MEM_CACHE_MASK) == 0U,
 		 "%s does not support explicit cache settings", __func__);
+
+	CHECKIF(size_add_overflow(size, CONFIG_MMU_PAGE_SIZE * 2, &total_size)) {
+		LOG_ERR("too large size %zu passed to %s", size, __func__);
+		return NULL;
+	}
 
 	key = k_spin_lock(&z_mm_lock);
 
 	/* Need extra for the guard pages (before and after) which we
 	 * won't map.
 	 */
-	total_size = size + CONFIG_MMU_PAGE_SIZE * 2;
+	total_size = size + (CONFIG_MMU_PAGE_SIZE * 2);
 
 	dst = virt_region_alloc(total_size, CONFIG_MMU_PAGE_SIZE);
 	if (dst == NULL) {
@@ -598,24 +609,43 @@ void *k_mem_map(size_t size, uint32_t flags)
 	/* Skip over the "before" guard page in returned address. */
 	dst += CONFIG_MMU_PAGE_SIZE;
 
-	VIRT_FOREACH(dst, size, pos) {
-		ret = map_anon_page(pos, flags);
+	if (is_anon) {
+		/* Mapping from annoymous memory */
+		VIRT_FOREACH(dst, size, pos) {
+			ret = map_anon_page(pos, flags);
 
-		if (ret != 0) {
-			/* TODO: call k_mem_unmap(dst, pos - dst)  when
-			 * implemented in #28990 and release any guard virtual
-			 * page as well.
-			 */
-			dst = NULL;
-			goto out;
+			if (ret != 0) {
+				/* TODO: call k_mem_unmap(dst, pos - dst)  when
+				 * implemented in #28990 and release any guard virtual
+				 * page as well.
+				 */
+				dst = NULL;
+				goto out;
+			}
 		}
+	} else {
+		/* Mapping known physical memory.
+		 *
+		 * arch_mem_map() is a void function and does not return
+		 * anything. Arch code usually uses ASSERT() to catch
+		 * mapping errors. Assume this works correctly for now.
+		 */
+		arch_mem_map(dst, phys, size, flags);
 	}
+
+	if (!uninit) {
+		/* If we later implement mappings to a copy-on-write
+		 * zero page, won't need this step
+		 */
+		memset(dst, 0, size);
+	}
+
 out:
 	k_spin_unlock(&z_mm_lock, key);
 	return dst;
 }
 
-void k_mem_unmap(void *addr, size_t size)
+void k_mem_unmap_impl(void *addr, size_t size, bool is_anon)
 {
 	uintptr_t phys;
 	uint8_t *pos;
@@ -656,50 +686,62 @@ void k_mem_unmap(void *addr, size_t size)
 		goto out;
 	}
 
-	VIRT_FOREACH(addr, size, pos) {
-		ret = arch_page_phys_get(pos, &phys);
+	if (is_anon) {
+		/* Unmapping anonymous memory */
+		VIRT_FOREACH(addr, size, pos) {
+			ret = arch_page_phys_get(pos, &phys);
 
-		__ASSERT(ret == 0,
-			 "%s: cannot unmap an unmapped address %p",
-			 __func__, pos);
-		if (ret != 0) {
-			/* Found an address not mapped. Do not continue. */
-			goto out;
+			__ASSERT(ret == 0,
+				 "%s: cannot unmap an unmapped address %p",
+				 __func__, pos);
+			if (ret != 0) {
+				/* Found an address not mapped. Do not continue. */
+				goto out;
+			}
+
+			__ASSERT(z_is_page_frame(phys),
+				 "%s: 0x%lx is not a page frame", __func__, phys);
+			if (!z_is_page_frame(phys)) {
+				/* Physical address has no corresponding page frame
+				 * description in the page frame array.
+				 * This should not happen. Do not continue.
+				 */
+				goto out;
+			}
+
+			/* Grab the corresponding page frame from physical address */
+			pf = z_phys_to_page_frame(phys);
+
+			__ASSERT(z_page_frame_is_mapped(pf),
+				 "%s: 0x%lx is not a mapped page frame", __func__, phys);
+			if (!z_page_frame_is_mapped(pf)) {
+				/* Page frame is not marked mapped.
+				 * This should not happen. Do not continue.
+				 */
+				goto out;
+			}
+
+			arch_mem_unmap(pos, CONFIG_MMU_PAGE_SIZE);
+
+			/* Put the page frame back into free list */
+			page_frame_free_locked(pf);
 		}
-
-		__ASSERT(z_is_page_frame(phys),
-			 "%s: 0x%lx is not a page frame", __func__, phys);
-		if (!z_is_page_frame(phys)) {
-			/* Physical address has no corresponding page frame
-			 * description in the page frame array.
-			 * This should not happen. Do not continue.
-			 */
-			goto out;
-		}
-
-		/* Grab the corresponding page frame from physical address */
-		pf = z_phys_to_page_frame(phys);
-
-		__ASSERT(z_page_frame_is_mapped(pf),
-			 "%s: 0x%lx is not a mapped page frame", __func__, phys);
-		if (!z_page_frame_is_mapped(pf)) {
-			/* Page frame is not marked mapped.
-			 * This should not happen. Do not continue.
-			 */
-			goto out;
-		}
-
-		arch_mem_unmap(pos, CONFIG_MMU_PAGE_SIZE);
-
-		/* Put the page frame back into free list */
-		page_frame_free_locked(pf);
+	} else {
+		/*
+		 * Unmapping previous mapped memory with specific physical address.
+		 *
+		 * Note that we don't have to unmap the guard pages, as they should
+		 * have been unmapped. We just need to unmapped the in-between
+		 * region [addr, (addr + size)).
+		 */
+		arch_mem_unmap(addr, size);
 	}
 
 	/* There are guard pages just before and after the mapped
 	 * region. So we also need to free them from the bitmap.
 	 */
 	pos = (uint8_t *)addr - CONFIG_MMU_PAGE_SIZE;
-	total_size = size + CONFIG_MMU_PAGE_SIZE * 2;
+	total_size = size + (CONFIG_MMU_PAGE_SIZE * 2);
 	virt_region_free(pos, total_size);
 
 out:
@@ -722,7 +764,7 @@ size_t k_mem_free_get(void)
 	}
 #else
 	ret = z_free_page_count;
-#endif
+#endif /* CONFIG_DEMAND_PAGING */
 	k_spin_unlock(&z_mm_lock, key);
 
 	return ret * (size_t)CONFIG_MMU_PAGE_SIZE;
@@ -760,7 +802,7 @@ void z_phys_map(uint8_t **virt_ptr, uintptr_t phys, size_t size, uint32_t flags)
 
 #ifndef CONFIG_KERNEL_DIRECT_MAP
 	__ASSERT(!(flags & K_MEM_DIRECT_MAP), "The direct-map is not enabled");
-#endif
+#endif /* CONFIG_KERNEL_DIRECT_MAP */
 	addr_offset = k_mem_region_align(&aligned_phys, &aligned_size,
 					 phys, size,
 					 CONFIG_MMU_PAGE_SIZE);
@@ -898,9 +940,9 @@ static void mark_linker_section_pinned(void *start_addr, void *end_addr,
 		frame_mapped_set(pf, addr);
 
 		if (pin) {
-			pf->flags |= Z_PAGE_FRAME_PINNED;
+			z_page_frame_set(pf, Z_PAGE_FRAME_PINNED);
 		} else {
-			pf->flags &= ~Z_PAGE_FRAME_PINNED;
+			z_page_frame_clear(pf, Z_PAGE_FRAME_PINNED);
 		}
 	}
 }
@@ -943,7 +985,7 @@ void z_mem_manage_init(void)
 		 * structures, and any code used to perform page fault
 		 * handling, page-ins, etc.
 		 */
-		pf->flags |= Z_PAGE_FRAME_PINNED;
+		z_page_frame_set(pf, Z_PAGE_FRAME_PINNED);
 	}
 #endif /* CONFIG_LINKER_GENERIC_SECTIONS_PRESENT_AT_BOOT */
 
@@ -952,12 +994,12 @@ void z_mem_manage_init(void)
 	 * boot process. Will be un-pinned once boot process completes.
 	 */
 	mark_linker_section_pinned(lnkr_boot_start, lnkr_boot_end, true);
-#endif
+#endif /* CONFIG_LINKER_USE_BOOT_SECTION */
 
 #ifdef CONFIG_LINKER_USE_PINNED_SECTION
 	/* Pin the page frames correspondng to the pinned symbols */
 	mark_linker_section_pinned(lnkr_pinned_start, lnkr_pinned_end, true);
-#endif
+#endif /* CONFIG_LINKER_USE_PINNED_SECTION */
 
 	/* Any remaining pages that aren't mapped, reserved, or pinned get
 	 * added to the free pages list
@@ -972,10 +1014,10 @@ void z_mem_manage_init(void)
 #ifdef CONFIG_DEMAND_PAGING
 #ifdef CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM
 	z_paging_histogram_init();
-#endif
+#endif /* CONFIG_DEMAND_PAGING_TIMING_HISTOGRAM */
 	k_mem_paging_backing_store_init();
 	k_mem_paging_eviction_init();
-#endif
+#endif /* CONFIG_DEMAND_PAGING */
 #if __ASSERT_ON
 	page_frames_initialized = true;
 #endif
@@ -989,7 +1031,7 @@ void z_mem_manage_init(void)
 	 * memory to be cleared.
 	 */
 	z_bss_zero();
-#endif
+#endif /* CONFIG_LINKER_GENERIC_SECTIONS_PRESENT_AT_BOOT */
 }
 
 void z_mem_manage_boot_finish(void)
@@ -999,7 +1041,7 @@ void z_mem_manage_boot_finish(void)
 	 * as they don't need to be in memory all the time anymore.
 	 */
 	mark_linker_section_pinned(lnkr_boot_start, lnkr_boot_end, false);
-#endif
+#endif /* CONFIG_LINKER_USE_BOOT_SECTION */
 }
 
 #ifdef CONFIG_DEMAND_PAGING
@@ -1009,7 +1051,7 @@ struct k_mem_paging_stats_t paging_stats;
 extern struct k_mem_paging_histogram_t z_paging_histogram_eviction;
 extern struct k_mem_paging_histogram_t z_paging_histogram_backing_store_page_in;
 extern struct k_mem_paging_histogram_t z_paging_histogram_backing_store_page_out;
-#endif
+#endif /* CONFIG_DEMAND_PAGING_STATS */
 
 static inline void do_backing_store_page_in(uintptr_t location)
 {
@@ -1145,7 +1187,7 @@ static int page_frame_prepare_locked(struct z_page_frame *pf, bool *dirty_ptr,
 			LOG_ERR("out of backing store memory");
 			return -ENOMEM;
 		}
-		arch_mem_page_out(pf->addr, *location_ptr);
+		arch_mem_page_out(z_page_frame_to_virt(pf), *location_ptr);
 	} else {
 		/* Shouldn't happen unless this function is mis-used */
 		__ASSERT(!dirty, "un-mapped page determined to be dirty");
@@ -1154,8 +1196,8 @@ static int page_frame_prepare_locked(struct z_page_frame *pf, bool *dirty_ptr,
 	/* Mark as busy so that z_page_frame_is_evictable() returns false */
 	__ASSERT(!z_page_frame_is_busy(pf), "page frame 0x%lx is already busy",
 		 phys);
-	pf->flags |= Z_PAGE_FRAME_BUSY;
-#endif
+	z_page_frame_set(pf, Z_PAGE_FRAME_BUSY);
+#endif /* CONFIG_DEMAND_PAGING_ALLOW_IRQ */
 	/* Update dirty parameter, since we set to true if it wasn't backed
 	 * even if otherwise clean
 	 */
@@ -1190,7 +1232,7 @@ static int do_mem_evict(void *addr)
 
 	dirty = (flags & ARCH_DATA_PAGE_DIRTY) != 0;
 	pf = z_phys_to_page_frame(phys);
-	__ASSERT(pf->addr == addr, "page frame address mismatch");
+	__ASSERT(z_page_frame_to_virt(pf) == addr, "page frame address mismatch");
 	ret = page_frame_prepare_locked(pf, &dirty, false, &location);
 	if (ret != 0) {
 		goto out;
@@ -1262,7 +1304,7 @@ int z_page_frame_evict(uintptr_t phys)
 		ret = 0;
 		goto out;
 	}
-	flags = arch_page_info_get(pf->addr, NULL, false);
+	flags = arch_page_info_get(z_page_frame_to_virt(pf), NULL, false);
 	/* Shouldn't ever happen */
 	__ASSERT((flags & ARCH_DATA_PAGE_LOADED) != 0, "data page not loaded");
 	dirty = (flags & ARCH_DATA_PAGE_DIRTY) != 0;
@@ -1313,7 +1355,7 @@ static inline void paging_stats_faults_inc(struct k_thread *faulting_thread,
 	}
 #else
 	ARG_UNUSED(faulting_thread);
-#endif
+#endif /* CONFIG_DEMAND_PAGING_THREAD_STATS */
 
 #ifndef CONFIG_DEMAND_PAGING_ALLOW_IRQ
 	if (k_is_in_isr()) {
@@ -1321,7 +1363,7 @@ static inline void paging_stats_faults_inc(struct k_thread *faulting_thread,
 
 #ifdef CONFIG_DEMAND_PAGING_THREAD_STATS
 		faulting_thread->paging_stats.pagefaults.in_isr++;
-#endif
+#endif /* CONFIG_DEMAND_PAGING_THREAD_STATS */
 	}
 #endif /* CONFIG_DEMAND_PAGING_ALLOW_IRQ */
 #endif /* CONFIG_DEMAND_PAGING_STATS */
@@ -1408,9 +1450,9 @@ static bool do_page_fault(void *addr, bool pin)
 	 * during the page-in/out operation.
 	 *
 	 * We do however re-enable interrupts during the page-in/page-out
-	 * operation iff interrupts were enabled when the exception was taken;
-	 * in this configuration page faults in an ISR are a bug; all their
-	 * code/data must be pinned.
+	 * operation if and only if interrupts were enabled when the exception
+	 * was taken; in this configuration page faults in an ISR are a bug;
+	 * all their code/data must be pinned.
 	 *
 	 * If interrupts were disabled when the exception was taken, the
 	 * arch code is responsible for keeping them that way when entering
@@ -1448,7 +1490,7 @@ static bool do_page_fault(void *addr, bool pin)
 			uintptr_t phys = page_in_location;
 
 			pf = z_phys_to_page_frame(phys);
-			pf->flags |= Z_PAGE_FRAME_PINNED;
+			z_page_frame_set(pf, Z_PAGE_FRAME_PINNED);
 		}
 
 		/* This if-block is to pin the page if it is
@@ -1468,7 +1510,8 @@ static bool do_page_fault(void *addr, bool pin)
 		/* Need to evict a page frame */
 		pf = do_eviction_select(&dirty);
 		__ASSERT(pf != NULL, "failed to get a page frame");
-		LOG_DBG("evicting %p at 0x%lx", pf->addr,
+		LOG_DBG("evicting %p at 0x%lx",
+			z_page_frame_to_virt(pf),
 			z_page_frame_to_phys(pf));
 
 		paging_stats_eviction_inc(faulting_thread, dirty);
@@ -1490,14 +1533,13 @@ static bool do_page_fault(void *addr, bool pin)
 
 #ifdef CONFIG_DEMAND_PAGING_ALLOW_IRQ
 	key = irq_lock();
-	pf->flags &= ~Z_PAGE_FRAME_BUSY;
+	z_page_frame_clear(pf, Z_PAGE_FRAME_BUSY);
 #endif /* CONFIG_DEMAND_PAGING_ALLOW_IRQ */
+	z_page_frame_clear(pf, Z_PAGE_FRAME_MAPPED);
+	frame_mapped_set(pf, addr);
 	if (pin) {
-		pf->flags |= Z_PAGE_FRAME_PINNED;
+		z_page_frame_set(pf, Z_PAGE_FRAME_PINNED);
 	}
-	pf->flags |= Z_PAGE_FRAME_MAPPED;
-	pf->addr = UINT_TO_POINTER(POINTER_TO_UINT(addr)
-				   & ~(CONFIG_MMU_PAGE_SIZE - 1));
 
 	arch_mem_page_in(addr, z_page_frame_to_phys(pf));
 	k_mem_paging_backing_store_page_finalize(pf, page_in_location);
@@ -1561,7 +1603,7 @@ static void do_mem_unpin(void *addr)
 		 "invalid data page at %p", addr);
 	if ((flags & ARCH_DATA_PAGE_LOADED) != 0) {
 		pf = z_phys_to_page_frame(phys);
-		pf->flags &= ~Z_PAGE_FRAME_PINNED;
+		z_page_frame_clear(pf, Z_PAGE_FRAME_PINNED);
 	}
 	irq_unlock(key);
 }

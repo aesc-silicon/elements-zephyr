@@ -668,7 +668,7 @@ static int lwm2m_engine_set(const struct lwm2m_obj_path *path, const void *value
 #if CONFIG_LWM2M_ENGINE_VALIDATION_BUFFER_SIZE > 0
 	if (res->validate_cb) {
 		ret = res->validate_cb(obj_inst->obj_inst_id, res->res_id, res_inst->res_inst_id,
-				       (uint8_t *)value, len, false, 0);
+				       (uint8_t *)value, len, false, 0, 0);
 		if (ret < 0) {
 			k_mutex_unlock(&registry_lock);
 			return -EINVAL;
@@ -774,7 +774,7 @@ static int lwm2m_engine_set(const struct lwm2m_obj_path *path, const void *value
 
 	if (res->post_write_cb) {
 		ret = res->post_write_cb(obj_inst->obj_inst_id, res->res_id, res_inst->res_inst_id,
-					 data_ptr, len, false, 0);
+					 data_ptr, len, false, 0, 0);
 	}
 
 	if (changed && LWM2M_HAS_PERM(obj_field, LWM2M_PERM_R)) {
@@ -890,7 +890,7 @@ int lwm2m_engine_set_u64(const char *pathstr, uint64_t value)
 	if (ret < 0) {
 		return ret;
 	}
-	return lwm2m_set_u64(&path, value);
+	return lwm2m_set_s64(&path, (int64_t) value);
 }
 
 int lwm2m_set_s8(const struct lwm2m_obj_path *path, int8_t value)
@@ -1378,7 +1378,7 @@ int lwm2m_engine_get_u64(const char *pathstr, uint64_t *value)
 	if (ret < 0) {
 		return ret;
 	}
-	return lwm2m_get_u64(&path, value);
+	return lwm2m_get_s64(&path, (int64_t *) value);
 }
 
 int lwm2m_get_s8(const struct lwm2m_obj_path *path, int8_t *value)
@@ -2010,6 +2010,10 @@ struct lwm2m_engine_res_inst *lwm2m_engine_get_res_inst(const struct lwm2m_obj_p
 
 bool lwm2m_engine_shall_report_obj_version(const struct lwm2m_engine_obj *obj)
 {
+	if (IS_ENABLED(CONFIG_LWM2M_ENGINE_ALWAYS_REPORT_OBJ_VERSION)) {
+		return true;
+	}
+
 	/* For non-core objects, report version other than 1.0 */
 	if (!obj->is_core) {
 		return obj->version_major != 1 || obj->version_minor != 0;
@@ -2234,9 +2238,9 @@ int lwm2m_engine_enable_cache(const char *resource_path, struct lwm2m_time_serie
 #endif /* CONFIG_LWM2M_RESOURCE_DATA_CACHE_SUPPORT */
 }
 
-int lwm2m_engine_data_cache_init(void)
-{
 #if defined(CONFIG_LWM2M_RESOURCE_DATA_CACHE_SUPPORT)
+static int lwm2m_engine_data_cache_init(void)
+{
 	int i;
 
 	sys_slist_init(&lwm2m_timed_cache_list);
@@ -2244,9 +2248,10 @@ int lwm2m_engine_data_cache_init(void)
 	for (i = 0; i < ARRAY_SIZE(lwm2m_cache_entries); i++) {
 		lwm2m_cache_entries[i].path.level = LWM2M_PATH_LEVEL_NONE;
 	}
-#endif
 	return 0;
 }
+LWM2M_ENGINE_INIT(lwm2m_engine_data_cache_init);
+#endif
 
 bool lwm2m_cache_write(struct lwm2m_time_series_resource *cache_entry,
 		       struct lwm2m_time_series_elem *buf)
@@ -2330,4 +2335,23 @@ size_t lwm2m_cache_size(const struct lwm2m_time_series_resource *cache_entry)
 #else
 	return 0;
 #endif
+}
+
+int lwm2m_set_bulk(const struct lwm2m_res_item res_list[], size_t res_list_size)
+{
+	int ret;
+
+	k_mutex_lock(&registry_lock, K_FOREVER);
+	for (int i = 0; i < res_list_size; i++) {
+
+		ret = lwm2m_engine_set(res_list[i].path, res_list[i].value, res_list[i].size);
+
+		if (ret) {
+			k_mutex_unlock(&registry_lock);
+			return ret;
+		}
+	}
+	k_mutex_unlock(&registry_lock);
+
+	return 0;
 }

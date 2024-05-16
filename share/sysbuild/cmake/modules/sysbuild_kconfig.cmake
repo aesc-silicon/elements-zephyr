@@ -17,11 +17,9 @@ if(DEFINED SB_CONF_FILE)
   # SB_CONF_FILE already set so nothing to do.
 elseif(DEFINED ENV{SB_CONF_FILE})
   set(SB_CONF_FILE $ENV{SB_CONF_FILE})
-elseif(EXISTS      ${APP_DIR}/sysbuild.conf)
-  set(SB_CONF_FILE ${APP_DIR}/sysbuild.conf)
 else()
-  # Because SYSBuild is opt-in feature, then it is permitted to not have a
-  # SYSBuild dedicated configuration file.
+  # sysbuild.conf is an optional file, because sysbuild is an opt-in feature.
+  zephyr_file(CONF_FILES ${APP_DIR} KCONF SB_CONF_FILE NAMES "sysbuild.conf" SUFFIX ${FILE_SUFFIX})
 endif()
 
 if(NOT DEFINED SB_EXTRA_CONF_FILE AND DEFINED SB_OVERLAY_CONFIG)
@@ -66,6 +64,9 @@ set(BOARD_DEFCONFIG        "${CMAKE_CURRENT_BINARY_DIR}/empty.conf")
 if(DEFINED BOARD_REVISION)
   set(BOARD_REVISION_CONFIG "${CMAKE_CURRENT_BINARY_DIR}/empty.conf")
 endif()
+
+# Unset shield configuration files if set to prevent including in sysbuild
+set(shield_conf_files)
 
 list(APPEND ZEPHYR_KCONFIG_MODULES_DIR BOARD=${BOARD})
 set(KCONFIG_NAMESPACE SB_CONFIG)

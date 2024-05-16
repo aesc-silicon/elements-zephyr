@@ -35,7 +35,7 @@ static void fake_dev_iface_init(struct net_if *iface)
 		mac_addr[2] = 0x5E;
 		mac_addr[3] = 0x00;
 		mac_addr[4] = 0x53;
-		mac_addr[5] = sys_rand32_get();
+		mac_addr[5] = sys_rand8_get();
 	}
 
 	net_if_set_link_addr(iface, mac_addr, 6, NET_LINK_ETHERNET);
@@ -956,7 +956,7 @@ ZTEST(net_pkt_test_suite, test_net_pkt_headroom)
 	net_pkt_unref(pkt);
 }
 
-NET_BUF_POOL_FIXED_DEFINE(test_net_pkt_headroom_copy_pool, 2, 4, 4, NULL);
+NET_BUF_POOL_VAR_DEFINE(test_net_pkt_headroom_copy_pool, 2, 128, 4, NULL);
 
 ZTEST(net_pkt_test_suite, test_net_pkt_headroom_copy)
 {

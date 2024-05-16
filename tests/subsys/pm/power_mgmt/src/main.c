@@ -26,8 +26,9 @@ static bool leave_idle;
 static bool idle_entered;
 static bool testing_device_runtime;
 static bool testing_device_order;
-static bool testing_device_lock;
+static bool testing_force_state;
 
+enum pm_state forced_state;
 static const struct device *device_dummy;
 static struct dummy_driver_api *api;
 
@@ -168,18 +169,12 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 		return;
 	}
 
-	if (testing_device_lock) {
-		pm_device_state_get(device_a, &device_power_state);
-
-		/*
-		 * If the device has its state locked the device has
-		 * to be ACTIVE
-		 */
-		zassert_true(device_power_state == PM_DEVICE_STATE_ACTIVE,
-				NULL);
-		return;
+	if (testing_force_state) {
+		/* if forced to given power state was called */
+		set_pm = true;
+		zassert_equal(state, forced_state, NULL);
+		testing_force_state = false;
 	}
-
 
 	/* at this point, notify_pm_state_entry() implemented in
 	 * this file has been called and set_pm should have been set
@@ -429,19 +424,23 @@ ZTEST(power_management_1cpu, test_busy)
 	zassert_false(busy);
 }
 
-ZTEST(power_management_1cpu, test_device_state_lock)
+ZTEST(power_management_1cpu, test_empty_states)
 {
-	pm_device_state_lock(device_a);
-	zassert_true(pm_device_state_is_locked(device_a));
+	const struct pm_state_info *cpu_states;
+	uint8_t state = pm_state_cpu_get_all(1u, &cpu_states);
 
-	testing_device_lock = true;
-	enter_low_power = true;
+	zassert_equal(state, 0, NULL);
+}
 
-	k_sleep(SLEEP_TIMEOUT);
+ZTEST(power_management_1cpu, test_force_state)
+{
+	forced_state = PM_STATE_STANDBY;
+	bool ret = pm_state_force(0, &(struct pm_state_info) {forced_state, 0, 0});
 
-	pm_device_state_unlock(device_a);
+	zassert_equal(ret, true, "Error in force state");
 
-	testing_device_lock = false;
+	testing_force_state = true;
+	k_sleep(K_SECONDS(1U));
 }
 
 void power_management_1cpu_teardown(void *data)

@@ -55,7 +55,7 @@ int linux_socketcan_iface_open(const char *if_name)
 	(void)memset(&ifr, 0, sizeof(ifr));
 	(void)memset(&addr, 0, sizeof(addr));
 
-	strncpy(ifr.ifr_name, if_name, IFNAMSIZ);
+	strncpy(ifr.ifr_name, if_name, IFNAMSIZ - 1);
 
 	ret = ioctl(fd, SIOCGIFINDEX, (void *)&ifr);
 	if (ret < 0) {
@@ -113,7 +113,7 @@ int linux_socketcan_poll_data(int fd)
 	return -EAGAIN;
 }
 
-ssize_t linux_socketcan_read_data(int fd, void *buf, size_t buf_len, bool *msg_confirm)
+int linux_socketcan_read_data(int fd, void *buf, size_t buf_len, bool *msg_confirm)
 {
 	struct canfd_frame *frame = (struct canfd_frame *)buf;
 	struct msghdr msg = {0};
@@ -125,7 +125,7 @@ ssize_t linux_socketcan_read_data(int fd, void *buf, size_t buf_len, bool *msg_c
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
 
-	int ret = recvmsg(fd, &msg, MSG_WAITALL);
+	int ret = (int)recvmsg(fd, &msg, MSG_WAITALL);
 
 	if (msg_confirm != NULL) {
 		*msg_confirm = (msg.msg_flags & MSG_CONFIRM) != 0;
@@ -143,11 +143,6 @@ ssize_t linux_socketcan_read_data(int fd, void *buf, size_t buf_len, bool *msg_c
 	}
 
 	return ret;
-}
-
-ssize_t linux_socketcan_write_data(int fd, void *buf, size_t buf_len)
-{
-	return write(fd, buf, buf_len);
 }
 
 int linux_socketcan_set_mode_fd(int fd, bool mode_fd)

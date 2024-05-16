@@ -11,7 +11,7 @@
 
 #define LOG_MODULE_NAME main
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(LOG_MODULE_NAME, LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(LOG_MODULE_NAME, LOG_LEVEL_INF);
 
 CREATE_FLAG(is_connected);
 CREATE_FLAG(flag_l2cap_connected);
@@ -20,23 +20,44 @@ CREATE_FLAG(flag_l2cap_connected);
 #define L2CAP_CHANS     NUM_PERIPHERALS
 #define SDU_NUM         20
 #define SDU_LEN         3000
-#define NUM_SEGMENTS    10
+#define NUM_SEGMENTS    100
 #define RESCHEDULE_DELAY K_MSEC(100)
+
+static void sdu_destroy(struct net_buf *buf)
+{
+	LOG_DBG("%p", buf);
+
+	net_buf_destroy(buf);
+}
+
+static void segment_destroy(struct net_buf *buf)
+{
+	LOG_DBG("%p", buf);
+
+	net_buf_destroy(buf);
+}
+
+static void rx_destroy(struct net_buf *buf)
+{
+	LOG_DBG("%p", buf);
+
+	net_buf_destroy(buf);
+}
 
 /* Only one SDU per link will be transmitted at a time */
 NET_BUF_POOL_DEFINE(sdu_tx_pool,
 		    CONFIG_BT_MAX_CONN, BT_L2CAP_SDU_BUF_SIZE(SDU_LEN),
-		    CONFIG_BT_CONN_TX_USER_DATA_SIZE, NULL);
+		    CONFIG_BT_CONN_TX_USER_DATA_SIZE, sdu_destroy);
 
 NET_BUF_POOL_DEFINE(segment_pool,
 		    /* MTU + 4 l2cap hdr + 4 ACL hdr */
 		    NUM_SEGMENTS, BT_L2CAP_BUF_SIZE(CONFIG_BT_L2CAP_TX_MTU),
-		    CONFIG_BT_CONN_TX_USER_DATA_SIZE, NULL);
+		    CONFIG_BT_CONN_TX_USER_DATA_SIZE, segment_destroy);
 
 /* Only one SDU per link will be received at a time */
 NET_BUF_POOL_DEFINE(sdu_rx_pool,
 		    CONFIG_BT_MAX_CONN, BT_L2CAP_SDU_BUF_SIZE(SDU_LEN),
-		    8, NULL);
+		    8, rx_destroy);
 
 static uint8_t tx_data[SDU_LEN];
 static uint16_t rx_cnt;
@@ -288,15 +309,10 @@ static void disconnect_device(struct bt_conn *conn, void *data)
 	WAIT_FOR_FLAG_UNSET(is_connected);
 }
 
-#define BT_LE_ADV_CONN_NAME_OT BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | \
-					    BT_LE_ADV_OPT_USE_NAME |	\
-					    BT_LE_ADV_OPT_ONE_TIME,	\
-					    BT_GAP_ADV_FAST_INT_MIN_2, \
-					    BT_GAP_ADV_FAST_INT_MAX_2, NULL)
-
-static const struct bt_data ad[] = {
-	BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-};
+#define BT_LE_ADV_CONN_OT BT_LE_ADV_PARAM(BT_LE_ADV_OPT_CONNECTABLE | \
+					  BT_LE_ADV_OPT_ONE_TIME,	\
+					  BT_GAP_ADV_FAST_INT_MIN_2, \
+					  BT_GAP_ADV_FAST_INT_MAX_2, NULL)
 
 static void test_peripheral_main(void)
 {
@@ -316,7 +332,7 @@ static void test_peripheral_main(void)
 
 	LOG_DBG("Peripheral Bluetooth initialized.");
 	LOG_DBG("Connectable advertising...");
-	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME_OT, ad, ARRAY_SIZE(ad), NULL, 0);
+	err = bt_le_adv_start(BT_LE_ADV_CONN_OT, NULL, 0, NULL, 0);
 	if (err) {
 		FAIL("Advertising failed to start (err %d)", err);
 		return;
@@ -458,7 +474,7 @@ static void test_central_main(void)
 	}
 	LOG_DBG("All peripherals disconnected.");
 
-	LOG_DBG("Max segment pool usage: %u bufs", max_seg_allocated);
+	LOG_INF("Max segment pool usage: %u bufs", max_seg_allocated);
 
 	PASS("L2CAP STRESS Central passed\n");
 }

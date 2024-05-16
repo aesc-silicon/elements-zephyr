@@ -32,6 +32,9 @@ LOG_MODULE_REGISTER(net_ppp, LOG_LEVEL);
 #include <zephyr/drivers/uart.h>
 #include <zephyr/drivers/console/uart_mux.h>
 #include <zephyr/random/random.h>
+#include <zephyr/posix/net/if_arp.h>
+#include <zephyr/net/ethernet.h>
+#include <zephyr/net/capture.h>
 
 #include "../../subsys/net/ip/net_stats.h"
 #include "../../subsys/net/ip/net_private.h"
@@ -49,6 +52,24 @@ enum ppp_driver_state {
 #define PPP_WORKQ_STACK_SIZE CONFIG_NET_PPP_RX_STACK_SIZE
 
 K_KERNEL_STACK_DEFINE(ppp_workq, PPP_WORKQ_STACK_SIZE);
+
+#if defined(CONFIG_NET_PPP_CAPTURE)
+#define MAX_CAPTURE_BUF_LEN CONFIG_NET_PPP_CAPTURE_BUF_SIZE
+#else
+#define MAX_CAPTURE_BUF_LEN 1
+#endif
+
+struct net_ppp_capture_ctx {
+	struct net_capture_cooked cooked;
+	uint8_t capture_buf[MAX_CAPTURE_BUF_LEN];
+};
+
+#if defined(CONFIG_NET_PPP_CAPTURE)
+static struct net_ppp_capture_ctx _ppp_capture_ctx;
+static struct net_ppp_capture_ctx *ppp_capture_ctx = &_ppp_capture_ctx;
+#else
+static struct net_ppp_capture_ctx *ppp_capture_ctx;
+#endif
 
 struct ppp_driver_context {
 	const struct device *dev;
@@ -121,14 +142,34 @@ static void uart_callback(const struct device *dev,
 
 	switch (evt->type) {
 	case UART_TX_DONE:
-		LOG_DBG("UART_TX_DONE: sent %d bytes", evt->data.tx.len);
+		LOG_DBG("UART_TX_DONE: sent %zu bytes", evt->data.tx.len);
 		k_sem_give(&uarte_tx_finished);
 		break;
 
 	case UART_TX_ABORTED:
-		LOG_DBG("Tx aborted");
+	{
 		k_sem_give(&uarte_tx_finished);
+		if (CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT == 0) {
+			LOG_WRN("UART TX aborted.");
+			break;
+		}
+		struct uart_config uart_conf;
+
+		err = uart_config_get(dev, &uart_conf);
+		if (err) {
+			LOG_ERR("uart_config_get() err: %d", err);
+		} else if (uart_conf.baudrate / 10 * CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT
+			  / MSEC_PER_SEC > evt->data.tx.len * 2) {
+			/* The abort likely did not happen because of missing bandwidth. */
+			LOG_DBG("UART_TX_ABORTED");
+		} else {
+			LOG_WRN("UART TX aborted: Only %zu bytes were sent. You may want"
+				" to change either CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT"
+				" (%d ms) or the UART baud rate (%u).", evt->data.tx.len,
+				CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT, uart_conf.baudrate);
+		}
 		break;
+	}
 
 	case UART_RX_RDY:
 		len = evt->data.rx.len;
@@ -171,7 +212,7 @@ static void uart_callback(const struct device *dev,
 
 	case UART_RX_BUF_REQUEST:
 	{
-		LOG_DBG("UART_RX_BUF_REQUEST: buf %p", next_buf);
+		LOG_DBG("UART_RX_BUF_REQUEST: buf %p", (void *)next_buf);
 
 		if (next_buf) {
 			err = uart_rx_buf_rsp(dev, next_buf, sizeof(context->buf));
@@ -185,7 +226,7 @@ static void uart_callback(const struct device *dev,
 
 	case UART_RX_BUF_RELEASED:
 		next_buf = evt->data.rx_buf.buf;
-		LOG_DBG("UART_RX_BUF_RELEASED: buf %p", next_buf);
+		LOG_DBG("UART_RX_BUF_RELEASED: buf %p", (void *)next_buf);
 		break;
 
 	case UART_RX_DISABLED:
@@ -243,7 +284,7 @@ static void uart_recovery(struct k_work *work)
 		if (ret) {
 			LOG_ERR("ppp_async_uart_rx_enable() failed, err %d", ret);
 		} else {
-			LOG_WRN("UART RX recovered");
+			LOG_DBG("UART RX recovered.");
 		}
 		uart_recovery_pending = false;
 	} else {
@@ -358,6 +399,28 @@ static int ppp_send_flush(struct ppp_driver_context *ppp, int off)
 	}
 	uint8_t *buf = ppp->send_buf;
 
+	if (IS_ENABLED(CONFIG_NET_PPP_CAPTURE) &&
+	    net_capture_is_enabled(NULL) && ppp_capture_ctx) {
+		size_t len = off;
+		uint8_t *start = &buf[0];
+
+		/* Do not capture HDLC frame start and stop bytes (0x7e) */
+
+		if (buf[0] == 0x7e) {
+			len--;
+			start++;
+		}
+
+		if (buf[off] == 0x7e) {
+			len--;
+		}
+
+		net_capture_data(&ppp_capture_ctx->cooked,
+				 start, len,
+				 NET_CAPTURE_OUTGOING,
+				 NET_ETH_PTYPE_HDLC);
+	}
+
 	/* If we're using gsm_mux, We don't want to use poll_out because sending
 	 * one byte at a time causes each byte to get wrapped in muxing headers.
 	 * But we can safely call uart_fifo_fill outside of ISR context when
@@ -368,11 +431,13 @@ static int ppp_send_flush(struct ppp_driver_context *ppp, int off)
 	} else if (IS_ENABLED(CONFIG_NET_PPP_ASYNC_UART)) {
 #if defined(CONFIG_NET_PPP_ASYNC_UART)
 		int ret;
+		const int32_t timeout = CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT
+					? CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT * USEC_PER_MSEC
+					: SYS_FOREVER_US;
 
 		k_sem_take(&uarte_tx_finished, K_FOREVER);
 
-		ret = uart_tx(ppp->dev, buf, off,
-			      CONFIG_NET_PPP_ASYNC_UART_TX_TIMEOUT * USEC_PER_MSEC);
+		ret = uart_tx(ppp->dev, buf, off, timeout);
 		if (ret) {
 			LOG_ERR("uart_tx() failed, err %d", ret);
 			k_sem_give(&uarte_tx_finished);
@@ -572,6 +637,34 @@ static void ppp_process_msg(struct ppp_driver_context *ppp)
 #endif
 		net_pkt_unref(ppp->pkt);
 	} else {
+		/* If PPP packet capturing is enabled, then send the
+		 * full packet with PPP headers for processing. Currently this
+		 * captures only valid frames. If we would need to receive also
+		 * invalid frames, the if-block would need to be moved before
+		 * fcs check above.
+		 */
+		if (IS_ENABLED(CONFIG_NET_PPP_CAPTURE) &&
+		    net_capture_is_enabled(NULL) && ppp_capture_ctx) {
+			size_t copied;
+
+			/* Linearize the packet data. We cannot use the
+			 * capture API that deals with net_pkt as we work
+			 * in cooked mode and want to capture also the
+			 * HDLC frame data.
+			 */
+			copied = net_buf_linearize(ppp_capture_ctx->capture_buf,
+						   sizeof(ppp_capture_ctx->capture_buf),
+						   ppp->pkt->buffer,
+						   0U,
+						   net_pkt_get_len(ppp->pkt));
+
+			net_capture_data(&ppp_capture_ctx->cooked,
+					 ppp_capture_ctx->capture_buf,
+					 copied,
+					 NET_CAPTURE_HOST,
+					 NET_ETH_PTYPE_HDLC);
+		}
+
 		/* Remove the Address (0xff), Control (0x03) and
 		 * FCS fields (16-bit) as the PPP L2 layer does not need
 		 * those bytes.
@@ -933,11 +1026,29 @@ use_random_mac:
 		ppp->mac_addr[2] = 0x5E;
 		ppp->mac_addr[3] = 0x00;
 		ppp->mac_addr[4] = 0x53;
-		ppp->mac_addr[5] = sys_rand32_get();
+		ppp->mac_addr[5] = sys_rand8_get();
 	}
 
 	net_if_set_link_addr(iface, ll_addr->addr, ll_addr->len,
 			     NET_LINK_ETHERNET);
+
+	if (IS_ENABLED(CONFIG_NET_PPP_CAPTURE)) {
+		static bool capture_setup_done;
+
+		if (!capture_setup_done) {
+			int ret;
+
+			ret = net_capture_cooked_setup(&ppp_capture_ctx->cooked,
+						       ARPHRD_PPP,
+						       sizeof(ppp->mac_addr),
+						       ppp->mac_addr);
+			if (ret < 0) {
+				LOG_DBG("Cannot setup capture (%d)", ret);
+			} else {
+				capture_setup_done = true;
+			}
+		}
+	}
 
 	memset(ppp->buf, 0, sizeof(ppp->buf));
 
@@ -1027,7 +1138,7 @@ static int ppp_start(const struct device *dev)
 		/* dts chosen zephyr,ppp-uart case */
 		context->dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_ppp_uart));
 #endif
-		LOG_INF("Initializing PPP to use %s", context->dev->name);
+		LOG_DBG("Initializing PPP to use %s", context->dev->name);
 
 		if (!device_is_ready(context->dev)) {
 			LOG_ERR("Device %s is not ready", context->dev->name);
@@ -1056,6 +1167,9 @@ static int ppp_stop(const struct device *dev)
 	struct ppp_driver_context *context = dev->data;
 
 	net_if_carrier_off(context->iface);
+#if defined(CONFIG_NET_PPP_ASYNC_UART)
+	uart_rx_disable(context->dev);
+#endif
 	context->modem_init_done = false;
 	return 0;
 }

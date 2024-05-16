@@ -94,6 +94,8 @@ static struct bt_uuid_128 uuid = BT_UUID_INIT_128(0);
 static struct bt_gatt_discover_params discover_params;
 static struct bt_gatt_subscribe_params subscribe_params;
 
+static const struct bt_uuid_16 ccc_uuid = BT_UUID_INIT_16(BT_UUID_GATT_CCC_VAL);
+
 static void vnd_ccc_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
 {
 	central_subscription = (value == BT_GATT_CCC_NOTIFY) ? 1 : 0;
@@ -277,8 +279,8 @@ static uint8_t discover_func(struct bt_conn *conn, const struct bt_gatt_attr *at
 
 	} else if (discover_params.type == BT_GATT_DISCOVER_CHARACTERISTIC) {
 		LOG_DBG("Service Characteristic Found");
-		memcpy(&uuid, BT_UUID_GATT_CCC, sizeof(uuid));
-		params->uuid = &uuid.uuid;
+
+		params->uuid = &ccc_uuid.uuid;
 		params->start_handle = attr->handle + 2;
 		params->type = BT_GATT_DISCOVER_DESCRIPTOR;
 		subscribe_params.value_handle = bt_gatt_attr_value_handle(attr);
@@ -398,7 +400,7 @@ void test_peripheral_main(void)
 	sprintf(name, "per-%d", get_device_nbr());
 	bt_set_name(name);
 
-	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, NULL, 0, NULL, 0);
+	err = bt_le_adv_start(BT_LE_ADV_CONN, NULL, 0, NULL, 0);
 	if (err) {
 		LOG_ERR("Advertising failed to start (err %d)", err);
 		__ASSERT_NO_MSG(err);

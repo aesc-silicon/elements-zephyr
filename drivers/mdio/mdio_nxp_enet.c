@@ -16,14 +16,12 @@
 #include <zephyr/sys_clock.h>
 #include <soc.h>
 
-/* Target MDC frequency 2.5 MHz */
-#define NXP_ENET_MDIO_MDC_FREQ 2500000U
-
 struct nxp_enet_mdio_config {
 	ENET_Type *base;
 	const struct pinctrl_dev_config *pincfg;
 	const struct device *clock_dev;
 	clock_control_subsys_t clock_subsys;
+	uint32_t mdc_freq;
 	uint16_t timeout;
 	bool disable_preamble;
 };
@@ -181,21 +179,9 @@ static int nxp_enet_mdio_write(const struct device *dev,
 	return ret;
 }
 
-/* MDIO bus enable/disable "implementation" */
-static void nxp_enet_mdio_bus_fn(const struct device *dev)
-{
-	/*
-	 * MDIO bus device is actually part of ethernet device, and
-	 * does not support ability to disable/enable MDIO bus hardware
-	 * independently of the ethernet/MAC hardware, so do nothing.
-	 */
-}
-
 static const struct mdio_driver_api nxp_enet_mdio_api = {
 	.read = nxp_enet_mdio_read,
 	.write = nxp_enet_mdio_write,
-	.bus_enable = nxp_enet_mdio_bus_fn,
-	.bus_disable = nxp_enet_mdio_bus_fn,
 };
 
 static void nxp_enet_mdio_isr_cb(const struct device *dev)
@@ -218,8 +204,8 @@ static void nxp_enet_mdio_post_module_reset_init(const struct device *dev)
 	/* Set up MSCR register */
 	(void) clock_control_get_rate(config->clock_dev, config->clock_subsys,
 							&enet_module_clock_rate);
-	uint32_t mii_speed = (enet_module_clock_rate + 2 * NXP_ENET_MDIO_MDC_FREQ - 1) /
-					(2 * NXP_ENET_MDIO_MDC_FREQ) - 1;
+	uint32_t mii_speed = (enet_module_clock_rate + 2 * config->mdc_freq - 1) /
+					(2 * config->mdc_freq) - 1;
 	uint32_t holdtime = (10 + NSEC_PER_SEC / enet_module_clock_rate - 1) /
 					(NSEC_PER_SEC / enet_module_clock_rate) - 1;
 	uint32_t mscr = ENET_MSCR_MII_SPEED(mii_speed) | ENET_MSCR_HOLDTIME(holdtime) |
@@ -245,6 +231,7 @@ void nxp_enet_mdio_callback(const struct device *dev,
 		data->interrupt_up = true;
 		break;
 	default:
+		break;
 	}
 }
 
@@ -286,6 +273,7 @@ static int nxp_enet_mdio_init(const struct device *dev)
 		.clock_subsys = (void *) DT_CLOCKS_CELL_BY_IDX(				\
 							DT_INST_PARENT(inst), 0, name),	\
 		.disable_preamble = DT_INST_PROP(inst, suppress_preamble),		\
+		.mdc_freq = DT_INST_PROP(inst, clock_frequency),			\
 	};										\
 											\
 	static struct nxp_enet_mdio_data nxp_enet_mdio_data_##inst;			\
