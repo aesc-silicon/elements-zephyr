@@ -29,6 +29,8 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 * CVE-2024-3077 `Zephyr project bug tracker GHSA-gmfv-4vfh-2mh8
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-gmfv-4vfh-2mh8>`_
 
+* CVE-2024-4785: Under embargo until 2024-08-07
+
 API Changes
 ***********
 
@@ -107,6 +109,8 @@ Boards & SoC Support
 * Made these changes for RISC-V boards:
 
 * Made these changes for native/POSIX boards:
+
+  * Introduced the simulated :ref:`nrf54l15bsim<nrf54l15bsim>` target.
 
   * LLVM fuzzing support has been refactored while adding support for it in native_sim.
 
