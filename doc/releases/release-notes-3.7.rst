@@ -71,11 +71,20 @@ Architectures
 
 * ARM
 
+* ARM64
+
+  * Implemented symbol names in the backtraces, enable by selecting :kconfig:option:`CONFIG_SYMTAB`
+
 * RISC-V
 
-  * Implemented frame-pointer based stack unwinding.
-
   * The fatal error message triggered from a fault now contains the callee-saved-registers states.
+
+  * Implemented stack unwinding
+
+    * Frame-pointer can be selected to enable precise stack traces at the expense of slightly
+      increased size and decreased speed.
+
+    * Symbol names can be enabled by selecting :kconfig:option:`CONFIG_EXCEPTION_STACK_TRACE_SYMTAB`
 
 * Xtensa
 
@@ -323,6 +332,13 @@ Devicetree
 Libraries / Subsystems
 **********************
 
+* Debug
+
+  * symtab
+
+   * By enabling :kconfig:option:`CONFIG_SYMTAB`, the symbol table will be
+     generated with Zephyr link stage executable on supported architectures.
+
 * Management
 
   * hawkBit
@@ -375,6 +391,9 @@ Libraries / Subsystems
 * State Machine Framework
 
   * The :c:macro:`SMF_CREATE_STATE` macro now always takes 5 arguments.
+  * Transition sources that are parents of the state that was run now choose the correct Least
+    Common Ancestor for executing Exit and Entry Actions.
+  * Passing ``NULL`` to :c:func:`smf_set_state` is now not allowed.
 
 * Storage
 
