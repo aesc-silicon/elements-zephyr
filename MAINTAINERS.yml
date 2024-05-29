@@ -646,6 +646,7 @@ Coding Guidelines:
     - nashif
     - carlescufi
     - jfischer-no
+    - simhein
   files:
     - .checkpatch.conf
     - .clang-format
@@ -1421,7 +1422,7 @@ Release Notes:
     - fgrandel
   collaborators:
     - rlubos
-    - jciupis
+    - ankuns
     - cfriedt
     - jukkar
   files:
