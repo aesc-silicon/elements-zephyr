@@ -73,6 +73,9 @@ Boards
   :kconfig:option:`CONFIG_I2C` is set. Users who need this setting enabled should set it in
   their project config file. (:github:`73067`)
 
+* LiteX: Renamed the ``compatible`` of the LiteX VexRiscV interrupt controller node from
+  ``vexriscv-intc0`` to :dtcompatible:`litex,vexriscv-intc0`. (:github:`73211`)
+
 Modules
 *******
 
@@ -81,9 +84,25 @@ MbedTLS
 
 * The hash algorithms SHA-384, SHA-512, MD5 and SHA-1 are not enabled by default anymore.
   Their respective Kconfig options now need to be explicitly enabled to be able to use them.
+* The Kconfig options previously named `CONFIG_MBEDTLS_MAC_*_ENABLED` have been renamed.
+  The `_MAC` and `_ENABLED` parts have been removed from their names.
+* The :kconfig:option:`CONFIG_MBEDTLS_HASH_ALL_ENABLED` Kconfig option has been fixed to actually
+  enable all the available hash algorithms. Previously, it used to only enable the SHA-2 ones.
+* The `CONFIG_MBEDTLS_HASH_SHA*_ENABLED` Kconfig options have been removed. They were duplicates
+  of other Kconfig options which are now named `CONFIG_MBEDTLS_SHA*`.
+* The `CONFIG_MBEDTLS_MAC_ALL_ENABLED` Kconfig option has been removed. Its equivalent is the
+  combination of :kconfig:option:`CONFIG_MBEDTLS_HASH_ALL_ENABLED` and :kconfig:option:`CONFIG_MBEDTLS_CMAC`.
 
 MCUboot
 =======
+
+Trusted Firmware-M
+==================
+
+* The default MCUboot signature type has been changed from RSA-3072 to EC-P256.
+  This affects builds that have MCUboot enabled in TF-M (:kconfig:option:`CONFIG_TFM_BL2`).
+  If you wish to keep using RSA-3072, you need to set :kconfig:option:`CONFIG_TFM_MCUBOOT_SIGNATURE_TYPE`
+  to `"RSA-3072"`. Otherwise, make sure to have your own signing keys of the signature type in use.
 
 zcbor
 =====
@@ -148,6 +167,10 @@ Device Drivers and Devicetree
             status = "okay";
         };
     };
+
+* The :dtcompatible:`nxp,kinetis-lptmr` compatible string has been changed to
+  :dtcompatible:`nxp,lptmr`. The old string will be usable for a short time, but
+  should be replaced for it will be removed in the future.
 
 * Some of the driver API structs have been rename to have the required ``_driver_api`` suffix. (:github:`72182`)
   The following types have been renamed:
@@ -413,11 +436,12 @@ Bluetooth Audio
 ===============
 
 * :kconfig:option:`CONFIG_BT_ASCS`, :kconfig:option:`CONFIG_BT_PERIPHERAL` and
-  :kconfig:option:`CONFIG_BT_ISO_PERIPHERAL` are not longer `select`ed automatically when
+  :kconfig:option:`CONFIG_BT_ISO_PERIPHERAL` are no longer enabled automatically when
   enabling :kconfig:option:`CONFIG_BT_BAP_UNICAST_SERVER`, and these must now be set explicitly
   in the project configuration file. (:github:`71993`)
-* The discover callback functions :code:`bt_cap_initiator_cb.unicast_discovery_complete`` and
-  :code:`bt_cap_commander_cb.discovery_complete`` for CAP now contain an additional parameter for
+
+* The discover callback functions :code:`bt_cap_initiator_cb.unicast_discovery_complete` and
+  :code:`bt_cap_commander_cb.discovery_complete` for CAP now contain an additional parameter for
   the set member.
   This needs to be added to all instances of CAP discovery callback functions defined.
   (:github:`72797`)
@@ -510,6 +534,11 @@ Networking
   :kconfig:option:`CONFIG_POSIX_MAX_FDS` are high enough. Unfortunately no exact values
   for these can be given as it depends on application needs and usage. (:github:`72834`)
 
+* The packet socket (type ``AF_PACKET``) protocol field in ``socket`` API call has changed.
+  The protocol field should be in network byte order so that we are compatible with Linux
+  socket calls. Linux expects the protocol field to be ``htons(ETH_P_ALL)`` if it is desired
+  to receive all the network packets. See details in
+  https://www.man7.org/linux/man-pages/man7/packet.7.html documentation. (:github:`73338`)
 
 Other Subsystems
 ****************

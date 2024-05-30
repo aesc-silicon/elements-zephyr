@@ -136,6 +136,11 @@ manifest:
       path: modules/fs/fatfs
       groups:
         - fs
+    - name: hal_adi
+      revision: 674d10b0a1aad4cf4b7b90ca52dfd4a494ab9e52
+      path: modules/hal/adi
+      groups:
+        - hal
     - name: hal_altera
       revision: 0d225ddd314379b32355a00fb669eacf911e750d
       path: modules/hal/altera
@@ -183,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 1a3e9f3a85ea34054811e4d9e5c5e5f8f751795b
+      revision: fc02d66798f691b66bd6b0236e63082a9c498bbf
       path: modules/hal/nordic
       groups:
         - hal
@@ -277,7 +282,7 @@ manifest:
       revision: 2b498e6f36d6b82ae1da12c8b7742e318624ecf5
       path: modules/lib/gui/lvgl
     - name: mbedtls
-      revision: 3217c450180fd5e817601c6f479116de69e57461
+      revision: c0cb49ffd24b4068a91425b74505b35ed0e81038
       path: modules/crypto/mbedtls
       groups:
         - crypto
@@ -322,7 +327,7 @@ manifest:
       groups:
         - crypto
     - name: trusted-firmware-m
-      revision: 785d87492490069b62170159fcf21c385f90f4eb
+      revision: bdc4df1734b870de43237d56eb1b2a7af016ee95
       path: modules/tee/tf-m/trusted-firmware-m
       groups:
         - tee
