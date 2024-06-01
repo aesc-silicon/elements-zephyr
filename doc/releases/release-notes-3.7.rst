@@ -105,6 +105,14 @@ Bluetooth
   * Removed ``err`` from :c:struct:`bt_bap_broadcast_assistant_cb.recv_state_removed` as it was
     redundant.
 
+  * The broadcast_audio_assistant sample has been renamed to bap_broadcast_assistant.
+    The broadcast_audio_sink sample has been renamed to bap_broadcast_sink.
+    The broadcast_audio_source sample has been renamed to bap_broadcast_source.
+    The unicast_audio_client sample has been renamed to bap_unicast_client.
+    The unicast_audio_server sample has been renamed to bap_unicast_server.
+    The public_broadcast_sink sample has been renamed to pbp_public_broadcast_sink.
+    The public_broadcast_source sample has been renamed to pbp_public_broadcast_source.
+
 * Host
 
   * Added Nordic UART Service (NUS), enabled by the :kconfig:option:`CONFIG_BT_ZEPHYR_NUS`.
@@ -115,6 +123,14 @@ Bluetooth
     It works as a device that is the gateway of the audio. Typical device acting as Audio
     Gateway is cellular phone. It controls the device (Hands-free Unit), that is the remote
     audio input and output mechanism.
+
+  * Implemented Advanced Audio Distribution Profile (A2DP) and Audio/Video Distribution Transport
+    Protocol (AVDTP), A2DP is enabled by :kconfig:option:`CONFIG_BT_A2DP`, AVDTP is enabled
+    by :kconfig:option:`CONFIG_BT_AVDTP`. They implement the protocols and procedures that
+    realize distribution of audio content of high quality in mono, stereo, or multi-channel modes.
+    A typical use case is the streaming of music content from a stereo music player to headphones
+    or speakers. The audio data is compressed in a proper format for efficient use of the limited
+    bandwidth.
 
 Boards & SoC Support
 ********************
@@ -431,6 +447,9 @@ Libraries / Subsystems
     enabling automatic formatting on mount failure by setting the
     :kconfig:option:`CONFIG_FS_FATFS_MKFS` Kconfig option. This option is enabled by default if
     :kconfig:option:`CONFIG_FILE_SYSTEM_MKFS` is set.
+
+  * FS: It is now possible to truncate a file while opening using :c:func:`fs_open`
+    and by passing ``FS_O_TRUNC`` flag.
 
 * POSIX API
 
