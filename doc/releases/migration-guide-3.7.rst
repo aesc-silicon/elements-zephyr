@@ -59,6 +59,11 @@ Build System
 Kernel
 ******
 
+* All architectures are now required to define the new ``struct arch_esf``, which describes the members
+  of a stack frame. This new struct replaces the named struct ``z_arch_esf_t``. (:github:`73593`)
+
+* The named struct ``z_arch_esf_t`` is now deprecated. Use ``struct arch_esf`` instead. (:github:`73593`)
+
 Boards
 ******
 
@@ -575,6 +580,19 @@ Modem
 
 * The ``CONFIG_MODEM_CHAT_LOG_BUFFER`` Kconfig option was
   renamed to :kconfig:option:`CONFIG_MODEM_CHAT_LOG_BUFFER_SIZE`. (:github:`70405`)
+
+.. _zephyr_3.7_posix_api_migration:
+
+POSIX API
+=========
+
+* The :ref:`POSIX API Kconfig deprecations <zephyr_3.7_posix_api_deprecations>` may require
+  changes to Kconfig files (``prj.conf``, etc), as outlined in the release notes. A more automated
+  approach is available via the provided migration script. Simply run the following:
+
+  .. code-block:: bash
+
+    $ python ${ZEPHYR_BASE}/scripts/utils/migrate_posix_kconfigs.py -r root_path
 
 Shell
 =====

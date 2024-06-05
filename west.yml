@@ -198,7 +198,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 5e84f1d2173e3c5057725d76f9dad6bfabad0b5f
+      revision: 88a7d079eed470ecc94010784931823a85ac3b39
       path: modules/hal/nxp
       groups:
         - hal
@@ -215,7 +215,7 @@ manifest:
         - hal
     - name: hal_renesas
       path: modules/hal/renesas
-      revision: 4ceafe0543a9e81c22e522a56228b789e1cb5b2c
+      revision: a8cd5ed480a31982a86dab8952ac8baaf646c3cb
       groups:
         - hal
     - name: hal_rpi_pico
@@ -300,7 +300,7 @@ manifest:
       groups:
         - tools
     - name: nrf_hw_models
-      revision: 53635212495e4575955fc717369be4362126456a
+      revision: 4447a22aea5e791c9bd18e7d71cc092623ddd2bb
       path: modules/bsim_hw_models/nrf_hw_models
     - name: open-amp
       revision: da78aea63159771956fe0c9263f2e6985b66e9d5
