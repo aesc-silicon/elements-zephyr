@@ -31,6 +31,8 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 * CVE-2024-3077 `Zephyr project bug tracker GHSA-gmfv-4vfh-2mh8
   <https://github.com/zephyrproject-rtos/zephyr/security/advisories/GHSA-gmfv-4vfh-2mh8>`_
 
+* CVE-2024-3332  Under embargo until 2024-07-01
+
 * CVE-2024-4785: Under embargo until 2024-08-07
 
 API Changes
@@ -185,16 +187,24 @@ Bluetooth
     or speakers. The audio data is compressed in a proper format for efficient use of the limited
     bandwidth.
 
+* HCI Driver
+
+  * Added support for Ambiq Apollo3 Blue series.
+
 Boards & SoC Support
 ********************
 
 * Added support for these SoC series:
+
+  * Added support for Ambiq Apollo3 Blue and Apollo3 Blue Plus SoC series.
 
 * Made these changes in other SoC series:
 
   * ITE: Rename the Kconfig symbol for all ITE SoC variants.
 
 * Added support for these ARM boards:
+
+  * Added support for Ambiq Apollo3 boards: ``apollo3_evb``, ``apollo3p_evb``.
 
 * Added support for these Xtensa boards:
 
@@ -263,6 +273,8 @@ Drivers and Sensors
   * Updated the CAN timing functions to take the minimum supported bitrate into consideration when
     validating the bitrate.
   * Made the ``sample-point`` and ``sample-point-data`` devicetree properties optional.
+  * Renamed the ``bus_speed`` and ``bus_speed_data`` fields of :c:struct:`can_driver_config` to
+    ``bitrate`` and ``bitrate_data``.
 
 * Charger
 
@@ -274,6 +286,8 @@ Drivers and Sensors
 * Clock control
 
 * Counter
+
+  * Added support for Ambiq Apollo3 series.
 
 * Crypto
 
@@ -297,11 +311,17 @@ Drivers and Sensors
 
 * Flash
 
+  * Added support for Ambiq Apollo3 series.
+
 * GNSS
 
 * GPIO
 
+  * Added support for Ambiq Apollo3 series.
+
 * I2C
+
+  * Added support for Ambiq Apollo3 series.
 
 * I2S
 
@@ -365,6 +385,9 @@ Drivers and Sensors
 
 * SPI
 
+  * Added support for Ambiq Apollo3 series general IOM based SPI.
+  * Added support for Ambiq Apollo3 BLEIF based SPI, which is specific for internal HCI.
+
 * USB
 
 * W1
@@ -373,6 +396,7 @@ Drivers and Sensors
 
   * Added :kconfig:option:`CONFIG_WDT_NPCX_WARNING_LEADING_TIME_MS` to set the leading warning time
     in milliseconds. Removed no longer used :kconfig:option:`CONFIG_WDT_NPCX_DELAY_CYCLES`.
+  * Added support for Ambiq Apollo3 series.
 
 * Wi-Fi
 

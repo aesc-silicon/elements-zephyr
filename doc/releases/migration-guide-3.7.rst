@@ -81,6 +81,8 @@ Boards
 * LiteX: Renamed the ``compatible`` of the LiteX VexRiscV interrupt controller node from
   ``vexriscv-intc0`` to :dtcompatible:`litex,vexriscv-intc0`. (:github:`73211`)
 
+* `lairdconnect` boards are now `ezurio` boards. Laird Connectivity has rebranded to `Ezurio <https://www.ezurio.com/laird-connectivity>`_.
+
 Modules
 *******
 
@@ -98,6 +100,9 @@ Mbed TLS
   of other Kconfig options which are now named `CONFIG_MBEDTLS_SHA*`.
 * The `CONFIG_MBEDTLS_MAC_ALL_ENABLED` Kconfig option has been removed. Its equivalent is the
   combination of :kconfig:option:`CONFIG_MBEDTLS_HASH_ALL_ENABLED` and :kconfig:option:`CONFIG_MBEDTLS_CMAC`.
+* The Kconfig options ``CONFIG_MBEDTLS_MAC_MD4_ENABLED``, ``CONFIG_MBEDTLS_CIPHER_ARC4_ENABLED``
+  and ``CONFIG_MBEDTLS_CIPHER_BLOWFISH_ENABLED`` were removed because they are no more supported
+  in Mbed TLS. (:github:`73222`)
 
 MCUboot
 =======
@@ -244,8 +249,9 @@ Controller Area Network (CAN)
 =============================
 
 * Removed the following deprecated CAN controller devicetree properties. Out-of-tree boards using
-  these properties need to switch to using the ``bus-speed``, ``sample-point``, ``bus-speed-data``,
-  and ``sample-point-data`` devicetree properties for specifying the initial CAN bitrate:
+  these properties can switch to using the ``bitrate``, ``sample-point``, ``bitrate-data``, and
+  ``sample-point-data`` devicetree properties (or rely on :kconfig:option:`CAN_DEFAULT_BITRATE` and
+  :kconfig:option:`CAN_DEFAULT_BITRATE_DATA`) for specifying the initial CAN bitrate:
 
   * ``sjw``
   * ``prop-seg``
@@ -255,6 +261,9 @@ Controller Area Network (CAN)
   * ``prop-seg-data``
   * ``phase-seg1-data``
   * ``phase-seg1-data``
+
+  The ``bus-speed`` and ``bus-speed-data`` CAN controller devicetree properties have been
+  deprecated.
 
   (:github:`68714`)
 
