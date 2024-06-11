@@ -3120,16 +3120,18 @@ ADI Platforms:
     - microbuilder
   files:
     - boards/adi/
-    - drivers/*/max*
+    - drivers/*/*max*
     - drivers/*/*max*/
     - drivers/dac/dac_ltc*
     - drivers/ethernet/eth_adin*
     - drivers/mdio/mdio_adin*
     - drivers/regulator/regulator_adp5360*
     - drivers/sensor/adi/
+    - dts/arm/adi/
     - dts/bindings/*/adi,*
     - dts/bindings/*/lltc,*
     - dts/bindings/*/maxim,*
+    - soc/adi/
   labels:
     - "platform: ADI"
 
@@ -3240,8 +3242,13 @@ Raspberry Pi Pico Platforms:
   labels:
     - "platform: Raspberry Pi Pico"
 
-SiLabs Platforms:
-  status: odd fixes
+Silabs Platforms:
+  status: maintained
+  maintainers:
+    - jhedberg
+  collaborators:
+    - jerome-pouiller
+    - asmellby
   files:
     - soc/silabs/
     - boards/silabs/
@@ -3249,7 +3256,7 @@ SiLabs Platforms:
     - dts/bindings/*/silabs*
     - drivers/*/*_gecko*
   labels:
-    - "platform: SiLabs"
+    - "platform: Silabs"
 
 Intel Platforms (X86):
   status: maintained
@@ -4445,15 +4452,19 @@ West:
     - "platform: Raspberry Pi Pico"
 
 "West project: hal_silabs":
-  status: odd fixes
+  status: maintained
+  maintainers:
+    - jhedberg
   collaborators:
+    - jerome-pouiller
+    - asmellby
     - sateeshkotapati
     - yonsch
     - mnkp
   files:
     - modules/Kconfig.silabs
   labels:
-    - "platform: SiLabs"
+    - "platform: Silabs"
 
 "West project: hal_st":
   status: maintained
