@@ -183,7 +183,7 @@ manifest:
       groups:
         - hal
     - name: hal_microchip
-      revision: 1279561ea9b71c5f572d3d52708b7b445a383662
+      revision: 71eba057c0cb7fc11b6f33eb40a82f1ebe2c571c
       path: modules/hal/microchip
       groups:
         - hal
@@ -198,7 +198,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 88a7d079eed470ecc94010784931823a85ac3b39
+      revision: 5db52e3e3bd6a7ada1f4983e037555d3ff9af028
       path: modules/hal/nxp
       groups:
         - hal
@@ -224,7 +224,7 @@ manifest:
       groups:
         - hal
     - name: hal_silabs
-      revision: 0c39ee28be31c59a98ed490c3811f68caa1fcbd3
+      revision: a09dd1b82b24aa3060e162c0dfa40026c0dba450
       path: modules/hal/silabs
       groups:
         - hal
@@ -306,7 +306,7 @@ manifest:
       revision: da78aea63159771956fe0c9263f2e6985b66e9d5
       path: modules/lib/open-amp
     - name: openthread
-      revision: 49c59ec519cc8b49dd58978d1bc80b7ae7ba88d0
+      revision: 3873c6fcd5a8a9dd01b71e8efe32ef5dc7923bb1
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio

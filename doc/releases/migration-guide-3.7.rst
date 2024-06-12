@@ -236,6 +236,17 @@ Analog-to-Digital Converter (ADC)
 Bluetooth HCI
 =============
 
+ * A new HCI driver API was introduced (:github:`72323`) and the old one deprecated. The new API
+   follows the normal Zephyr driver model, with devicetree nodes, etc. The host now
+   selects which driver instance to use as the controller by looking for a ``zephyr,bt-hci``
+   chosen property. The devicetree bindings for all HCI drivers derive from a common
+   ``bt-hci.yaml`` base binding.
+ * As part of the new HCI driver API, the ``zephyr,bt-uart`` chosen property is no longer used,
+   rather the UART HCI drivers select their UART by looking for the parent devicetree node of the
+   HCI driver instance node.
+ * As part of the new HCI driver API, the ``zephyr,bt-hci-ipc`` chosen property is only used for
+   the controller side, whereas the HCI driver now relies on nodes with the compatible string
+   ``zephyr,bt-hci-ipc``.
  * The ``BT_HCI_VS_EXT`` Kconfig option was deleted and the feature is now included in the
    :kconfig:option:`BT_HCI_VS` Kconfig option.
  * The ``BT_HCI_VS_EVT`` Kconfig option was removed, since vendor event support is implicit if
@@ -351,6 +362,8 @@ Enhanced Serial Peripheral Interface (eSPI)
   ``ESPI_VWIRE_SIGNAL_TARGET_BOOT_STS``, ``ESPI_VWIRE_SIGNAL_TARGET_BOOT_DONE`` and
   ``ESPI_VWIRE_SIGNAL_TARGET_GPIO_<NUMBER>`` respectively to reflect the new terminology
   in eSPI 1.5 specification. (:github:`68492`)
+  The KConfig ``CONFIG_ESPI_SLAVE`` was renamed to ``CONFIG_ESPI_TARGET``, similarly
+  ``CONFIG_ESPI_SAF`` was renamed as ``CONFIG_ESPI_TAF`` (:github:`73887`)
 
 Flash
 =====
@@ -412,6 +425,23 @@ LED Strip
 
 Sensors
 =======
+
+* The ``chip`` devicetree property from the :dtcompatible:`sensirion,shtcx` sensor driver has been
+  removed. Chip variants are now selected using the matching compatible property (:github:`74033`).
+  For an example of the new shtc3 configuration, see below:
+
+  .. code-block:: devicetree
+
+    &i2c0 {
+        status = "okay";
+
+        shtc3: shtc3@70 {
+            compatible = "sensirion,shtc3", "sensirion,shtcx";
+            reg = <0x70>;
+            measure-mode = "normal";
+            clock-stretching;
+        };
+    };
 
 Serial
 ======

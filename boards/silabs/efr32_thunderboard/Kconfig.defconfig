@@ -28,10 +28,6 @@ config MAIN_STACK_SIZE
 	default 3072 if PM
 	default 2304
 
-choice BT_HCI_BUS_TYPE
-	default BT_SILABS_HCI
-endchoice
-
 endif # BT
 
 config REGULATOR
