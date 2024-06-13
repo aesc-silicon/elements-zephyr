@@ -504,6 +504,26 @@ Bluetooth Audio
   the :c:func:`bt_bap_stream_connect` shall now be called before :c:func:`bt_bap_stream_start`.
   (:github:`73032`)
 
+* Renamed ``stream_lang`` to just ``lang`` to better fit with the assigned numbers document.
+  This affects the ``BT_AUDIO_METADATA_TYPE_LANG`` macro and the following functions:
+
+  * :c:func:`bt_audio_codec_cap_meta_set_lang`
+  * :c:func:`bt_audio_codec_cap_meta_get_lang`
+  * :c:func:`bt_audio_codec_cfg_meta_set_lang`
+  * :c:func:`bt_audio_codec_cfg_meta_get_lang`
+
+  (:github:`72584`)
+
+* Changed ``lang`` from ``uint32_t`` to ``uint8_t [3]``. This modifies the following functions:
+
+  * :c:func:`bt_audio_codec_cap_meta_set_lang`
+  * :c:func:`bt_audio_codec_cap_meta_get_lang`
+  * :c:func:`bt_audio_codec_cfg_meta_set_lang`
+  * :c:func:`bt_audio_codec_cfg_meta_get_lang`
+
+  The result of this is that string values such as ``"eng"`` and ``"deu"`` can now be used to set
+  new values, and to prevent unnecessary copies of data when getting the values. (:github:`72584`)
+
 * All occurrences of ``set_sirk`` have been changed to just ``sirk`` as the ``s`` in ``sirk`` stands
   for set. (:github:`73413`)
 
