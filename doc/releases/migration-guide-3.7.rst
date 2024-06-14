@@ -351,6 +351,91 @@ Display
         };
     };
 
+
+* ST7789V based displays now use the MIPI DBI driver class. These displays
+  must now be declared within a MIPI DBI driver wrapper device, which will
+  manage interfacing with the display. (:github:`73750`) Note that the
+  ``cmd-data-gpios`` pin has changed polarity with this update, to align better
+  with the new ``dc-gpios`` name. For an example, see below:
+
+  .. code-block:: devicetree
+
+    /* Legacy ST7789V display definition */
+    &spi0 {
+        st7789: st7789@0 {
+            compatible = "sitronix,st7789v";
+            reg = <0>;
+            spi-max-frequency = <32000000>;
+            reset-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+            cmd-data-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+            ...
+        };
+    };
+
+    /* New display definition with MIPI DBI device */
+
+    #include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
+
+    ...
+
+    mipi_dbi {
+        compatible = "zephyr,mipi-dbi-spi";
+        reset-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+        dc-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+        spi-dev = <&spi0>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        st7789: st7789@0 {
+            compatible = "sitronix,st7789v";
+            reg = <0>;
+            mipi-max-frequency = <32000000>;
+            mipi-mode = <MIPI_DBI_MODE_SPI_4WIRE>;
+            ...
+        };
+    };
+
+* SSD16XX based displays now use the MIPI DBI driver class (:github:`73946`).
+  These displays must now be declared within a MIPI DBI driver wrapper device,
+  which will manage interfacing with the display. Note that the ``dc-gpios``
+  pin has changed polarity with this update. For an example, see below:
+
+  .. code-block:: devicetree
+
+    /* Legacy SSD16XX display definition */
+    &spi0 {
+        ssd1680: ssd1680@0 {
+            compatible = "solomon,ssd1680";
+            reg = <0>;
+            spi-max-frequency = <4000000>;
+            reset-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+            dc-gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+            ...
+        };
+    };
+
+    /* New display definition with MIPI DBI device */
+
+    #include <zephyr/dt-bindings/mipi_dbi/mipi_dbi.h>
+
+    ...
+
+    mipi_dbi {
+        compatible = "zephyr,mipi-dbi-spi";
+        reset-gpios = <&gpio0 6 GPIO_ACTIVE_LOW>;
+        dc-gpios = <&gpio0 12 GPIO_ACTIVE_HIGH>;
+        spi-dev = <&spi0>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        ssd1680: ssd1680@0 {
+            compatible = "solomon,ssd1680";
+            reg = <0>;
+            mipi-max-frequency = <4000000>;
+            ...
+        };
+    };
+
 Enhanced Serial Peripheral Interface (eSPI)
 ===========================================
 
@@ -526,6 +611,21 @@ Bluetooth Audio
 
 * All occurrences of ``set_sirk`` have been changed to just ``sirk`` as the ``s`` in ``sirk`` stands
   for set. (:github:`73413`)
+
+* Added ``fallback_to_default`` parameter to :c:func:`bt_audio_codec_cfg_get_chan_allocation`.
+  To maintain existing behavior set the parameter to ``false``. (:github:`72090`)
+
+* Added ``fallback_to_default`` parameter to
+  :c:func:`bt_audio_codec_cap_get_supported_audio_chan_counts`.
+  To maintain existing behavior set the parameter to ``false``. (:github:`72090`)
+
+* Added ``fallback_to_default`` parameter to
+  :c:func:`bt_audio_codec_cap_get_max_codec_frames_per_sdu`.
+  To maintain existing behavior set the parameter to ``false``. (:github:`72090`)
+
+* Added ``fallback_to_default`` parameter to
+  :c:func:`bt_audio_codec_cfg_meta_get_pref_context`.
+  To maintain existing behavior set the parameter to ``false``. (:github:`72090`)
 
 Bluetooth Classic
 =================

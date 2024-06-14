@@ -30,7 +30,7 @@ manifest:
   # Please add items below based on alphabetical order
   projects:
     - name: acpica
-      revision: da5f2721e1c7f188fe04aa50af76f4b94f3c3ea3
+      revision: 8d24867bc9c9d81c81eeac59391cda59333affd4
       path: modules/lib/acpica
     - name: bsim
       repo-path: babblesim-manifest
@@ -157,7 +157,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: 5191505f915c0b1c706222f4709925a453e0e858
+      revision: 0690c03f1540e8a5082da4c2b997e64bde8f4765
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -173,7 +173,7 @@ manifest:
       groups:
         - hal
     - name: hal_infineon
-      revision: b1a47231e8671c882c5f055f9f10c32b18133d08
+      revision: f25734a72c585f6675e8254a382e80e78a3cd03a
       path: modules/hal/infineon
       groups:
         - hal
@@ -282,7 +282,7 @@ manifest:
       revision: 2b498e6f36d6b82ae1da12c8b7742e318624ecf5
       path: modules/lib/gui/lvgl
     - name: mbedtls
-      revision: c0cb49ffd24b4068a91425b74505b35ed0e81038
+      revision: 2f24831ee13d399ce019c4632b0bcd440a713f7c
       path: modules/crypto/mbedtls
       groups:
         - crypto
@@ -310,7 +310,7 @@ manifest:
       path: modules/lib/openthread
     - name: percepio
       path: modules/debug/percepio
-      revision: 7f6fb3f12ea1493a2f8ab6a876fb255a39db47c8
+      revision: 1a67f3e2dbc2a8d53e5248d72bac946db381692d
       groups:
         - debug
     - name: picolibc

@@ -35,6 +35,10 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 
 * CVE-2024-4785: Under embargo until 2024-08-07
 
+* CVE-2024-5754: Under embargo until 2024-09-04
+
+* CVE-2024-5931: Under embargo until 2024-09-10
+
 API Changes
 ***********
 
@@ -237,6 +241,8 @@ Build system and Infrastructure
   * Deprecated the global CSTD cmake property in favor of the :kconfig:option:`CONFIG_STD_C`
     choice to select the C Standard version. Additionally subsystems can select a minimum
     required C Standard version, with for example :kconfig:option:`CONFIG_REQUIRES_STD_C11`.
+
+  * Fixed issue with passing UTF-8 configs to applications using sysbuild.
 
 Drivers and Sensors
 *******************
