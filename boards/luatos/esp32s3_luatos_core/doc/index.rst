@@ -89,7 +89,6 @@ Current Zephyr's ESP32S3-LUATOS-Core board supports the following features:
 +------------+------------+-------------------------------------+
 | Interface  | Controller | Driver/Component                    |
 +============+============+=====================================+
-+------------+------------+-------------------------------------+
 | UART       | on-chip    | serial port                         |
 +------------+------------+-------------------------------------+
 | GPIO       | on-chip    | gpio                                |
@@ -161,9 +160,10 @@ There are two options to be used when building an application:
 
    User can select the MCUboot bootloader by adding the following line
    to the board default configuration file.
-   ```
-   CONFIG_BOOTLOADER_MCUBOOT=y
-   ```
+
+   .. code:: cfg
+
+      CONFIG_BOOTLOADER_MCUBOOT=y
 
 Sysbuild
 ========

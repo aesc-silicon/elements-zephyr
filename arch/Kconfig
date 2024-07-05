@@ -110,7 +110,7 @@ config RISCV
 	bool
 	select ARCH_IS_SET
 	select ARCH_SUPPORTS_COREDUMP
-	select ARCH_SUPPORTS_ROM_START if !SOC_SERIES_ESP32C3
+	select ARCH_SUPPORTS_ROM_START if !SOC_FAMILY_ESPRESSIF_ESP32
 	select ARCH_HAS_CODE_DATA_RELOCATION
 	select ARCH_HAS_THREAD_LOCAL_STORAGE
 	select ARCH_HAS_STACKWALK
@@ -134,6 +134,7 @@ config XTENSA
 	select ARCH_HAS_TIMING_FUNCTIONS
 	select ARCH_MEM_DOMAIN_DATA if USERSPACE
 	select ARCH_HAS_DIRECTED_IPIS
+	select THREAD_STACK_INFO
 	help
 	  Xtensa architecture
 
@@ -214,7 +215,7 @@ config SRAM_BASE_ADDRESS
 	hex "SRAM Base Address"
 	default $(dt_chosen_reg_addr_hex,$(DT_CHOSEN_Z_SRAM))
 	help
-	  The SRAM base address. The default value comes from from
+	  The SRAM base address. The default value comes from
 	  /chosen/zephyr,sram in devicetree. The user should generally avoid
 	  changing it via menuconfig or in configuration files.
 

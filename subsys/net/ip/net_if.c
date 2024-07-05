@@ -23,6 +23,9 @@ LOG_MODULE_REGISTER(net_if, CONFIG_NET_IF_LOG_LEVEL);
 #include <zephyr/net/net_if.h>
 #include <zephyr/net/net_mgmt.h>
 #include <zephyr/net/ethernet.h>
+#ifdef CONFIG_WIFI_NM
+#include <zephyr/net/wifi_nm.h>
+#endif
 #include <zephyr/net/offloaded_netdev.h>
 #include <zephyr/net/virtual.h>
 #include <zephyr/net/socket.h>
@@ -2092,7 +2095,7 @@ struct net_if_mcast_addr *net_if_ipv6_maddr_add(struct net_if *iface,
 	}
 
 	if (net_if_ipv6_maddr_lookup(addr, &iface)) {
-		NET_WARN("Multicast address %s is is already registered.",
+		NET_WARN("Multicast address %s is already registered.",
 			net_sprint_ipv6_addr(addr));
 		goto out;
 	}
@@ -5067,14 +5070,33 @@ void net_if_call_link_cb(struct net_if *iface, struct net_linkaddr *lladdr,
 	k_mutex_unlock(&lock);
 }
 
-static bool need_calc_checksum(struct net_if *iface, enum ethernet_hw_caps caps)
+static bool need_calc_checksum(struct net_if *iface, enum ethernet_hw_caps caps,
+			      enum net_if_checksum_type chksum_type)
 {
 #if defined(CONFIG_NET_L2_ETHERNET)
+	struct ethernet_config config;
+	enum ethernet_config_type config_type;
+
 	if (net_if_l2(iface) != &NET_L2_GET_NAME(ETHERNET)) {
 		return true;
 	}
 
-	return !(net_eth_get_hw_capabilities(iface) & caps);
+	if (!(net_eth_get_hw_capabilities(iface) & caps)) {
+		return true; /* No checksum offload*/
+	}
+
+	if (caps == ETHERNET_HW_RX_CHKSUM_OFFLOAD) {
+		config_type = ETHERNET_CONFIG_TYPE_RX_CHECKSUM_SUPPORT;
+	} else {
+		config_type = ETHERNET_CONFIG_TYPE_TX_CHECKSUM_SUPPORT;
+	}
+
+	if (net_eth_get_hw_config(iface, config_type, &config) != 0) {
+		return false; /* No extra info, assume all offloaded. */
+	}
+
+	/* bitmaps are encoded such that this works */
+	return !((config.chksum_support & chksum_type) == chksum_type);
 #else
 	ARG_UNUSED(iface);
 	ARG_UNUSED(caps);
@@ -5083,14 +5105,14 @@ static bool need_calc_checksum(struct net_if *iface, enum ethernet_hw_caps caps)
 #endif
 }
 
-bool net_if_need_calc_tx_checksum(struct net_if *iface)
+bool net_if_need_calc_tx_checksum(struct net_if *iface, enum net_if_checksum_type chksum_type)
 {
-	return need_calc_checksum(iface, ETHERNET_HW_TX_CHKSUM_OFFLOAD);
+	return need_calc_checksum(iface, ETHERNET_HW_TX_CHKSUM_OFFLOAD, chksum_type);
 }
 
-bool net_if_need_calc_rx_checksum(struct net_if *iface)
+bool net_if_need_calc_rx_checksum(struct net_if *iface, enum net_if_checksum_type chksum_type)
 {
-	return need_calc_checksum(iface, ETHERNET_HW_RX_CHKSUM_OFFLOAD);
+	return need_calc_checksum(iface, ETHERNET_HW_RX_CHKSUM_OFFLOAD, chksum_type);
 }
 
 int net_if_get_by_iface(struct net_if *iface)
@@ -5662,6 +5684,34 @@ struct net_if *net_if_get_first_wifi(void)
 	return NULL;
 }
 
+struct net_if *net_if_get_wifi_sta(void)
+{
+	STRUCT_SECTION_FOREACH(net_if, iface) {
+		if (net_if_is_wifi(iface)
+#ifdef CONFIG_WIFI_NM
+			&& (wifi_nm_get_type_iface(iface) == (1 << WIFI_TYPE_STA))
+#endif
+			) {
+			return iface;
+		}
+	}
+	return NULL;
+}
+
+struct net_if *net_if_get_wifi_sap(void)
+{
+	STRUCT_SECTION_FOREACH(net_if, iface) {
+		if (net_if_is_wifi(iface)
+#ifdef CONFIG_WIFI_NM
+			&& (wifi_nm_get_type_iface(iface) == (1 << WIFI_TYPE_SAP))
+#endif
+			) {
+			return iface;
+		}
+	}
+	return NULL;
+}
+
 int net_if_get_name(struct net_if *iface, char *buf, int len)
 {
 #if defined(CONFIG_NET_INTERFACE_NAME)
@@ -5798,6 +5848,16 @@ static void set_default_name(struct net_if *iface)
 			snprintk(name, sizeof(name) - 1, "ppp%d", count++);
 		}
 #endif /* CONFIG_NET_L2_PPP */
+	}
+
+	if (IS_ENABLED(CONFIG_NET_L2_OPENTHREAD)) {
+#if defined(CONFIG_NET_L2_OPENTHREAD)
+		if (net_if_l2(iface) == &NET_L2_GET_NAME(OPENTHREAD)) {
+			static int count;
+
+			snprintk(name, sizeof(name) - 1, "thread%d", count++);
+		}
+#endif /* CONFIG_NET_L2_OPENTHREAD */
 	}
 
 	if (name[0] == '\0') {

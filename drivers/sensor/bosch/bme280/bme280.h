@@ -206,12 +206,20 @@ struct bme280_decoder_header {
 
 struct bme280_encoded_data {
 	struct bme280_decoder_header header;
+	struct {
+		/** Set if `temp` has data */
+		uint8_t has_temp: 1;
+		/** Set if `press` has data */
+		uint8_t has_press: 1;
+		/** Set if `humidity` has data */
+		uint8_t has_humidity: 1;
+	} __attribute__((__packed__));
 	struct bme280_reading reading;
 };
 
 int bme280_get_decoder(const struct device *dev, const struct sensor_decoder_api **decoder);
 
-int bme280_submit(const struct device *dev, struct rtio_iodev_sqe *iodev_sqe);
+void bme280_submit(const struct device *dev, struct rtio_iodev_sqe *iodev_sqe);
 
 int bme280_sample_fetch(const struct device *dev,
 			       enum sensor_channel chan);

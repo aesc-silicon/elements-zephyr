@@ -125,6 +125,9 @@ choice BT_LL_CHOICE
 	prompt "Bluetooth Link Layer Selection"
 	help
 	  Select the Bluetooth Link Layer to compile.
+	  The link layer choice list can be extended out of tree.
+	  In the nRF Connect SDK, the SoftDevice Controller is selected
+	  and set as the default Bluetooth Controller.
 
 config BT_LL_SW_SPLIT
 	bool "Software-based BLE Link Layer"
@@ -846,7 +849,7 @@ config BT_CTLR_ADV_ISO_STREAM_COUNT
 	range BT_CTLR_ADV_ISO_STREAM_MAX 64
 	default BT_ISO_MAX_CHAN
 	help
-	  Maximum Broadcast ISO Streams supported in the the Controller across
+	  Maximum Broadcast ISO Streams supported in the Controller across
 	  all Broadcast ISO groups.
 
 config BT_CTLR_ADV_ISO_PDU_LEN_MAX
@@ -879,7 +882,7 @@ config BT_CTLR_SYNC_ISO_STREAM_COUNT
 	range BT_CTLR_SYNC_ISO_STREAM_MAX 64
 	default BT_ISO_MAX_CHAN
 	help
-	  Maximum ISO Synchronized Receiver Streams supported in the the
+	  Maximum ISO Synchronized Receiver Streams supported in the
 	  Controller across all Broadcast ISO groups.
 
 config BT_CTLR_SYNC_ISO_PDU_LEN_MAX
