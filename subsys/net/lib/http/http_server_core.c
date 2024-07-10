@@ -361,9 +361,11 @@ static void init_client_ctx(struct http_client_ctx *client, int new_socket)
 	http_client_timer_restart(client);
 
 	ARRAY_FOR_EACH(client->streams, i) {
-		client->streams[i].stream_state = HTTP_SERVER_STREAM_IDLE;
+		client->streams[i].stream_state = HTTP2_STREAM_IDLE;
 		client->streams[i].stream_id = 0;
 	}
+
+	client->current_stream = NULL;
 }
 
 static int handle_http_preface(struct http_client_ctx *client)
@@ -433,13 +435,16 @@ static int handle_http_request(struct http_client_ctx *client)
 			ret = handle_http_frame_window_update(client);
 			break;
 		case HTTP_SERVER_FRAME_RST_STREAM_STATE:
-			ret = handle_http_frame_rst_frame(client);
+			ret = handle_http_frame_rst_stream(client);
 			break;
 		case HTTP_SERVER_FRAME_GOAWAY_STATE:
 			ret = handle_http_frame_goaway(client);
 			break;
 		case HTTP_SERVER_FRAME_PRIORITY_STATE:
 			ret = handle_http_frame_priority(client);
+			break;
+		case HTTP_SERVER_FRAME_PADDING_STATE:
+			ret = handle_http_frame_padding(client);
 			break;
 		case HTTP_SERVER_DONE_STATE:
 			ret = handle_http_done(client);
