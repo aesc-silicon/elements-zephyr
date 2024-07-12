@@ -826,6 +826,7 @@ Networking
   * Added :kconfig:option:`CONFIG_NET_DHCPV4_SERVER_NAK_UNRECOGNIZED_REQUESTS` which
     allows to override RFC-defined behavior, and NAK requests from unrecognized
     clients.
+  * Fixed client ID generation in DHCPv4 server.
   * Other minor fixes in DHCPv4 client and server implementations.
 
 * DHCPv6:
@@ -861,6 +862,7 @@ Networking
   * Added HTTP shell component.
   * Improved HTTP client error reporting.
   * Moved HTTP client library out of experimental.
+  * Added POLLOUT monitoring when sending response in HTTP client.
 
 * IPSP:
 
@@ -941,11 +943,14 @@ Networking
   * Added new driver for Native Simulator offloaded sockets.
   * Overhauled VLAN support to use Virtual network interfaces.
   * Added statistics collection for Virtual network interfaces.
+  * Fixed system workqueue block in :c:func:`mgmt_event_work_handler`
+    when :kconfig:option:`CONFIG_NET_MGMT_EVENT_SYSTEM_WORKQUEUE` is enabled.
 
 * MQTT:
 
   * Added ALPN support for MQTT TLS backend.
   * Added user data field in :c:struct:`mqtt_client` context structure.
+  * Fixed a potential socket leak in MQTT Websockets transport.
 
 * Network Interface:
 
@@ -957,6 +962,7 @@ Networking
   * Improved debug logging in the network interface code.
   * Added reference counter to the :c:struct:`net_if_addr` structure.
   * Fixed IPv6 DAD and MLDv2 operation when interface goes up.
+  * Added unique default name for OpenThread interfaces.
   * Other minor fixes.
 
 * OpenThread
@@ -993,6 +999,12 @@ Networking
   * Fixed the protocol field endianness for ``AF_PACKET`` type sockets.
   * Fixed :c:func:`getsockname` for TCP.
   * Improve :c:func:`sendmsg` support when using DTLS sockets.
+  * Fixed :c:func:`net_socket_service_register` function stall in case socket
+    services thread stopped.
+  * Fixed potential socket services thread stoppage when deregistering service.
+  * Removed support for asynchronous timeouts in socket services library.
+  * Fixed potential busy looping when using :c:func:`zsock_accept` in case of
+    file descriptors shortage.
 
 * Syslog:
 
@@ -1015,6 +1027,7 @@ Networking
   * Improved debug logs, so that they're easier to follow under heavy load.
   * ISN generation now uses SHA-256 instead of MD5. Moreover it now relies on PSA APIs
     instead of legacy Mbed TLS functions for hash computation.
+  * Improved ACK reply logic in case no PSH flag is present to reduce redundant ACKs.
 
 * Websocket:
 
@@ -1025,6 +1038,7 @@ Networking
 
   * Converted Websocket library to use ``zsock_*`` API.
   * Added Object Core support to Websocket sockets.
+  * Added POLLOUT monitoring when sending.
 
 * Wi-Fi:
 
@@ -1057,12 +1071,32 @@ Networking
   * Added a new ``ZPERF_SESSION_PERIODIC_RESULT`` event for periodic updates
     during TCP upload sessions.
   * Fixed possible socket leak in case of errors during zperf session.
+  * Improved performance in the default configuration for the zperf sample.
 
 USB
 ***
 
 Devicetree
 **********
+
+* Added :c:macro:`DT_INST_NODE_HAS_COMPAT` to check if a node has a compatible.
+  This is useful for nodes that have multiple compatibles.
+* Added :c:macro:`DT_CHILD_NUM` and variants to count the number of children of a node.
+* Added :c:macro:`DT_FOREACH_NODELABEL` and variants, which can be used to iterate over the
+  node labels of a devicetree node.
+* Added :c:macro:`DT_NODELABEL_STRING_ARRAY` and :c:macro:`DT_NUM_NODELABELS` and their variants.
+* Added :c:macro:`DT_REG_HAS_NAME` and variants.
+* Reworked :c:macro:`DT_ANY_INST_HAS_PROP_STATUS_OKAY` so that the result can
+  be used with macros like :c:macro:`IS_ENABLED`, IF_ENABLED, or COND_CODE_x.
+* Reworked :c:macro:`DT_NODE_HAS_COMPAT_STATUS` so that it can be evaluated at preprocessor time.
+* Updated PyYaml version used in dts scripts to 6.0 to remove supply chain vulnerabilities.
+
+Kconfig
+*******
+
+* Added a `substring` kconfig preprocessor function.
+* Added a `dt_node_ph_prop_path` kconfig preprocessor function.
+* Added a `dt_compat_any_has_prop` kconfig preprocessor function.
 
 Libraries / Subsystems
 **********************
@@ -1256,6 +1290,18 @@ MCUboot
   * Added ``OVERWRITE_ONLY_KEEP_BACKUP`` option for secondary images
 
   * Added defines for ``SOC_FLASH_0_ID`` and ``SPI_FLASH_0_ID``
+
+  * Fixed ASN.1 support for mbedtls version >= 3.1
+
+  * Fixed bootutil signed/unsigned comparison in ``boot_read_enc_key``
+
+  * Updated imgtool version.py to take command line arguments
+
+  * Added imgtool improvements to dumpinfo
+
+  * Fixed various imgtool dumpinfo issues
+
+  * Fixed imgtool verify command for edcsa-p384 signed images
 
   * The MCUboot version in this release is version ``2.1.0+0-dev``.
 

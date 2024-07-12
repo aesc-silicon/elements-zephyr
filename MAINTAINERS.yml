@@ -901,6 +901,7 @@ Documentation:
   files-exclude:
     - doc/releases/migration-guide-*
     - doc/releases/release-notes-*
+    - doc/develop/test/
   labels:
     - "area: Documentation"
 
@@ -2934,7 +2935,13 @@ Open AMP:
     - carlocaione
   files:
     - lib/open-amp/
-
+    - samples/subsys/ipc/openamp/
+    - samples/subsys/ipc/openamp_rsc_table/
+    - samples/subsys/ipc/rpmsg_service/
+  labels:
+    - "area: Open AMP"
+  tests:
+    - sample.ipc.openamp
 
 POSIX API layer:
   status: maintained
@@ -4310,7 +4317,7 @@ West:
   files:
     - modules/cmsis/
   labels:
-    - "area: ARM"
+    - "area: CMSIS-Core"
 
 "West project: cmsis-dsp":
   status: maintained
@@ -4427,7 +4434,7 @@ West:
     - drivers/misc/ethos_u/
     - modules/hal_ethos_u/
   labels:
-    - "area: ARM"
+    - "platform: ARM"
 
 "West project: hal_gigadevice":
   status: maintained
@@ -5019,7 +5026,7 @@ Test Framework (Ztest):
     - tests/unit/util/
     - tests/subsys/testsuite/
     - samples/subsys/testsuite/
-    - doc/develop/test/ztest.rst
+    - doc/develop/test/
   labels:
     - "area: Testsuite"
   tests:
