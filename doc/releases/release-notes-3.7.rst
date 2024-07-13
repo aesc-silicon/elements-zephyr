@@ -249,6 +249,15 @@ Kernel
   * Added :c:func:`k_realloc`, that uses kernel heap to implement traditional :c:func:`realloc`
     semantics.
 
+  * Devices can now store devicetree metadata such as nodelabels by turning on
+    :kconfig:option:`CONFIG_DEVICE_DT_METADATA`. This option may be useful in
+    e.g. shells as devices can be obtained using human-friendly names thanks to
+    APIs like :c:func:`device_get_by_dt_nodelabel`.
+
+  * Any device initialization can be deferred if its associated devicetree node
+    has the special ``zephyr,deferred-init`` property set. The device can be
+    initialized later in time by using :c:func:`device_init`.
+
 Bluetooth
 *********
 * Audio
@@ -316,7 +325,7 @@ Boards & SoC Support
   * STM32C0: Added support for :kconfig:option:`CONFIG_POWEROFF`.
   * STM32U5: Added support for Stop3 mode.
 
-* Added support for these ARM boards:
+* Added support for these boards:
 
   * Added support for :ref:`Ambiq Apollo3 Blue board <apollo3_evb>`: ``apollo3_evb``.
   * Added support for :ref:`Ambiq Apollo3 Blue Plus board <apollo3p_evb>`: ``apollo3p_evb``.
@@ -332,25 +341,19 @@ Boards & SoC Support
   * Added support for :ref:`ST STM32L152CDISCOVERY board <stm32l1_disco_board>`: ``stm32l152c_disco``.
   * Added support for :ref:`ST STEVAL STWINBX1 Development kit <steval_stwinbx1_board>`: ``steval_stwinbx1``.
 
-* Added support for these Xtensa boards:
-
-* Made these changes for ARM boards:
+* Made these board changes:
 
   * On :ref:`ST STM32H7B3I Discovery Kit <stm32h7b3i_dk_board>`: ``stm32h7b3i_dk_board``,
     enabled full cache management, Chrom-ART, double frame buffer and full refresh for
     optimal LVGL performance.
   * On ST STM32 boards, stm32cubeprogrammer runner can now be used to program external
     flash using ``--extload`` option.
-
-* Made these changes for RISC-V boards:
-
-* Made these changes for native/POSIX boards:
-
   * Introduced the simulated :ref:`nrf54l15bsim<nrf54l15bsim>` target.
-
   * The nrf5x bsim targets now support BT LE Coded PHY.
-
   * LLVM fuzzing support has been refactored while adding support for it in native_sim.
+  * nRF54H20 PDK (pre-release) converted to :ref:`nrf54h20dk_nrf54h20`
+  * PPR core target in :ref:`nrf54h20dk_nrf54h20` runs from RAM by default. A
+    new ``xip`` variant has been introduced which runs from MRAM (XIP).
 
 * Added support for these following shields:
 
@@ -395,6 +398,10 @@ Drivers and Sensors
   * Changed phandle type DT property ``nxp,reference-supply`` to phandle-array type DT property
     ``nxp,references`` in ``nxp,lpc-lpadc`` binding. The NXP LPADC driver now supports passing
     the reference voltage value by using ``nxp,references``.
+
+  * Fixed issue which allowed negative ADC readings in single-ended mode using the ``adc_nrfx_saadc.c``
+    device driver. Note that this fix prevents the nRF54H and nRF54L series from performing
+    8-bit resolution single-ended readings due to hardware limitations.
 
 * Auxiliary Display
 
@@ -633,6 +640,15 @@ Drivers and Sensors
 * MIPI-DBI
 
 * Pin control
+
+  * Added driver for Renesas RA8 series
+  * Added driver for Infineon PSoC6 (legacy)
+  * Added driver for Analog Devices MAX32690
+  * Added driver for Ambiq Apollo3
+  * Added driver for ENE KB1200
+  * Added driver for NXP RW
+  * Espressif driver now supports ESP32C6
+  * STM32 driver now supports remap functionality for STM32C0
 
 * PWM
 
@@ -1135,6 +1151,9 @@ Libraries / Subsystems
 
     * Instructions for the deprecated mcumgr go tool have been removed, a list of alternative,
       supported clients can be found on :ref:`mcumgr_tools_libraries`.
+
+    * Fixed an issue with the SMP structure not being packed which would cause a fault on devices
+      that do not support unaligned memory accesses.
 
 * Logging
 
