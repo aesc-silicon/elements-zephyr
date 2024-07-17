@@ -116,6 +116,9 @@ Removed APIs in this release
 
  * Removed deprecated ``CONFIG_EMUL_EEPROM_AT2X`` Kconfig option.
 
+ * Removed ``pm_device_state_lock``, ``pm_device_state_is_locked`` and ``pm_device_state_unlock``
+   functions from the Device PM APIs.
+
 Deprecated in this release
 ==========================
 
@@ -143,6 +146,11 @@ Deprecated in this release
     favor of :c:func:`can_get_bitrate_min` and :c:func:`can_get_bitrate_max`.
   * Deprecated the :c:macro:`CAN_MAX_STD_ID` and :c:macro:`CAN_MAX_EXT_ID` macros in favor of
     :c:macro:`CAN_STD_ID_MASK` and :c:macro:`CAN_EXT_ID_MASK`.
+
+* PM
+
+  * Deprecated :kconfig:option:`CONFIG_PM_DEVICE_RUNTIME_EXCLUSIVE`. Similar behavior can be achieved
+    using :kconfig:option:`CONFIG_PM_DEVICE_SYSTEM_MANAGED`.
 
 .. _zephyr_3.7_posix_api_deprecations:
 
@@ -207,9 +215,13 @@ Architectures
 
 * ARM
 
+  * Added initial support for Cortex-M85 Core
+
 * ARM64
 
   * Implemented symbol names in the backtraces, enable by selecting :kconfig:option:`CONFIG_SYMTAB`
+
+  * Add compiler tuning for Cortex-R82
 
 * RISC-V
 
@@ -317,6 +329,7 @@ Boards & SoC Support
   * Added support for Ambiq Apollo3 Blue and Apollo3 Blue Plus SoC series.
   * Added support for STM32H7R/S SoC series.
   * Added support for NXP mke15z7, mke17z7, mke17z9, MCXNx4x, RW61x
+  * Added support for Analog Devices MAX32 SoC series.
 
 * Made these changes in other SoC series:
 
@@ -345,6 +358,14 @@ Boards & SoC Support
   * Added support for :ref:`ST STM32L152CDISCOVERY board <stm32l1_disco_board>`: ``stm32l152c_disco``.
   * Added support for :ref:`ST STEVAL STWINBX1 Development kit <steval_stwinbx1_board>`: ``steval_stwinbx1``.
   * Added support for NXP boards: ``frdm_mcxn947``, ``ke17z512``, ``rd_rw612_bga``, ``frdm_rw612``, ``frdm_ke15z``, ``frdm_ke17z``
+  * Added support for :ref:`Analog Devices MAX32690EVKIT <max32690_evkit>`: ``max32690evkit``.
+  * Added support for :ref:`Analog Devices MAX32680EVKIT <max32680_evkit>`: ``max32680evkit``.
+  * Added support for :ref:`Analog Devices MAX32672EVKIT <max32672_evkit>`: ``max32672evkit``.
+  * Added support for :ref:`Analog Devices MAX32672FTHR <max32672_fthr>`: ``max32672fthr``.
+  * Added support for :ref:`Analog Devices MAX32670EVKIT <max32670_evkit>`: ``max32670evkit``.
+  * Added support for :ref:`Analog Devices MAX32655EVKIT <max32655_evkit>`: ``max32655evkit``.
+  * Added support for :ref:`Analog Devices MAX32655FTHR <max32655_fthr>`: ``max32655fthr``.
+  * Added support for :ref:`Analog Devices AD-APARD32690-SL <ad_apard32690_sl>`: ``ad_apard32690_sl``.
 
 * Made these board changes:
 
@@ -362,6 +383,7 @@ Boards & SoC Support
   * nRF54H20 PDK (pre-release) converted to :ref:`nrf54h20dk_nrf54h20`
   * PPR core target in :ref:`nrf54h20dk_nrf54h20` runs from RAM by default. A
     new ``xip`` variant has been introduced which runs from MRAM (XIP).
+  * Refactored :ref:`beagleconnect_freedom` external antenna switch handling.
 
 * Added support for these following shields:
 
@@ -372,29 +394,67 @@ Build system and Infrastructure
 
   * A ``socs`` folder for applications has been introduced that allows for Kconfig fragments and
     devicetree overlays that should apply to any board target using a particular SoC and board
-    qualifier.
+    qualifier (:github:`70418`). Support has also been added to sysbuild (:github:`71320`).
 
-  * :ref:`Board/SoC flashing configuration<flashing-soc-board-config>` settings have been added.
+  * :ref:`Board/SoC flashing configuration<flashing-soc-board-config>` settings have been added
+    (:github:`69748`).
 
   * Deprecated the global CSTD cmake property in favor of the :kconfig:option:`CONFIG_STD_C`
     choice to select the C Standard version. Additionally subsystems can select a minimum
     required C Standard version, with for example :kconfig:option:`CONFIG_REQUIRES_STD_C11`.
 
-  * Fixed issue with passing UTF-8 configs to applications using sysbuild.
+  * Fixed issue with passing UTF-8 configs to applications using sysbuild (:github:`74152`).
 
   * Fixed issue whereby domain file in sysbuild projects would be loaded and used with outdated
-    information if sysbuild configuration was changed, and ``west flash`` was ran directly after.
+    information if sysbuild configuration was changed, and ``west flash`` was ran directly after
+    (:github:`73864`).
 
   * Fixed issue with Zephyr modules not being listed in sysbuild if they did not have a Kconfig
-    file set.
+    file set (:github:`72070`).
 
-  * Add sysbuild ``SB_CONFIG_COMPILER_WARNINGS_AS_ERRORS`` Kconfig option to turn on
-    "warning as error" toolchain flags for all images, if set.
+  * Added sysbuild ``SB_CONFIG_COMPILER_WARNINGS_AS_ERRORS`` Kconfig option to turn on
+    "warning as error" toolchain flags for all images, if set (:github:`70217`).
 
   * Fixed issue whereby files used in a project (e.g. devicetree overlays or Kconfig fragments)
-    were not correctly watched and CMake would not reconfigure if they were changed.
+    were not correctly watched and CMake would not reconfigure if they were changed
+    (:github:`74655`).
 
   * Added flash support for Intel Hex files for the LinkServer runner.
+
+  * Added sysbuild ``sysbuild/CMakeLists.txt`` entry point and added support for
+    ``APPLICATION_CONFIG_DIR`` which allows for adjusting how sysbuild functions (:github:`72923`).
+
+  * Fixed issue with armfvp find path if it contained a colon-separated list (:github:`74868`).
+
+  * Fixed issue with version.cmake field sizes not being enforced (:github:`74357`).
+
+  * Fixed issue with sysbuild not clearing ``EXTRA_CONF_FILE`` before processing images which
+    prevented this option being passed on to the image (:github:`74082`).
+
+  * Added sysbuild root support which works similarly to the existing root module, adjusting paths
+    relative to ``APP_DIR`` (:github:`73390`).
+
+  * Added warning/error message for blobs that are missing (:github:`73051`).
+
+  * Fixed issue with correct python executable detection on some systems (:github:`72232`).
+
+  * Added support for enabling LTO for whole application (:github:`69519`).
+
+  * Fixed ``FILE_SUFFIX`` issues relating to double application of suffixes, non-application in
+    sysbuild and variable name clases in CMake functions (:github:`70124`, :github:`71280`).
+
+  * Added support for new agressive size optimisation flag (for GCC and Clang) using
+    :kconfig:option:`CONFIG_SIZE_OPTIMIZATIONS_AGGRESSIVE` (:github:`70511`).
+
+  * Fixed issue with printing out ``BUILD_VERSION`` if it was empty (:github:`70970`).
+
+  * Fixed sysbuild issue of ``sysbuild_cache_set()`` cmake function wrongly detecting partial
+    matches for de-duplication (:github:`71381`).
+
+  * Fixed issue with detecting wrong ``VERSION`` file (:github:`71385`).
+
+  * Added support for disabling output disassembly having the source code in using
+    :kconfig:option:`CONFIG_OUTPUT_DISASSEMBLY_WITH_SOURCE` (:github:`71535`).
 
 Drivers and Sensors
 *******************
@@ -459,6 +519,7 @@ Drivers and Sensors
 
   * Added support for Microcontroller Clock Output (MCO) on STM32H5 series.
   * Added support for MSI clock on STM32WL series.
+  * Added driver for Analog Devices MAX32 SoC series.
 
 * Counter
 
@@ -569,6 +630,7 @@ Drivers and Sensors
   * Added Broadcom Set-top box(brcmstb) SoC GPIO driver.
   * Added c:macro:`STM32_GPIO_WKUP` flag which allows to configure specific pins as wakeup source
     from Power Off state on STM32 L4, U5, WB, & WL SoC series.
+  * Added driver for Analog Devices MAX32 SoC series.
 
 * Hardware info
 
@@ -586,6 +648,7 @@ Drivers and Sensors
     using device tree.
   * Added support for STM32H5 series.
   * Added support to NXP MCXN947
+  * Added driver for Analog Devices MAX32 SoC series.
 
 * I2S
 
@@ -631,6 +694,16 @@ Drivers and Sensors
 
 * MFD
 
+  * New driver :dtcompatible:`nxp,lp-flexcomm`.
+  * New driver :dtcompatible:`rohm,bd8lb600fs`.
+  * New driver :dtcompatible:`maxim,max31790`.
+  * New driver :dtcompatible:`infineon,tle9104`
+  * New driver :dtcompatible:`adi,ad559x`
+  * Added option to disable N_VBUSEN for :dtcompatible:`x-powers,axp192`.
+  * Added GPIO input edge events for :dtcompatible:`nordic,npm1300`.
+  * Added long press reset configuration for :dtcompatible:`nordic,npm1300`.
+  * Fixed initialisation of hysteretic mode for :dtcompatible:`nordic,npm6001`.
+
 * Modem
 
   * Removed deprecated ``GSM_PPP`` driver along with its dts compatible ``zephyr,gsm-ppp``.
@@ -669,7 +742,7 @@ Drivers and Sensors
 
   * Added driver for Renesas RA8 series
   * Added driver for Infineon PSoC6 (legacy)
-  * Added driver for Analog Devices MAX32690
+  * Added driver for Analog Devices MAX32 SoC series.
   * Added driver for Ambiq Apollo3
   * Added driver for ENE KB1200
   * Added driver for NXP RW
@@ -681,8 +754,24 @@ Drivers and Sensors
   * Added support for STM32H7R/S series.
   * Added a Add QTMR PWM driver for NXP imxrt11xx
   * Made the NXP MCUX PWM driver thread safe
+  * Fix zephyr:code-sample:`pwm-blinky` code sample to demonstrate PWM support for
+    :ref:`beagleconnect_freedom`.
 
 * Regulators
+
+  * New driver :dtcompatible:`cirrus,cp9314`.
+  * Added ``regulator-boot-off`` property to common regulator driver.
+    Updated :dtcompatible:`adi,adp5360-regulator`, :dtcompatible:`nordic,npm1300-regulator`,
+    :dtcompatible:`nordic,npm6001-regulator` and :dtcompatible:`x-powers,axp192-regulator`
+    to use this new property.
+  * Added power management for :dtcompatible:`renesas,smartbond-regulator`.
+  * Added ``is_enabled`` shell command.
+  * Removed use of busy wait for single threaded systems.
+  * Fixed control of DCDC2 output for :dtcompatible:`x-powers,axp192-regulator`.
+  * Fixed current and voltage get functions for :dtcompatible:`renesas,smartbond-regulator`.
+  * Fixed NXP VREF Kconfig leakage.
+  * Fixed display of micro values in shell.
+  * Fixed strcmp usage bug in ``adset`` shell command.
 
 * Reset
 
@@ -706,10 +795,75 @@ Drivers and Sensors
 
 * Sensors
 
-  * Added TMP114 driver
-  * Added DS18S20 1-wire temperature sensor driver.
-  * STM32 QDEC driver now supports encoder mode configuration (see :dtcompatible:`st,stm32-qdec`).
-  * Added support for STM32 Digital Temperature Sensor (:dtcompatible:`st,stm32-digi-temp`).
+  * General
+
+    * Added a channel specifier to the new read/decoder API.
+    * Added a blocking sensor read call :c:func:`sensor_read`.
+    * Decoupled RTIO requests using RTIO workqueues service to turn
+      :c:func:`sensor_submit_callback` into an asynchronous request.
+    * Moved most drivers to vendor subdirectories.
+
+  * AMS
+
+    * Added TSL2591 light sensor driver (:dtcompatible:`ams,tsl2591`).
+
+  * Aosong
+
+    * Added DHT20 digital-output humidity and temperature sensor driver
+      (:dtcompatible:`aosong,dht20`).
+
+  * Bosch
+
+    * Updated BME280 to the new async API.
+
+  * Infineon
+
+    * Added TLE9104 power train switch diagnostics sensor driver
+      (:dtcompatible:`infineon,tle9104-diagnostics`).
+
+  * Maxim
+
+    * Added DS18S20 1-wire temperature sensor driver (:dtcompatible:`maxim,ds18s20`).
+    * Added MAX31790 fan speed and fan fault sensor
+      (:dtcompatible:`maxim,max31790-fan-fault` and :dtcompatible:`maxim,max31790-fan-speed`).
+
+  * NXP
+
+    * Added low power comparator driver (:dtcompatible:`nxp,lpcmp`).
+
+  * Rohm
+
+    * Added BD8LB600FS diagnostics sensor driver (:dtcompatible:`rohm,bd8lb600fs-diagnostics`).
+
+  * Silabs
+
+    * Made various fixes and enhancements to the SI7006 humidity/temperature sensor driver.
+
+  * ST
+
+    * QDEC driver now supports encoder mode configuration (see :dtcompatible:`st,stm32-qdec`).
+    * Added support for STM32 Digital Temperature Sensor (:dtcompatible:`st,stm32-digi-temp`).
+    * Added IIS328DQ I2C/SPI accelerometer sensor driver (:dtcompatible:`st,iis328dq`).
+
+  * TI
+
+    * Added TMP114 driver (:dtcompatible:`ti,tmp114`).
+    * Added INA226 bidirectional current and power monitor driver (:dtcompatible:`ti,ina226`).
+    * Added LM95234 quad remote diode and local temperature sensor driver
+      (:dtcompatible:`national,lm95234`).
+
+  * Other vendors
+
+    * Added Angst+Pfister FCX-MLDX5 O2 sensor driver (:dtcompatible:`ap,fcx-mldx5`).
+    * Added ENE KB1200 tachometer sensor driver (:dtcompatible:`ene,kb1200-tach`).
+    * Added Festo VEAA-X-3 series proportional pressure regulator driver
+      (:dtcompatible:`festo,veaa-x-3`).
+    * Added Innovative Sensor Technology TSic xx6 temperature sensor driver
+      (:dtcompatible:`ist,tsic-xx6`).
+    * Added ON Semiconductor NCT75 temperature sensor driver (:dtcompatible:`onnn,nct75`).
+    * Added ScioSense ENS160 digital metal oxide multi-gas sensor driver
+      (:dtcompatible:`sciosense,ens160`).
+    * Made various fixes and enhancements to the GROW_R502A fingerprint sensor driver.
 
 * Serial
 
@@ -796,6 +950,7 @@ Drivers and Sensors
   * Added support for :kconfig:option:`CONFIG_PM` and :kconfig:option:`CONFIG_PM_DEVICE_RUNTIME` on STM32 SPI driver.
   * Added support for :kconfig:option:`CONFIG_NOCACHE_MEMORY` in DMA SPI mode for STM32F7x SoC series.
   * Added support for STM32H7R/S series.
+  * Added driver for Analog Devices MAX32 SoC series.
 
 * USB
 
@@ -1209,6 +1364,23 @@ Libraries / Subsystems
 
 * Power management
 
+  * Devices can now declare which system power states cause power loss.
+    This information can be used to set and release power state
+    constraints when it is needed by the device. This feature is enabled with
+    :kconfig:option:`CONFIG_PM_POLICY_DEVICE_CONSTRAINTS`. Use functions
+    :c:func:`pm_policy_device_power_lock_get` and :c:func:`pm_policy_device_power_lock_put`
+    to lock and unlock all power states that cause power loss in a device.
+
+  * Added shell support for device power management.
+
+  * Device power management was de-coupled from system power management. The new
+    :kconfig:option:`CONFIG_PM_DEVICE_SYSTEM_MANAGED` option is used to enable
+    whether or not devices must be suspended when the system sleeps.
+
+  * Make it possible to disable system device power management individually per
+    power state using ``zephyr,pm-device-disabled``. This allows targets tuning which
+    states should (and which should not) trigger device power management.
+
 * Crypto
 
   * Mbed TLS was updated to 3.6.0. Release notes can be found at:
@@ -1288,6 +1460,18 @@ Libraries / Subsystems
 
 * ZBus
 
+  * Improved the VDED process by optimizing the channel reference copying for the clones delivered
+    during the message subscriber delivery notification.
+
+  * Improved the initialization phase by statically initiating the semaphores and runtime observer
+    list. That decreased the duration of the zbus initialization.
+
+  * Added a way of isolating a channel message subscribers pool. Some channels can now share an
+    isolated pool to avoid delivery failures and shorten communication latency. It is only necessary
+    to enable the :kconfig:option:`CONFIG_ZBUS_MSG_SUBSCRIBER_NET_BUF_POOL_ISOLATION` and use the
+    function :c:func:`zbus_chan_set_msg_sub_pool` to change the msg pool used by the channel.
+    Channels can share the same message pool.
+
 HALs
 ****
 
@@ -1306,6 +1490,12 @@ HALs
   * Updated STM32WB to cube version V1.19.1.
   * Updated STM32WBA to cube version V1.3.1.
   * Added STM32H7R/S with cube version V1.0.0.
+
+* ADI
+
+  * Introduced the ``hal_adi`` module, which is a subset of the Maxim Software
+    Development Kit (MSDK) that contains device header files and bare metal
+    peripheral drivers (:github:`72391`).
 
 MCUboot
 *******
