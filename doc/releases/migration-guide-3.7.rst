@@ -272,6 +272,10 @@ Device Drivers and Devicetree
   property to specify the reference voltage and reference voltage value to be used by
   the lpadc. (:github:`75005`)
 
+ * The DT properties ``mc,interface-type``, ``mc,reset-gpio``, and ``mc,interrupt-gpio`` of
+   the :dtcompatible:`microchip,ksz8081` phy binding have changed to
+   ``microchip,interface-type``, ``reset-gpios``, and ``int-gpios``, respectively (:github:`73725`)
+
 Analog-to-Digital Converter (ADC)
 =================================
 
@@ -653,6 +657,12 @@ LED Strip
   :kconfig:option:`CONFIG_WS2812_STRIP_I2S`, :kconfig:option:`CONFIG_WS2812_STRIP_GPIO`,
   or :kconfig:option:`CONFIG_WS2812_STRIP_RPI_PICO_PIO`, one of them had to be selected with
   ``CONFIG_WS2812_STRIP_DRIVER``, but this is no longer necessary. Please set each option directly.
+
+MDIO
+====
+
+* :kconfig:option:`CONFIG_MDIO_NXP_ENET_TIMEOUT` is now in units of
+  microseconds instead of milliseconds. (:github:`75625`)
 
 Sensors
 =======
