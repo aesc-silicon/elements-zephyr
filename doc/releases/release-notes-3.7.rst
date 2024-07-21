@@ -12,32 +12,38 @@ This release is the last non-maintenance 3.x release and, as such, will be the n
 
 Major enhancements with this release include:
 
-* A new, completely overhauled hardware model has been introduced. This change the way both SoCs and
-  boards are named, defined and constructed in Zephyr.
+* A new, completely :ref:`overhauled hardware model <hw_model_v2>` has been introduced.
+  It changes the way both SoCs and boards are named, defined and constructed in Zephyr.
   Additional information can be found in the :ref:`board_porting_guide`.
-* A long-awaited HTTP server library, and associated service API, allow to easily implement HTTP/1.1
-  and HTTP/2 servers in Zephyr. Resources can be registered statically or at runtime, and WebSocket
-  support is included.
-* POSIX support has been extended, with all the Option Requirements of POSIX Subprofiling Option
-  Groups now being supported for PSE51, PSE52, and PSE53 profiles.
+* A long-awaited :ref:`HTTP Server <http_server_interface>` library, and associated service API,
+  allow to easily implement HTTP/1.1 and HTTP/2 servers in Zephyr. Resources can be registered
+  statically or dynamically, and WebSocket support is included.
+* :ref:`POSIX support <posix_support>` has been extended, with most Options of the IEEE 1003-2017
+  :ref:`System Interfaces <posix_system_interfaces_required>` receiving support, as well as most
+  Options and Option groups required for :ref:`PSE51 <posix_aep_pse51>`,
+  :ref:`PSE52 <posix_aep_pse52>`, and :ref:`PSE53 <posix_aep_pse53>`.
 * Bluetooth Host has been extended with support for the Nordic UART Service (NUS), Hands-free Audio
   Gateway (AG), Advanced Audio Distribution Profile (A2DP), and Audio/Video Distribution Transport
   Protocol (AVDTP).
-* Sensor abstraction model has been overhauled to adopt a read-then-decode approach that enables
-  more types of sensors and data flows than the previous fetch/get APIs.
-* A new LLEXT Extension Development Kit (EDK) makes it easier to develop and integrate custom
-  extensions into Zephyr, including outside of the Zephyr tree.
-* Native simulator now supports leveraging native host networking stack without having to rely on
-  complex setup of the host environment.
+* Sensor abstraction model has been overhauled to adopt a
+  :ref:`read-then-decode approach <sensor-read-and-decode>` that enables more types of sensors and
+  data flows than the previous fetch/get APIs.
+* A new :ref:`LLEXT Extension Developer Kit (EDK) <llext_build_edk>` makes it easier to develop and
+  integrate custom extensions into Zephyr, including outside of the Zephyr tree.
+* :ref:`Native simulator <native_sim>` now supports leveraging native host networking stack without
+  having to rely on complex setup of the host environment.
 * Trusted Firmware-M (TF-M) 2.1.0 and Mbed TLS 3.6.0 have been integrated into Zephyr.
-  Both of these versions are LTS releases.
+  Both of these versions are LTS releases. What's more, :ref:`psa_crypto` has been adopted as a replacement
+  for TinyCrypt and provides enhanced security and performance.
+* A new experimental implementation of the :ref:`Precision Time Protocol <ptp_interface>` (PTP, IEEE
+  1588) allows to synchronize time across devices with sub-microsecond accuracy.
 * New documentation pages have been introduced to help developers setup their local development
-  environment with Visual Studio Code and CLion.
+  environment for :ref:`vscode_ide` and :ref:`clion_ide`.
 
 An overview of the changes required or recommended when migrating your application from Zephyr
 v3.6.0 to Zephyr v3.7.0 can be found in the separate :ref:`migration guide<migration_3.7>`.
 
-While you may refer to release notes from previous 3.x releases for a full description, other major
+While you may refer to release notes from previous 3.x releases for a full change log, other major
 enhancements and changes since previous LTS release, Zephyr 2.7.0, include:
 
 * Added support for Picolibc as the new default C library.
@@ -67,7 +73,7 @@ enhancements and changes since previous LTS release, Zephyr 2.7.0, include:
   * The following deprecated or experimental features have been removed:
 
     * 6LoCAN
-    * civetweb module. See Zephyr 3.7's new HTTP server as a replacement.
+    * civetweb module. See Zephyr 3.7's new :ref:`http_server_interface` as a replacement.
     * tinycbor module. You may use zcbor as a replacement.
 
 The following sections provide detailed lists of changes by component.
@@ -92,6 +98,8 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 * CVE-2024-5931: Under embargo until 2024-09-10
 
 * CVE-2024-6135: Under embargo until 2024-09-11
+
+* CVE-2024-6137: Under embargo until 2024-09-11
 
 * CVE-2024-6258: Under embargo until 2024-09-05
 
@@ -137,8 +145,8 @@ Deprecated in this release
     * :c:macro:`BT_LE_EXT_ADV_NCONN_NAME`
     * :c:macro:`BT_LE_EXT_ADV_CODED_NCONN_NAME`
 
-   Application developer will now need to set the advertised name themselves by updating the advertising data
-   or the scan response data.
+   Application developers will now need to set the advertised name themselves by updating the
+   advertising data or the scan response data.
 
 * CAN
 
@@ -157,7 +165,7 @@ Deprecated in this release
 
 .. _zephyr_3.7_posix_api_deprecations:
 
- * POSIX API
+* POSIX API
 
   * Deprecated :c:macro:`PTHREAD_BARRIER_DEFINE` has been removed.
   * Deprecated :c:macro:`EFD_IN_USE` and :c:macro:`EFD_FLAGS_SET` have been removed.
@@ -259,7 +267,7 @@ Architectures
 Kernel
 ******
 
-  * Added :c:func:`k_uptime_seconds` function to simplify `k_uptime_get() / 1000` usage.
+  * Added :c:func:`k_uptime_seconds` function to simplify ``k_uptime_get() / 1000`` usage.
 
   * Added :c:func:`k_realloc`, that uses kernel heap to implement traditional :c:func:`realloc`
     semantics.
@@ -347,7 +355,7 @@ Boards & SoC Support
   * Added support for STM32H7R/S SoC series.
   * Added support for NXP mke15z7, mke17z7, mke17z9, MCXNx4x, RW61x
   * Added support for Analog Devices MAX32 SoC series.
-  * Added support for Infineon Technologies AIROC:tm: CYW20829 Bluetooth LE SoC series.
+  * Added support for Infineon Technologies AIROC |trade| CYW20829 Bluetooth LE SoC series.
   * Added support for MediaTek MT8195 Audio DSPs
   * Added support for Nuvoton Numaker M2L31X SoC series.
   * Added support for the Microchip PolarFire ICICLE Kit SMP variant.
@@ -431,7 +439,25 @@ Boards & SoC Support
     in ``<nrf53_cpunet_mgmt.h>``.
   * Laird Connectivity boards are rebranded to Ezurio.
 
-* Added support for these following shields:
+* Added support for the following shields:
+
+  * :ref:`adafruit_2_8_tft_touch_v2` (``adafruit_2_8_tft_touch_v2``)
+  * :ref:`adafruit_neopixel_grid_bff` (``adafruit_neopixel_grid_bff``)
+  * :ref:`arduino_uno_click` (``arduino_uno_click``)
+  * :ref:`dvp_fpc24_mt9m114` (``dvp_fpc24_mt9m114``)
+  * :ref:`lcd_par_s035` (``lcd_par_s035``)
+  * :ref:`mikroe_weather_click` (``mikroe_weather_click``)
+  * :ref:`nxp_btb44_ov5640` (``nxp_btb44_ov5640``)
+  * :ref:`reyax_lora` (``reyax_lora``)
+  * :ref:`rk043fn02h_ct` (``rk043fn02h_ct``)
+  * :ref:`rk043fn66hs_ctg` (``rk043fn66hs_ctg``)
+  * :ref:`rpi_pico_uno_flexypin` (``rpi_pico_uno_flexypin``)
+  * :ref:`seeed_xiao_expansion_board` (``seeed_xiao_expansion_board``)
+  * :ref:`seeed_xiao_round_display` (``seeed_xiao_round_display``)
+  * :ref:`sparkfun_carrier_asset_tracker` (``sparkfun_carrier_asset_tracker``)
+  * :ref:`st_b_lcd40_dsi1_mb1166` (``st_b_lcd40_dsi1_mb1166``)
+  * :ref:`waveshare_epaper` (``waveshare_epaper``)
+  * :ref:`x_nucleo_bnrg2a1` (``x_nucleo_bnrg2a1``)
 
 Build system and Infrastructure
 *******************************
@@ -877,7 +903,8 @@ Drivers and Sensors
   * Added device completion to LED shell commands and made the ``get_info`` command display
     colors as strings.
 
-  * Added driver for Lumissil Microsystems (a division of ISSI) IS31FL3194 controller.
+  * Added driver for Lumissil Microsystems (a division of ISSI) IS31FL3194 controller
+    (:dtcompatible:`issi,is31fl3194`).
 
 * LED Strip
 
@@ -896,8 +923,8 @@ Drivers and Sensors
     :dtcompatible:`worldsemi,ws2812-gpio` and :dtcompatible:`worldsemi,ws2812-rpi_pico-pio`
     devicetree bindings have been renamed to ``gpios``.
 
-  * Removed :kconfig:option:`CONFIG_WS2812_STRIP` and :kconfig:option:`CONFIG_WS2812_STRIP_DRIVER`
-    Kconfig options. They became useless after refactoring.
+  * Removed ``CONFIG_WS2812_STRIP`` and ``CONFIG_WS2812_STRIP_DRIVER`` Kconfig options. They became
+    useless after refactoring.
 
   * Added driver for Texas Instruments TLC59731 RGB controller.
 
@@ -1579,9 +1606,9 @@ Devicetree
 Kconfig
 *******
 
-* Added a `substring` kconfig preprocessor function.
-* Added a `dt_node_ph_prop_path` kconfig preprocessor function.
-* Added a `dt_compat_any_has_prop` kconfig preprocessor function.
+* Added a ``substring`` kconfig preprocessor function.
+* Added a ``dt_node_ph_prop_path`` kconfig preprocessor function.
+* Added a ``dt_compat_any_has_prop`` kconfig preprocessor function.
 
 Libraries / Subsystems
 **********************
@@ -1647,6 +1674,27 @@ Libraries / Subsystems
   * By enabling :kconfig:option:`CONFIG_LOG_BACKEND_NET_USE_DHCPV4_OPTION`, the IP address of the
     syslog server for the networking backend is set by the DHCPv4 Log Server Option (7).
 
+  * Use real time clock as timestamp on POSIX.
+
+  * Add support for syslog (POSIX).
+
+  * Add :c:macro:`LOG_WRN_ONCE` for logging warning message where only the first occurrence is
+    logged.
+
+  * Add :c:func:`log_thread_trigger` for triggering processing of the log messages.
+
+  * Fix case when deferred logging not compiling when :kconfig:option:`CONFIG_MULTITHREADING` was
+    disabled.
+
+  * Fix case when logging strings could be stripped from the binary when dictionary based logging
+    was mixed with non-dictionary.
+
+  * Fix dictionary database not being generated in certain situations.
+
+  * Fix dictionary logging parser not handling long long arguments correctly.
+
+  * Fix support for :kconfig:option:`CONFIG_LOG_MSG_APPEND_RO_STRING_LOC`.
+
 * Modem modules
 
   * Added modem pipelink module which shares modem pipes globally, allowing device drivers to
@@ -1701,6 +1749,11 @@ Libraries / Subsystems
 
   * CMSIS-NN was updated to v6.0.0 from v4.1.0:
     https://arm-software.github.io/CMSIS-NN/latest/rev_hist.html
+
+* FPGA
+
+  * Improve handling of drivers missing reset, load, get_status, and get_info methods.
+  * Add support for Agilex and Agilex 5.
 
 * Random
 
@@ -1760,6 +1813,35 @@ Libraries / Subsystems
   * Fixed FAT driver leaving disk in initialized state after unmount.
 
 * POSIX API
+
+  * Improved Kconfig options to reflect standard POSIX Options and Option Groups.
+
+  * Added support for the following Option Groups
+
+    * :ref:`POSIX_MAPPED_FILES <posix_option_group_mapped_files>`
+    * :ref:`POSIX_MEMORY_PROTECTION <posix_option_group_memory_protection>`
+    * :ref:`POSIX_NETWORKING <posix_option_group_networking>`
+    * :ref:`POSIX_SINGLE_PROCESS <posix_option_group_single_process>`
+    * :ref:`POSIX_TIMERS <posix_option_group_timers>`
+    * :ref:`XSI_SYSTEM_LOGGING <posix_option_group_xsi_system_logging>`
+
+  * Added support for the following Options
+
+    * :ref:`_POSIX_ASYNCHRONOUS_IO <posix_option_asynchronous_io>`
+    * :ref:`_POSIX_CPUTIME <posix_option_cputime>`
+    * :ref:`_POSIX_FSYNC <posix_option_fsync>`
+    * :ref:`_POSIX_MEMLOCK <posix_option_memlock>`
+    * :ref:`_POSIX_MEMLOCK_RANGE <posix_option_memlock_range>`
+    * :ref:`_POSIX_READER_WRITER_LOCKS <posix_option_reader_writer_locks>`
+    * :ref:`_POSIX_SHARED_MEMORY_OBJECTS <posix_shared_memory_objects>`
+    * :ref:`_POSIX_THREAD_CPUTIME <posix_option_thread_cputime>`
+    * :ref:`_POSIX_THREAD_PRIO_PROTECT <posix_option_thread_prio_protect>`
+    * :ref:`_POSIX_THREAD_PRIORITY_SCHEDULING <posix_option_thread_priority_scheduling>`
+    * :ref:`_XOPEN_STREAMS <posix_option_xopen_streams>`
+
+  * Fixed eventfd ``F_SETFL`` handling to avoid overwriting internal flags.
+  * Fixed thread stack address printed in debug message.
+  * Fixed macro parameter usage in signal code.
 
 * LoRa/LoRaWAN
 
