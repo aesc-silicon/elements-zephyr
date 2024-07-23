@@ -359,6 +359,7 @@ Boards & SoC Support
   * Added support for MediaTek MT8195 Audio DSPs
   * Added support for Nuvoton Numaker M2L31X SoC series.
   * Added support for the Microchip PolarFire ICICLE Kit SMP variant.
+  * Added support for Renesas RA8 series SoC.
 
 * Made these changes in other SoC series:
 
@@ -381,6 +382,9 @@ Boards & SoC Support
 
     * Added support for :c:func:`sys_arch_reboot()`.
     * :kconfig:option:`CONFIG_RISCV_ISA_EXT_A` is no longer erroneously y-selected.
+  * rp2040: The proprietary UART driver has been discontinued and replaced with PL011.
+
+  * Renesas RZ/T2M: Added default values for System Clock Control register.
 
 * Added support for these boards:
 
@@ -663,6 +667,13 @@ Drivers and Sensors
 
 * Crypto
 
+* DAC
+
+  * Added support for NXP RW SOC series DAC (:dtcompatible:`nxp,gau-dac`).
+  * Added support for Analog Devices AD5691 / AD5692 / AD5693 DACs
+    (:dtcompatible:`adi,ad5691`, :dtcompatible:`adi,ad5692` and :dtcompatible:`adi,ad5693`).
+  * Added support for Texas Instruments DACx0501 series DACs (:dtcompatible:`ti,dacx0501`).
+
 * Disk
 
   * Support for eMMC devices was added to the STM32 SD driver. This can
@@ -846,6 +857,7 @@ Drivers and Sensors
     from Power Off state on STM32 L4, U5, WB, & WL SoC series.
   * Added driver for Analog Devices MAX32 SoC series.
   * Added support for Nuvoton Numaker M2L31X series.
+  * Added interrupt support to the Renesas RZ/T2M GPIO driver (:dtcompatible:`renesas,rzt2m-gpio`).
 
 * Hardware info
 
@@ -1811,6 +1823,10 @@ Libraries / Subsystems
     partition.
 
   * Fixed FAT driver leaving disk in initialized state after unmount.
+
+* Task Watchdog
+
+  * Added shell (mainly for testing purposes during development).
 
 * POSIX API
 
