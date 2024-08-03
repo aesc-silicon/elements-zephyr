@@ -198,7 +198,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 272f84ca60afc759d81ed94100e78b37a859d3ff
+      revision: 220a4b285d226483a846e41d95abf8ab415b83e3
       path: modules/hal/nxp
       groups:
         - hal
@@ -300,7 +300,7 @@ manifest:
       groups:
         - tools
     - name: nrf_hw_models
-      revision: 6c389b9b5fa0a079cd4502e69d375da4c0c289b7
+      revision: 3ede17158a9fe85c160e0384c0ad0306e24ee47e
       path: modules/bsim_hw_models/nrf_hw_models
     - name: open-amp
       revision: 76d2168bcdfcd23a9a7dce8c21f2083b90a1e60a
