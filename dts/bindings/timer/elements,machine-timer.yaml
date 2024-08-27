@@ -1,0 +1,19 @@
+# Copyright (c) 2024 aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Elements Machine Timer
+
+  The elements machine timer provides RISC-V privileged mtime and mtimecmp
+  registers.
+
+compatible: "elements,machine-timer"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
