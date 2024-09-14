@@ -68,8 +68,8 @@ Architectures
     has an additional field ``csf`` that points to the callee-saved-registers upon an fatal error,
     which can be accessed in :c:func:`k_sys_fatal_error_handler` by ``esf->csf``.
 
-    * For SoCs that select `RISCV_SOC_HAS_ISR_STACKING`, the `SOC_ISR_STACKING_ESF_DECLARE` has to
-      include the `csf` member, otherwise the build would fail.
+    * For SoCs that select ``RISCV_SOC_HAS_ISR_STACKING``, the ``SOC_ISR_STACKING_ESF_DECLARE`` has to
+      include the ``csf`` member, otherwise the build would fail.
 
 * Xtensa
 
@@ -168,6 +168,8 @@ Drivers and Sensors
 * Input
 
 * LED
+
+  * lp5562: added ``enable-gpios`` property to describe the EN/VCC GPIO of the lp5562.
 
   * lp5569: added ``charge-pump-mode`` property to configure the charge pump of the lp5569.
 

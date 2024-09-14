@@ -157,7 +157,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: a79e607333bbd115a16e801ba49840a80c852253
+      revision: aa6a967d1ab4077691aa046229a782102960218a
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -198,7 +198,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 30bdef6d5a304abfa95cc19af4d3ba699aac456e
+      revision: f91541b8a4c39395a4ab9445fee69eeeaa050d6c
       path: modules/hal/nxp
       groups:
         - hal
@@ -285,7 +285,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 52e2afc2f809c424b0f337f56059d1dfcc7e6d98
+      revision: e890df7ab975da181a9f3fb3abc470bf935625ab
       path: bootloader/mcuboot
       groups:
         - bootloader
@@ -295,7 +295,7 @@ manifest:
         - debug
       revision: 71ace1f5caa03e56c8740a09863e685efb4b2360
     - name: net-tools
-      revision: a1fb781b67c33e9a6868b0915b627315c5cac668
+      revision: 93acc8bac4661e74e695eb1aea94c7c5262db2e2
       path: tools/net-tools
       groups:
         - tools

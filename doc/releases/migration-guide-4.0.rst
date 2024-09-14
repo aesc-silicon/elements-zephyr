@@ -30,14 +30,14 @@ Boards
   to define default flash and ram partitioning based on TF-M.
 
 * STM32WBA: The command used for fetching blobs required to build ble applications is now
-  `west blobs fetch hal_stm32` instead of `west blobs fetch stm32`.
+  ``west blobs fetch hal_stm32`` instead of ``west blobs fetch stm32``.
 
 STM32
 =====
 
-* On all official STM32 boards, `west flash` selects STM32CubeProgrammer as the default west runner.
+* On all official STM32 boards, ``west flash`` selects STM32CubeProgrammer as the default west runner.
   If you want to enforce the selection of another runner like OpenOCD or pyOCD for flashing, you should
-  specify it using the west `--runner` or `-r` option. (:github:`75284`)
+  specify it using the west ``--runner`` or ``-r`` option. (:github:`75284`)
 
 Modules
 *******
@@ -48,8 +48,8 @@ Mbed TLS
 * The Kconfig options ``CONFIG_MBEDTLS_TLS_VERSION_1_0`` and ``CONFIG_MBEDTLS_TLS_VERSION_1_1``
   have been removed because Mbed TLS doesn't support TLS 1.0 and 1.1 anymore since v3.0. (:github:`76833`)
 * The following Kconfig symbols were renamed (:github:`76408`):
-  * ``CONFIG_MBEDTLS_ENTROPY_ENABLED`` is now :kconfig:option:``CONFIG_MBEDTLS_ENTROPY_C``,
-  * ``CONFIG_MBEDTLS_ZEPHYR_ENTROPY`` is now :kconfig:option:``CONFIG_MBEDTLS_ENTROPY_POLL_ZEPHYR``.
+  * ``CONFIG_MBEDTLS_ENTROPY_ENABLED`` is now :kconfig:option:`CONFIG_MBEDTLS_ENTROPY_C`,
+  * ``CONFIG_MBEDTLS_ZEPHYR_ENTROPY`` is now :kconfig:option:`CONFIG_MBEDTLS_ENTROPY_POLL_ZEPHYR`.
 
 * The Kconfig option ``CONFIG_MBEDTLS_SSL_EXPORT_KEYS`` was removed because the
   corresponding build symbol was removed in Mbed TLS 3.1.0 and is now assumed to
@@ -69,10 +69,10 @@ zcbor
   Migration guide at https://github.com/NordicSemiconductor/zcbor/blob/0.9.0/MIGRATION_GUIDE.md
   Migration guide copied here:
 
-  * `zcbor_simple_*()` functions have been removed to avoid confusion about their use.
+  * ``zcbor_simple_*()`` functions have been removed to avoid confusion about their use.
     They are still in the C file because they are used by other functions.
     Instead, use the specific functions for the currently supported simple values, i.e.
-    `zcbor_bool_*()`, `zcbor_nil_*()`, and `zcbor_undefined_*()`.
+    ``zcbor_bool_*()``, ``zcbor_nil_*()``, and ``zcbor_undefined_*()``.
     If a removed variant is strictly needed, add your own forward declaration in your code.
 
   * Code generation naming:
@@ -248,7 +248,7 @@ Networking
 
 * The Ethernet bridge shell is moved under network shell. This is done so that
   all the network shell activities can be found under ``net`` shell command.
-  After this change the bridge shell is used by ``net bridge`` command.
+  After this change the bridge shell is used by ``net bridge`` command. (:github:`77235`)
 
 * The Ethernet bridging code is changed to allow similar configuration experience
   as in Linux. The bridged Ethernet interface can be used normally even if bridging
@@ -260,7 +260,7 @@ Networking
   removed as same functionality can be achieved using promiscuous API.
   Because the bridge interface is a normal network interface,
   the :c:func:`eth_bridge_iface_add` and :c:func:`eth_bridge_iface_remove`
-  will take network interface pointer as a first parameter.
+  will take network interface pointer as a first parameter. (:github:`77987`)
 
 * To facilitate use outside of the networking subsystem, the network buffer header file was renamed
   from :zephyr_file:`include/zephyr/net/buf.h` to :zephyr_file:`include/zephyr/net_buf.h` and the
