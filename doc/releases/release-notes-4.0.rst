@@ -21,6 +21,8 @@ The following CVEs are addressed by this release:
 More detailed information can be found in:
 https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 
+* CVE-2024-8798: Under embargo until 2024-11-22
+
 API Changes
 ***********
 
@@ -47,6 +49,8 @@ Deprecated in this release
 
 * Deprecated the :c:func:`net_buf_put` and :c:func:`net_buf_get` API functions in favor of
   :c:func:`k_fifo_put` and :c:func:`k_fifo_get`.
+
+* The :ref:`kscan_api` subsystem has been marked as deprecated.
 
 Architectures
 *************
@@ -317,6 +321,9 @@ Libraries / Subsystems
       supported groups.
     * Fixed formatting of milliseconds in :c:enum:`OS_MGMT_ID_DATETIME_STR` by adding
       leading zeros.
+    * Added support for custom os mgmt bootloader info responses using notification hooks, this
+      can be enabled witbh :kconfig:option`CONFIG_MCUMGR_GRP_OS_BOOTLOADER_INFO_HOOK`, the data
+      structure is :c:struct:`os_mgmt_bootloader_info_data`.
 
 * Logging
 
