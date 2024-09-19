@@ -233,7 +233,7 @@ manifest:
       groups:
         - hal
     - name: hal_stm32
-      revision: 1e6116bd2a36db976d955ee772d21f329e529873
+      revision: c4099c229323f305eef75ff6ba93ee9b89827581
       path: modules/hal/stm32
       groups:
         - hal
@@ -259,7 +259,7 @@ manifest:
         - hal
     - name: hostap
       path: modules/lib/hostap
-      revision: 7761b17eea9a2442af6ea9df830904fa4ba7bbca
+      revision: cbae0170437dbe196d436b2b53d7aefb97044b0c
     - name: libmetal
       revision: a6851ba6dba8c9e87d00c42f171a822f7a29639b
       path: modules/hal/libmetal
