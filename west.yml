@@ -178,7 +178,7 @@ manifest:
       groups:
         - hal
     - name: hal_intel
-      revision: 0905a528623de56b1bedf817536321bcdbc0efae
+      revision: 8876a1815bc59e0464d285459b71e3d69872edfd
       path: modules/hal/intel
       groups:
         - hal
@@ -198,7 +198,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: f4e26fad2cfd8b8e8988e835a28667573ed072cf
+      revision: adfa0bbba6f5d36352d387527bdc486616c9f521
       path: modules/hal/nxp
       groups:
         - hal
