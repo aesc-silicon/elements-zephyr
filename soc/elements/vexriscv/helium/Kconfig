@@ -14,4 +14,3 @@ config SOC_SERIES_HELIUM
 
 config SOC_PART_NUMBER
 	default "helium1" if SOC_HELIUM1
-	default "helium2" if SOC_HELIUM2

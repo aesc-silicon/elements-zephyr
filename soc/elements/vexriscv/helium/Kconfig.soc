@@ -9,13 +9,8 @@ config SOC_HELIUM1
 	bool
 	select SOC_SERIES_HELIUM
 
-config SOC_HELIUM2
-	bool
-	select SOC_SERIES_HELIUM
-
 config SOC_SERIES
 	default "helium" if SOC_SERIES_HELIUM
 
 config SOC
 	default "helium1" if SOC_HELIUM1
-	default "helium2" if SOC_HELIUM2
