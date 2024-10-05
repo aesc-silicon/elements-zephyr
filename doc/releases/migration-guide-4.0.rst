@@ -43,6 +43,8 @@ Devicetree
 * The :c:macro:`DT_REG_ADDR` macro and its variants are now expanding into an
   unsigned literals (i.e. with a ``U`` suffix). To use addresses as devicetree
   indexes use the :c:macro:`DT_REG_ADDR_RAW` variants.
+* The :c:macro:`DT_REG_SIZE` macro and its variants are also expanding into
+  unsigned literals, no raw variants are provided at this stage.
 
 STM32
 =====
@@ -316,6 +318,11 @@ Bluetooth Audio
   registered dynamically at runtime with :c:func:`bt_tbs_register_bearer`. The services can also be
   unregistered with :c:func:`bt_tbs_unregister_bearer`.
   (:github:`76108`)
+
+* There has been a rename from ``bt_audio_codec_qos`` to ``bt_bap_qos_cfg``. This effects all
+  structs, enums and defines that used the ``bt_audio_codec_qos`` name. To use the new naming simply
+  do a search-and-replace for ``bt_audio_codec_qos`` to ``bt_bap_qos_cfg`` and
+  ``BT_AUDIO_CODEC_QOS`` to ``BT_BAP_QOS_CFG``. (:github:`76633`)
 
 Bluetooth Classic
 =================
