@@ -233,7 +233,7 @@ manifest:
       groups:
         - hal
     - name: hal_stm32
-      revision: 1ff820533c1b1c17f1a4d7d28ab99a94a234883b
+      revision: 6f0e5f70cb540c487e3e3678af2e95d0937f9863
       path: modules/hal/stm32
       groups:
         - hal
@@ -315,7 +315,7 @@ manifest:
         - debug
     - name: picolibc
       path: modules/lib/picolibc
-      revision: 27746bbc246841852912fc3bb5b45094cd8a505a
+      revision: d492d5fa7c96918e37653f303028346bb0dd51a2
     - name: segger
       revision: b011c45b585e097d95d9cf93edf4f2e01588d3cd
       path: modules/debug/segger
