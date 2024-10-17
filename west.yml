@@ -157,7 +157,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: ef9d884533208005468a118c7ada56e92ae9ba8b
+      revision: 61a002ad757f567cdef92014b483e6f325c41afc
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -188,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: d5c70305b2389641b0a166d0714775a1b13319a2
+      revision: 1abc0519d768c203eb27d19a0fa26dbae07e2b71
       path: modules/hal/nordic
       groups:
         - hal
@@ -259,7 +259,7 @@ manifest:
         - hal
     - name: hostap
       path: modules/lib/hostap
-      revision: 0fd0276b5b65de4d2f7cd0552789a74d3a129441
+      revision: 7c32520564908e1220976b6c185dec296b6d4a80
     - name: libmetal
       revision: a6851ba6dba8c9e87d00c42f171a822f7a29639b
       path: modules/hal/libmetal
@@ -285,7 +285,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 3a195f2207d5eadf45a5c989a870e91aff020d86
+      revision: b9d69dd2a2d6df32da6608d549138288bb7d7aa5
       path: bootloader/mcuboot
       groups:
         - bootloader
