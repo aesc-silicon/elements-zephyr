@@ -75,6 +75,19 @@ Mbed TLS
   corresponding build symbol was removed in Mbed TLS 3.1.0 and is now assumed to
   be enabled. (:github:`77657`)
 
+TinyCrypt
+=========
+
+* Starting from this release the library is marked as deprecated (:github:`79566`).
+  The reasons for this are (:github:`43712``):
+
+  * the upstream version of this library is unmaintained.
+
+  * to reduce the number of crypto libraries available in Zephyr (currently there are
+    3 different implementations: TinyCrypt, MbedTLS and PSA Crypto APIs).
+
+  The PSA Crypto API is now the de-facto standard to perform crypto operations.
+
 Trusted Firmware-M
 ==================
 
@@ -308,6 +321,9 @@ Bluetooth
 
 Bluetooth HCI
 =============
+
+* The ``bt-hci-bus`` and ``bt-hci-quirks`` devicetree properties for HCI bindings have been changed
+  to use lower-case strings without the ``BT_HCI_QUIRK_`` and ``BT_HCI_BUS_`` prefixes.
 
 Bluetooth Mesh
 ==============

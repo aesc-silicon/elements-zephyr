@@ -56,6 +56,16 @@ Deprecated in this release
 
 * The :ref:`kscan_api` subsystem has been marked as deprecated.
 
+* The TinyCrypt library was marked as deprecated (:github:`79566`). The reasons
+  for this are (:github:`43712``):
+
+  * the upstream version of this library is unmaintained.
+
+  * to reduce the number of crypto libraries available in Zephyr (currently there are
+    3 different implementations: TinyCrypt, MbedTLS and PSA Crypto APIs).
+
+  The PSA Crypto API is now the de-facto standard to perform crypto operations.
+
 Architectures
 *************
 
@@ -201,6 +211,9 @@ Drivers and Sensors
 * GNSS
 
 * GPIO
+
+  * tle9104: Add support for the parallel output mode via setting the properties ``parallel-out12`` and
+    ``parallel-out34``.
 
 * Hardware info
 
