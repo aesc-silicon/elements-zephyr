@@ -161,6 +161,11 @@ zephyr_library_sources_ifdef(CONFIG_WPA_CLI
 	src/wpa_cli.c
 )
 
+zephyr_library_sources_ifdef(CONFIG_IEEE80211R
+	${HOSTAP_SRC_BASE}/rsn_supp/wpa_ft.c
+	${HOSTAP_SRC_BASE}/ap/wpa_auth_ft.c
+)
+
 zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_AP
 	${WIFI_NM_WPA_SUPPLICANT_BASE}/ap.c
 	${HOSTAP_SRC_BASE}/ap/ap_config.c
@@ -178,7 +183,6 @@ zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_AP
 	${HOSTAP_SRC_BASE}/ap/hw_features.c
 	${HOSTAP_SRC_BASE}/ap/ieee802_11_auth.c
 	${HOSTAP_SRC_BASE}/ap/ieee802_11.c
-	${HOSTAP_SRC_BASE}/ap/ieee802_11_he.c
 	${HOSTAP_SRC_BASE}/ap/ieee802_11_ht.c
 	${HOSTAP_SRC_BASE}/ap/ieee802_11_shared.c
 	${HOSTAP_SRC_BASE}/ap/ieee802_11_vht.c
@@ -206,6 +210,11 @@ zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_AP
 	${HOSTAP_SRC_BASE}/ap/mbo_ap.c
 	${HOSTAP_SRC_BASE}/ap/ctrl_iface_ap.c
 	${HOSTAP_SRC_BASE}/utils/crc32.c
+	${HOSTAP_SRC_BASE}/utils/ip_addr.c
+)
+
+zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_11AX
+	${HOSTAP_SRC_BASE}/ap/ieee802_11_he.c
 )
 
 zephyr_library_compile_definitions_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_AP
@@ -215,9 +224,12 @@ zephyr_library_compile_definitions_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_AP
 	CONFIG_NO_ACCOUNTING
 	NEED_AP_MLME
 	CONFIG_IEEE80211AC
-	CONFIG_IEEE80211AX
 	CONFIG_EAP_SERVER
 	CONFIG_EAP_SERVER_IDENTITY
+)
+
+zephyr_library_compile_definitions_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_11AX
+	CONFIG_IEEE80211AX
 )
 
 zephyr_include_directories_ifdef(CONFIG_WIFI_NM_HOSTAPD_AP
@@ -226,7 +238,6 @@ zephyr_include_directories_ifdef(CONFIG_WIFI_NM_HOSTAPD_AP
 
 zephyr_library_sources_ifdef(CONFIG_WIFI_NM_HOSTAPD_AP
 	${HOSTAP_SRC_BASE}/ap/acs.c
-	${HOSTAP_SRC_BASE}/utils/ip_addr.c
 	${WIFI_NM_HOSTAPD_BASE}/config_file.c
 	${WIFI_NM_HOSTAPD_BASE}/ctrl_iface.c
 	${WIFI_NM_HOSTAPD_BASE}/ctrl_iface_zephyr.c
@@ -243,6 +254,29 @@ zephyr_library_compile_definitions_ifdef(CONFIG_WIFI_NM_HOSTAPD_AP
 zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_CRYPTO_NONE
 	${HOSTAP_SRC_BASE}/crypto/crypto_none.c
 	${HOSTAP_SRC_BASE}/crypto/tls_none.c
+
+	# FIXME: why do we need these when crypto is not selected?
+	${HOSTAP_SRC_BASE}/crypto/aes-wrap.c
+	${HOSTAP_SRC_BASE}/crypto/aes-unwrap.c
+	${HOSTAP_SRC_BASE}/crypto/aes-internal.c
+	${HOSTAP_SRC_BASE}/crypto/aes-internal-enc.c
+	${HOSTAP_SRC_BASE}/crypto/aes-internal-dec.c
+	${HOSTAP_SRC_BASE}/crypto/aes-omac1.c
+	${HOSTAP_SRC_BASE}/crypto/md5.c
+	${HOSTAP_SRC_BASE}/crypto/md5-internal.c
+	${HOSTAP_SRC_BASE}/crypto/sha1.c
+	${HOSTAP_SRC_BASE}/crypto/sha1-internal.c
+	${HOSTAP_SRC_BASE}/crypto/sha1-pbkdf2.c
+	${HOSTAP_SRC_BASE}/crypto/sha1-prf.c
+	${HOSTAP_SRC_BASE}/crypto/sha256.c
+	${HOSTAP_SRC_BASE}/crypto/sha256-internal.c
+	${HOSTAP_SRC_BASE}/crypto/sha256-prf.c
+	${HOSTAP_SRC_BASE}/crypto/sha384.c
+	${HOSTAP_SRC_BASE}/crypto/sha384-internal.c
+	${HOSTAP_SRC_BASE}/crypto/sha384-prf.c
+	${HOSTAP_SRC_BASE}/crypto/sha512.c
+	${HOSTAP_SRC_BASE}/crypto/sha512-internal.c
+	${HOSTAP_SRC_BASE}/crypto/rc4.c
 )
 
 zephyr_library_compile_definitions_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_CRYPTO_NONE
@@ -310,8 +344,15 @@ zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_WPS
 	${HOSTAP_SRC_BASE}/wps/wps_enrollee.c
 	${HOSTAP_SRC_BASE}/wps/wps_registrar.c
 	${HOSTAP_SRC_BASE}/crypto/dh_groups.c
+)
+
+if(NOT CONFIG_WIFI_NM_WPA_SUPPLICANT_CRYPTO_ALT)
+# dh_group5 is only needed if we are not using mbedtls, as mbedtls provides
+# its own definition
+zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_WPS
 	${HOSTAP_SRC_BASE}/crypto/dh_group5.c
 )
+endif()
 
 zephyr_library_compile_definitions_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_P2P
 	CONFIG_P2P
@@ -609,6 +650,7 @@ zephyr_library_sources_ifdef(CONFIG_WIFI_NM_WPA_SUPPLICANT_CRYPTO_ENTERPRISE
 	${HOSTAP_SRC_BASE}/crypto/ms_funcs.c
 	${HOSTAP_SRC_BASE}/crypto/aes-eax.c
 	${HOSTAP_SRC_BASE}/crypto/md4-internal.c
+	${HOSTAP_SRC_BASE}/crypto/sha1-internal.c
 	${HOSTAP_SRC_BASE}/crypto/fips_prf_internal.c
 	${HOSTAP_SRC_BASE}/crypto/milenage.c
 )

@@ -58,6 +58,7 @@ STM32
 * On all official STM32 boards, ``west flash`` selects STM32CubeProgrammer as the default west runner.
   If you want to enforce the selection of another runner like OpenOCD or pyOCD for flashing, you should
   specify it using the west ``--runner`` or ``-r`` option. (:github:`75284`)
+* ADC: Domain clock needs to be explicitly defined if property st,adc-clock-source = <ASYNC> is used.
 
 Modules
 *******
@@ -78,15 +79,8 @@ Mbed TLS
 TinyCrypt
 =========
 
-* Starting from this release the library is marked as deprecated (:github:`79566`).
-  The reasons for this are (:github:`43712``):
-
-  * the upstream version of this library is unmaintained.
-
-  * to reduce the number of crypto libraries available in Zephyr (currently there are
-    3 different implementations: TinyCrypt, MbedTLS and PSA Crypto APIs).
-
-  The PSA Crypto API is now the de-facto standard to perform crypto operations.
+Albeit the formal deprecation of TinyCrypt is not started yet, its removal from
+the Zephyr codebase is. Formal deprecation will happen in the next release.
 
 Trusted Firmware-M
 ==================
@@ -196,11 +190,30 @@ Clock control
            load-capacitance-femtofarad = <...>;
      };
 
-Controller Area Network (CAN)
-=============================
+Crypto
+======
+
+* Following the deprecation of the TinyCrypt library (:github:`79566`), the
+  TinyCrypt-based shim driver was marked as deprecated (:github:`79653`).
 
 Display
 =======
+
+Disk
+====
+
+* The SDMMC subsystem driver now requires a ``disk-name`` property be supplied
+  with the definition of the disk, which is used when registering the
+  SD device with the disk subsystem. This permits multiple SD devices to be
+  registered simultaneously. If unsure, ``disk-name = "SD"`` may be used
+  as a sane default.
+
+* The MMC subsystem driver now requires a ``disk-name`` property be supplied
+  with the definition of the disk, which is used when registering the
+  MMC device with the disk subsystem. This permits multiple MMC devices to be
+  registered simultaneously. If unsure, ``disk-name = "SD2"`` may be used
+  as a sane default.
+
 
 Enhanced Serial Peripheral Interface (eSPI)
 ===========================================
@@ -278,6 +291,8 @@ Serial
    can accept data bytes, instead of ``ret == 1``. The function now returns a lower bound on the
    number of bytes that can be provided to :c:func:`uart_fifo_fill` without truncation.
 
+ * LiteX: ``CONFIG_UART_LITEUART`` has been renamed to :kconfig:option:`CONFIG_UART_LITEX`.
+
 Regulator
 =========
 
@@ -330,6 +345,8 @@ Bluetooth HCI
 
 * The ``bt-hci-bus`` and ``bt-hci-quirks`` devicetree properties for HCI bindings have been changed
   to use lower-case strings without the ``BT_HCI_QUIRK_`` and ``BT_HCI_BUS_`` prefixes.
+* The Kconfig option :kconfig:option:`BT_SPI` is now automatically selected based on devicetree
+  compatibles and can be removed from board ``.defconfig`` files.
 
 Bluetooth Mesh
 ==============
@@ -351,7 +368,7 @@ Bluetooth Audio
   :kconfig:option:`CONFIG_BT_ASCS_MAX_ASE_SNK_COUNT` to reflect that they now serve as a
   compile-time maximum configuration of ASEs to be used.
   :c:func:`bt_bap_unicast_server_register` needs to be called once before using the Unicast Server,
-  and more specfically prior to calling :c:func:`bt_bap_unicast_server_register_cb` for the first
+  and more specifically prior to calling :c:func:`bt_bap_unicast_server_register_cb` for the first
   time. It does not need to be called again until the new function
   :c:func:`bt_bap_unicast_server_unregister` has been called.
   (:github:`76632`)
@@ -385,6 +402,16 @@ Bluetooth Audio
   structs, enums and defines that used the ``bt_audio_codec_qos`` name. To use the new naming simply
   do a search-and-replace for ``bt_audio_codec_qos`` to ``bt_bap_qos_cfg`` and
   ``BT_AUDIO_CODEC_QOS`` to ``BT_BAP_QOS_CFG``. (:github:`76633`)
+
+* The generation of broadcast ID inside of zephyr stack has been removed, it is now up the
+  application to generate a broadcast ID. This means that the application can now fully decide
+  whether to use a static or random broadcast ID. Reusing and statically defining a broadcast ID was
+  added to the Basic Audio Profile in version 1.0.2, which is the basis for this change. All
+  instances of :c:func:`bt_cap_initiator_broadcast_get_id` and
+  :c:func:`bt_bap_broadcast_source_get_id` has been removed(:github:`80228`)
+
+* ``BT_AUDIO_BROADCAST_CODE_SIZE`` has been removed and ``BT_ISO_BROADCAST_CODE_SIZE`` should be
+  used instead. (:github:`80217`)
 
 Bluetooth Classic
 =================
@@ -502,6 +529,10 @@ Networking
 * The ``work_q`` parameter to ``NET_SOCKET_SERVICE_SYNC_DEFINE`` and
   ``NET_SOCKET_SERVICE_SYNC_DEFINE_STATIC`` has been removed as it was always ignored. (:github:`79446`)
 
+* The callback function for the socket service has changed. The
+  ``struct k_work *work`` parameter has been replaced with a pointer to the
+  ``struct net_socket_service_event *pev`` parameter. (:github:`80041`)
+
 * Deprecated the :kconfig:option:`CONFIG_NET_SOCKETS_POLL_MAX` option in favour of
   :kconfig:option:`CONFIG_ZVFS_POLL_MAX`.
 
@@ -537,6 +568,14 @@ MCUmgr
 Modem
 =====
 
+Random
+======
+
+* Following the deprecation of the TinyCrypt library (:github:`79566`), usage
+  of TinyCrypt in the CTR-DRBG random number generator was removed. From now on
+  Mbed TLS is required to enable :kconfig:option:`CONFIG_CTR_DRBG_CSPRNG_GENERATOR`.
+  (:github:`79653`)
+
 Shell
 =====
 
@@ -546,11 +585,21 @@ Shell
 JWT (JSON Web Token)
 ====================
 
-* By default, the signature is now computed through PSA Crypto API for both RSA and ECDSA.
-  The newly-added :kconfig:option:`CONFIG_JWT_USE_LEGACY` can be used to switch
-  back to previous libraries (TinyCrypt for ECDSA and Mbed TLS for RSA).
-  The conversion to the PSA Crypto API is being done in preparation for the
-  deprecation of TinyCrypt. (:github:`78243` and :github:`43712`)
+* By default, the signature is now computed using the PSA Crypto API for both RSA and ECDSA
+  (:github:`78243`). The conversion to the PSA Crypto API is part of the adoption
+  of a standard interface for crypto operations (:github:`43712`). Moreover,
+  following the deprecation of the TinyCrypt library (:github:`79566`), usage
+  of TinyCrypt was removed from the JWT subsystem (:github:`79653`).
+
+* The following new symbols were added to allow specifying both the signature
+  algorithm and crypto library:
+
+  * :kconfig:option:`CONFIG_JWT_SIGN_RSA_PSA` (default) RSA signature using the PSA Crypto API;
+  * :kconfig:option:`CONFIG_JWT_SIGN_RSA_LEGACY` RSA signature using Mbed TLS;
+  * :kconfig:option:`CONFIG_JWT_SIGN_ECDSA_PSA` ECDSA signature using the PSA Crypto API.
+
+  They replace the previously-existing Kconfigs ``CONFIG_JWT_SIGN_RSA`` and
+  ``CONFIG_JWT_SIGN_ECDSA``. (:github:`79653`)
 
 Architectures
 *************

@@ -61,6 +61,7 @@ _names = [
     'openfpgaloader',
     'trace32',
     'uf2',
+    'xsdb',
     'xtensa',
     # zephyr-keep-sorted-stop
 ]
