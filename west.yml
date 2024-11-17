@@ -137,7 +137,7 @@ manifest:
       groups:
         - fs
     - name: hal_adi
-      revision: a3eecfde1c76d38312b94fd346c7ba9fe2661992
+      revision: b1a10239e1001502c3089e0cf938e938f99b1f30
       path: modules/hal/adi
       groups:
         - hal
@@ -147,7 +147,7 @@ manifest:
       groups:
         - hal
     - name: hal_ambiq
-      revision: d3092f9b82874a1791baa3ac41c3795d108fbbdb
+      revision: 87a188b91aca22ce3ce7deb4a1cbf7780d784673
       path: modules/hal/ambiq
       groups:
         - hal
@@ -300,7 +300,7 @@ manifest:
       groups:
         - tools
     - name: nrf_hw_models
-      revision: aca798cf7cf0c5dc1fd89c66cf62670051feb8d0
+      revision: aeef3db9fa9e4b9d12b3bbec44f9cedc8fcb7d9c
       path: modules/bsim_hw_models/nrf_hw_models
     - name: open-amp
       revision: b735edbc739ad59156eb55bb8ce2583d74537719
@@ -340,7 +340,7 @@ manifest:
       revision: 84ef879a46d7bfd9a423fbfb502b04289861f9ea
       path: modules/lib/uoscore-uedhoc
     - name: zcbor
-      revision: 47f34dd7f5284e8750b5a715dee7f77c6c5bdc3f
+      revision: 9b07780aca6fb21f82a241ba386ad9b379809337
       path: modules/lib/zcbor
 
   self:
