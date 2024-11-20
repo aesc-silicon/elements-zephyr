@@ -188,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 5c8d109371ebb740fbef1f440a3b59e488a36717
+      revision: 2dbb2ed6cf461062bbac59a65b6e9d4576656350
       path: modules/hal/nordic
       groups:
         - hal
@@ -285,7 +285,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: f74b77cf7808919837c0ed14c2ead3918c546349
+      revision: eb942067989569f9cf319b087d0bb16b16effd86
       path: bootloader/mcuboot
       groups:
         - bootloader
@@ -317,7 +317,7 @@ manifest:
       path: modules/lib/picolibc
       revision: d492d5fa7c96918e37653f303028346bb0dd51a2
     - name: segger
-      revision: 798f95ea9304e5ed8165a661081443051f210733
+      revision: 1a607e8718171cfbc1ee6b2a5ec00f619d1cc7fc
       path: modules/debug/segger
       groups:
         - debug
