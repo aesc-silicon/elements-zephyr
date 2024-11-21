@@ -30,11 +30,21 @@ Modules
 Mbed TLS
 ========
 
+* If a platform has a CSPRNG source available (i.e. :kconfig:option:`CONFIG_CSPRNG_ENABLED`
+  is set), then the Kconfig option :kconfig:option:`CONFIG_MBEDTLS_PSA_CRYPTO_EXTERNAL_RNG`
+  is the default choice for random number source instead of
+  :kconfig:option:`CONFIG_MBEDTLS_PSA_CRYPTO_LEGACY_RNG`. This helps in reducing
+  ROM/RAM footprint of the Mbed TLS library.
+
 Trusted Firmware-M
 ==================
 
 LVGL
 ====
+
+* The config option :kconfig:option:`CONFIG_LV_Z_FLUSH_THREAD_PRIO` is now called
+  :kconfig:option:`CONFIG_LV_Z_FLUSH_THREAD_PRIORITY` and its value is now interpreted as an
+  absolute priority instead of a cooperative one.
 
 Device Drivers and Devicetree
 *****************************
