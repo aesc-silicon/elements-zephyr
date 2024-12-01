@@ -39,6 +39,13 @@
 	};
 
 	soc {
+		flash: flash@10000000 {
+			reg = <0x10000000 DT_SIZE_M(1)>;
+			compatible = "soc-nv-flash";
+			write-block-size = <16>;
+			erase-block-size = <8192>;
+		};
+
 		ctcm: sram@14000000 {
 			ranges = <0x0 0x14000000 DT_SIZE_K(16)>;
 			#address-cells = <1>;
@@ -91,13 +98,6 @@
 					reg = <0x20000 0x1000>;
 					interrupts = <27 0>;
 					status = "disabled";
-
-					flash: flash@0 {
-						reg = <0x0 DT_SIZE_M(1)>;
-						compatible = "soc-nv-flash";
-						write-block-size = <16>;
-						erase-block-size = <8192>;
-					};
 				};
 			};
 
@@ -116,7 +116,7 @@
 	};
 
 	pinctrl: pinctrl {
-		compatible = "nxp,kinetis-pinctrl";
+		compatible = "nxp,port-pinctrl";
 	};
 };
 
@@ -147,25 +147,25 @@
 	};
 
 	porta: pinctrl@42000 {
-		compatible = "nxp,kinetis-pinmux";
+		compatible = "nxp,port-pinmux";
 		reg = <0x42000 0xe0>;
 		clocks = <&scg SCG_K4_SLOW_CLK 0x108>;
 	};
 
 	portb: pinctrl@43000 {
-		compatible = "nxp,kinetis-pinmux";
+		compatible = "nxp,port-pinmux";
 		reg = <0x43000 0xe0>;
 		clocks = <&scg SCG_K4_SLOW_CLK 0x10c>;
 	};
 
 	portc: pinctrl@44000 {
-		compatible = "nxp,kinetis-pinmux";
+		compatible = "nxp,port-pinmux";
 		reg = <0x44000 0xe0>;
 		clocks = <&scg SCG_K4_SLOW_CLK 0x110>;
 	};
 
 	portd: pinctrl@45000 {
-		compatible = "nxp,kinetis-pinmux";
+		compatible = "nxp,port-pinmux";
 		reg = <0x45000 0xe0>;
 		clocks = <&scg SCG_K4_SLOW_CLK 0>;
 	};

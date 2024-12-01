@@ -191,8 +191,13 @@ static void rampstat_work_handler(struct k_work *work)
 	uint32_t drv_status;
 	int err;
 
-	tmc5041_read(stepper_config->controller, TMC5041_DRVSTATUS(stepper_config->index),
-		     &drv_status);
+	err = tmc5041_read(stepper_config->controller, TMC5041_DRVSTATUS(stepper_config->index),
+			   &drv_status);
+	if (err != 0) {
+		LOG_ERR("%s: Failed to read DRVSTATUS register", stepper_data->stepper->name);
+		return;
+	}
+
 	if (FIELD_GET(TMC5XXX_DRV_STATUS_SG_STATUS_MASK, drv_status) == 1U) {
 		LOG_INF("%s: Stall detected", stepper_data->stepper->name);
 		err = tmc5041_write(stepper_config->controller,
@@ -405,7 +410,7 @@ static int tmc5041_stepper_get_micro_step_res(const struct device *dev,
 	return 0;
 }
 
-static int tmc5041_stepper_set_actual_position(const struct device *dev, const int32_t position)
+static int tmc5041_stepper_set_reference_position(const struct device *dev, const int32_t position)
 {
 	const struct tmc5041_stepper_config *config = dev->config;
 	int err;
@@ -453,7 +458,10 @@ static int tmc5041_stepper_set_target_position(const struct device *dev, const i
 	if (err != 0) {
 		return -EIO;
 	}
-	tmc5041_write(config->controller, TMC5041_XTARGET(config->index), position);
+	err = tmc5041_write(config->controller, TMC5041_XTARGET(config->index), position);
+	if (err != 0) {
+		return -EIO;
+	}
 
 	if (config->is_sg_enabled) {
 		k_work_reschedule(&data->stallguard_dwork,
@@ -720,7 +728,7 @@ static int tmc5041_stepper_init(const struct device *dev)
 		.set_max_velocity = tmc5041_stepper_set_max_velocity,				\
 		.set_micro_step_res = tmc5041_stepper_set_micro_step_res,			\
 		.get_micro_step_res = tmc5041_stepper_get_micro_step_res,			\
-		.set_actual_position = tmc5041_stepper_set_actual_position,			\
+		.set_reference_position = tmc5041_stepper_set_reference_position,		\
 		.get_actual_position = tmc5041_stepper_get_actual_position,			\
 		.set_target_position = tmc5041_stepper_set_target_position,			\
 		.enable_constant_velocity_mode = tmc5041_stepper_enable_constant_velocity_mode,	\
