@@ -107,6 +107,11 @@ Boards & SoC Support
 Build system and Infrastructure
 *******************************
 
+* Space-separated lists support has been removed from Twister configuration
+  files. This feature was deprecated a long time ago. Projects that do still use
+  them can use the :zephyr_file:`scripts/utils/twister_to_list.py` script to
+  automatically migrate Twister configuration files.
+
 Drivers and Sensors
 *******************
 
@@ -255,6 +260,13 @@ Networking
 * Shell:
 
 * Sockets:
+
+  * The deprecated :kconfig:option:`CONFIG_NET_SOCKETS_POSIX_NAMES` option has been removed.
+    It was a legacy option and was used to allow user to call BSD socket API while not enabling POSIX API.
+    This removal means that in order to use POSIX API socket calls, one needs to enable the
+    :kconfig:option:`CONFIG_POSIX_API` option.
+    If the application does not want or is not able to enable that option, then the socket API
+    calls need to be prefixed by a ``zsock_`` string.
 
 * Syslog:
 
