@@ -61,6 +61,7 @@ jobs:
           git config --global user.email "bot@zephyrproject.org"
           git config --global user.name "Zephyr Bot"
           rm -fr ".git/rebase-apply"
+          rm -fr ".git/rebase-merge"
           git rebase origin/${BASE_REF}
           git clean -f -d
           git log  --pretty=oneline | head -n 10
@@ -143,7 +144,7 @@ jobs:
           path: artifacts
       - name: Merge Test Results
         run: |
-          pip3 install junitparser junit2html
+          pip install junitparser junit2html
           junitparser merge artifacts/*/twister.xml junit.xml
           junit2html junit.xml junit-clang.html
 

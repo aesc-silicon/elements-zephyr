@@ -28,14 +28,18 @@
 /* defined in stm32_common_clocks.h */
 /** Fixed clocks */
 /* Low speed clocks defined in stm32_common_clocks.h */
-#define STM32_SRC_HSI      (STM32_SRC_LSI + 1)
-#define STM32_SRC_HSE      (STM32_SRC_HSI + 1)
+#define STM32_SRC_HSI		(STM32_SRC_LSI + 1)
+#define STM32_SRC_HSE		(STM32_SRC_HSI + 1)
 /** PLL clock outputs */
-#define STM32_SRC_PLL_P    (STM32_SRC_HSE + 1)
-#define STM32_SRC_PLL_Q    (STM32_SRC_PLL_P + 1)
-#define STM32_SRC_PLL_R    (STM32_SRC_PLL_Q + 1)
+#define STM32_SRC_PLL_P		(STM32_SRC_HSE + 1)
+#define STM32_SRC_PLL_Q		(STM32_SRC_PLL_P + 1)
+#define STM32_SRC_PLL_R		(STM32_SRC_PLL_Q + 1)
 /** I2S sources */
-#define STM32_SRC_PLLI2S_R (STM32_SRC_PLL_R + 1)
+#define STM32_SRC_PLLI2S_Q	(STM32_SRC_PLL_R + 1)
+#define STM32_SRC_PLLI2S_R	(STM32_SRC_PLLI2S_Q + 1)
+/* CLK48MHz sources */
+#define STM32_SRC_CK48		(STM32_SRC_PLLI2S_R + 1)
+
 /* I2S_CKIN not supported yet */
 /* #define STM32_SRC_I2S_CKIN	TBD */
 
@@ -81,5 +85,12 @@
 #define MCO2_PRE(val) STM32_MCO_CFGR(val, 0x7, 27, CFGR_REG)
 /** BDCR devices */
 #define RTC_SEL(val)  STM32_DOMAIN_CLOCK(val, 3, 8, BDCR_REG)
+
+/* MCO prescaler : division factor */
+#define MCO_PRE_DIV_1 0
+#define MCO_PRE_DIV_2 4
+#define MCO_PRE_DIV_3 5
+#define MCO_PRE_DIV_4 6
+#define MCO_PRE_DIV_5 7
 
 #endif /* ZEPHYR_INCLUDE_DT_BINDINGS_CLOCK_STM32F4_CLOCK_H_ */

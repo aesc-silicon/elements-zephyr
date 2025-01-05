@@ -398,7 +398,12 @@ class OpenOcdBinaryRunner(ZephyrBinaryRunner):
         if command in ('attach', 'debug'):
             self.logger.warn("BUG: OpenOCD does not work with F4PGA synthesized designs.\n" \
                              "Use the vendor toolchain if debugging is required.")
-            self.run_server_and_client(server_cmd, gdb_cmd)
+            server_proc = self.popen_ignore_int(server_cmd, stderr=subprocess.DEVNULL)
+            try:
+                self.run_client(gdb_cmd)
+            finally:
+                server_proc.terminate()
+                server_proc.wait()
         elif command == 'rtt':
             self.print_rttserver_message()
             server_proc = self.popen_ignore_int(server_cmd)
@@ -410,7 +415,6 @@ class OpenOcdBinaryRunner(ZephyrBinaryRunner):
             finally:
                 server_proc.terminate()
                 server_proc.wait()
->>>>>>> upstream/main
 
     def do_debugserver(self, **kwargs):
         pre_init_cmd = []

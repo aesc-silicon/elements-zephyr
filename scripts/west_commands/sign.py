@@ -12,6 +12,8 @@ import shutil
 import subprocess
 import sys
 
+from elftools.elf.elffile import ELFFile
+
 from west import manifest
 from west.commands import Verbosity
 from west.util import quote_sh_list
@@ -442,9 +444,13 @@ class RimageSigner(Signer):
         preproc_cmd += ['-I', str(self.sof_src_dir / 'src')]
         preproc_cmd += ['-imacros',
                         str(pathlib.Path('zephyr') / 'include' / 'generated' / 'zephyr' / 'autoconf.h')]
+        # Need to preprocess the TOML file twice: once with
+        # LLEXT_FORCE_ALL_MODULAR defined and once without it
+        full_preproc_cmd = preproc_cmd + ['-o', str(subdir / 'rimage_config_full.toml'), '-DLLEXT_FORCE_ALL_MODULAR']
         preproc_cmd += ['-o', str(subdir / 'rimage_config.toml')]
         self.command.inf(quote_sh_list(preproc_cmd))
         subprocess.run(preproc_cmd, check=True, cwd=self.build_dir)
+        subprocess.run(full_preproc_cmd, check=True, cwd=self.build_dir)
 
     def sign(self, command, build_dir, build_conf, formats):
         self.command = command
@@ -469,19 +475,26 @@ class RimageSigner(Signer):
 
         kernel_name = build_conf.get('CONFIG_KERNEL_BIN_NAME', 'zephyr')
 
-        # TODO: make this a new sign.py --bootloader option.
-        if target in ('imx8', 'imx8m', 'imx8ulp', 'imx95', 'rmb'):
-            bootloader = None
-            kernel = str(b / 'zephyr' / f'{kernel_name}.elf')
-            out_bin = str(b / 'zephyr' / f'{kernel_name}.ri')
-            out_xman = str(b / 'zephyr' / f'{kernel_name}.ri.xman')
-            out_tmp = str(b / 'zephyr' / f'{kernel_name}.rix')
-        else:
+        bootloader = None
+        cold = None
+        kernel = str(b / 'zephyr' / f'{kernel_name}.elf')
+        out_bin = str(b / 'zephyr' / f'{kernel_name}.ri')
+        out_xman = str(b / 'zephyr' / f'{kernel_name}.ri.xman')
+        out_tmp = str(b / 'zephyr' / f'{kernel_name}.rix')
+
+        # Intel platforms generate a "boot.mod" and "main.mod" as
+        # separate intermediates to use.  Other platforms just use
+        # zephyr.elf directly.
+        if os.path.exists(str(b / 'zephyr' / 'boot.mod')):
             bootloader = str(b / 'zephyr' / 'boot.mod')
+        if os.path.exists(str(b / 'zephyr' / 'cold.mod')):
+            cold = str(b / 'zephyr' / 'cold.mod')
+            with open(cold, 'rb') as f_cold:
+                elf = ELFFile(f_cold)
+                if elf.get_section_by_name('.cold') is None:
+                    cold = None
+        if os.path.exists(str(b / 'zephyr' / 'main.mod')):
             kernel = str(b / 'zephyr' / 'main.mod')
-            out_bin = str(b / 'zephyr' / f'{kernel_name}.ri')
-            out_xman = str(b / 'zephyr' / f'{kernel_name}.ri.xman')
-            out_tmp = str(b / 'zephyr' / f'{kernel_name}.rix')
 
         # Clean any stale output. This is especially important when using --if-tool-available
         # (but not just)
@@ -552,7 +565,10 @@ class RimageSigner(Signer):
         if not args.quiet and args.verbose:
             sign_base += ['-v'] * args.verbose
 
+        # Order is important
         components = [ ] if bootloader is None else [ bootloader ]
+        if cold is not None:
+            components += [ cold ]
         components += [ kernel ]
 
         sign_config_extra_args = command.config_get_words('rimage.extra-args', [])

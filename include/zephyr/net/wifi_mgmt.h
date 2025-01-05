@@ -75,6 +75,8 @@ enum net_request_wifi_cmd {
 	NET_REQUEST_WIFI_CMD_AP_ENABLE,
 	/** Disable AP mode */
 	NET_REQUEST_WIFI_CMD_AP_DISABLE,
+	/** Set AP RTS threshold */
+	NET_REQUEST_WIFI_CMD_AP_RTS_THRESHOLD,
 	/** Get interface status */
 	NET_REQUEST_WIFI_CMD_IFACE_STATUS,
 	/** Set or get 11k status */
@@ -85,6 +87,8 @@ enum net_request_wifi_cmd {
 	NET_REQUEST_WIFI_CMD_PS,
 	/** Setup or teardown TWT flow */
 	NET_REQUEST_WIFI_CMD_TWT,
+	/** Setup BTWT flow */
+	NET_REQUEST_WIFI_CMD_BTWT,
 	/** Get power save config */
 	NET_REQUEST_WIFI_CMD_PS_CONFIG,
 	/** Set or get regulatory domain */
@@ -166,6 +170,12 @@ NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_AP_ENABLE);
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_AP_DISABLE);
 
+/** Request a Wi-Fi RTS threshold */
+#define NET_REQUEST_WIFI_AP_RTS_THRESHOLD				\
+	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_AP_RTS_THRESHOLD)
+
+NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_AP_RTS_THRESHOLD);
+
 /** Request a Wi-Fi network interface status */
 #define NET_REQUEST_WIFI_IFACE_STATUS				\
 	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_IFACE_STATUS)
@@ -193,6 +203,11 @@ NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_PS);
 	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_TWT)
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_TWT);
+
+#define NET_REQUEST_WIFI_BTWT			\
+	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_BTWT)
+
+NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_BTWT);
 
 /** Request a Wi-Fi power save configuration */
 #define NET_REQUEST_WIFI_PS_CONFIG				\
@@ -540,6 +555,8 @@ struct wifi_connect_req_params {
 	uint8_t key2_passwd_length;
 	/** suiteb or suiteb-192 */
 	uint8_t suiteb_type;
+	/** TLS cipher */
+	uint8_t TLS_cipher;
 	/** eap version */
 	int eap_ver;
 	/** Identity for EAP */
@@ -566,6 +583,8 @@ struct wifi_connect_req_params {
 	 * 2: clear SSID, but keep the original length and ignore probe request for broadcast SSID
 	 */
 	uint8_t ignore_broadcast_ssid;
+	/** Parameter used for frequency band */
+	enum wifi_frequency_bandwidths bandwidth;
 };
 
 /** @brief Wi-Fi connect result codes. To be overlaid on top of \ref wifi_status
@@ -677,7 +696,7 @@ struct wifi_iface_status {
 	unsigned short beacon_interval;
 	/** is TWT capable? */
 	bool twt_capable;
-	/** The current 802.11 PHY TX data rate (in Kbps) */
+	/** The current 802.11 PHY TX data rate (in Mbps) */
 	int current_phy_tx_rate;
 };
 
@@ -745,7 +764,30 @@ struct wifi_twt_params {
 			 * prepare the data before TWT SP starts.
 			 */
 			uint32_t twt_wake_ahead_duration;
+			/** TWT info enabled or disable */
+			bool twt_info_disable;
+			/** TWT exponent */
+			uint8_t twt_exponent;
+			/** TWT Mantissa Range: [0-sizeof(UINT16)] */
+			uint16_t twt_mantissa;
 		} setup;
+		/** Setup specific parameters */
+		struct {
+			/** Broadcast TWT AP config */
+			uint16_t sub_id;
+			/** Range 64-255 */
+			uint8_t nominal_wake;
+			/** Max STA support */
+			uint8_t max_sta_support;
+			/** TWT mantissa */
+			uint16_t twt_mantissa;
+			/** TWT offset */
+			uint16_t twt_offset;
+			/** TWT exponent */
+			uint8_t twt_exponent;
+			/** SP gap */
+			uint8_t sp_gap;
+		} btwt;
 		/** Teardown specific parameters */
 		struct {
 			/** Teardown all flows */
@@ -764,6 +806,7 @@ struct wifi_twt_params {
 /* 256 (u8) * 1TU */
 #define WIFI_MAX_TWT_WAKE_INTERVAL_US 262144
 #define WIFI_MAX_TWT_WAKE_AHEAD_DURATION_US (LONG_MAX - 1)
+#define WIFI_MAX_TWT_EXPONENT 31
 
 /** @endcond */
 
@@ -976,6 +1019,7 @@ struct wifi_channel_info {
 
 /** @cond INTERNAL_HIDDEN */
 #define WIFI_AP_STA_MAX_INACTIVITY (LONG_MAX - 1)
+#define WIFI_AP_IEEE_80211_CAPAB_MAX_LEN 64
 /** @endcond */
 
 /** @brief Wi-Fi AP configuration parameter */
@@ -986,6 +1030,14 @@ struct wifi_ap_config_params {
 	uint32_t max_inactivity;
 	/** Parameter used for setting maximum number of stations */
 	uint32_t max_num_sta;
+	/** Parameter used for frequency band */
+	enum wifi_frequency_bandwidths bandwidth;
+#if defined(CONFIG_WIFI_NM_HOSTAPD_AP)
+	/** Parameter used for setting HT capabilities */
+	char ht_capab[WIFI_AP_IEEE_80211_CAPAB_MAX_LEN + 1];
+	/** Parameter used for setting VHT capabilities */
+	char vht_capab[WIFI_AP_IEEE_80211_CAPAB_MAX_LEN + 1];
+#endif
 };
 
 #ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT_DPP
@@ -1206,14 +1258,24 @@ struct wifi_wps_config_params {
 
 /** Wi-Fi AP status
  */
-enum wifi_hostapd_iface_state {
-	WIFI_HAPD_IFACE_UNINITIALIZED,
-	WIFI_HAPD_IFACE_DISABLED,
-	WIFI_HAPD_IFACE_COUNTRY_UPDATE,
-	WIFI_HAPD_IFACE_ACS,
-	WIFI_HAPD_IFACE_HT_SCAN,
-	WIFI_HAPD_IFACE_DFS,
-	WIFI_HAPD_IFACE_ENABLED
+enum wifi_sap_iface_state {
+	WIFI_SAP_IFACE_UNINITIALIZED,
+	WIFI_SAP_IFACE_DISABLED,
+	WIFI_SAP_IFACE_COUNTRY_UPDATE,
+	WIFI_SAP_IFACE_ACS,
+	WIFI_SAP_IFACE_HT_SCAN,
+	WIFI_SAP_IFACE_DFS,
+	WIFI_SAP_IFACE_NO_IR,
+	WIFI_SAP_IFACE_ENABLED
+};
+
+/* Extended Capabilities */
+enum wifi_ext_capab {
+	WIFI_EXT_CAPAB_20_40_COEX = 0,
+	WIFI_EXT_CAPAB_GLK = 1,
+	WIFI_EXT_CAPAB_EXT_CHAN_SWITCH = 2,
+	WIFI_EXT_CAPAB_TIM_BROADCAST = 18,
+	WIFI_EXT_CAPAB_BSS_TRANSITION = 19,
 };
 
 #include <zephyr/net/net_if.h>
@@ -1351,6 +1413,14 @@ struct wifi_mgmt_ops {
 	 * @return 0 if ok, < 0 if error
 	 */
 	int (*set_twt)(const struct device *dev, struct wifi_twt_params *params);
+	/** Setup BTWT flow
+	 *
+	 * @param dev Pointer to the device structure for the driver instance.
+	 * @param params BTWT parameters
+	 *
+	 * @return 0 if ok, < 0 if error
+	 */
+	int (*set_btwt)(const struct device *dev, struct wifi_twt_params *params);
 	/** Get power save config
 	 *
 	 * @param dev Pointer to the device structure for the driver instance.
@@ -1401,6 +1471,23 @@ struct wifi_mgmt_ops {
 	 */
 	int (*btm_query)(const struct device *dev, uint8_t reason);
 #endif
+	/** Judge ap whether support the capability
+	 *
+	 * @param dev Pointer to the device structure for the driver instance.
+	 * @param capab is the capability to judge
+	 *
+	 * @return 1 if support, 0 if not support
+	 */
+	int (*bss_ext_capab)(const struct device *dev, int capab);
+
+	/** Send legacy scan
+	 *
+	 * @param dev Pointer to the device structure for the driver instance.
+	 *
+	 * @return 0 if ok, < 0 if error
+	 */
+	int (*legacy_roam)(const struct device *dev);
+
 	/** Get Version of WiFi driver and Firmware
 	 *
 	 * The driver that implements the get_version function must not use stack to allocate the

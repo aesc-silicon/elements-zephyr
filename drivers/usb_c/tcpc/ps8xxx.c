@@ -263,7 +263,7 @@ int ps8xxx_tcpc_get_rx_pending_msg(const struct device *dev, struct pd_msg *msg)
 	buf[1].len = 1;
 	buf[1].flags = I2C_MSG_RESTART | I2C_MSG_READ;
 
-	buf[2].buf = &msg->type;
+	buf[2].buf = (uint8_t *)&msg->type;
 	buf[2].len = 1;
 	buf[2].flags = I2C_MSG_RESTART | I2C_MSG_READ;
 
@@ -423,7 +423,7 @@ void ps8xxx_tcpc_alert_handler_cb(const struct device *dev, void *data, enum tcp
 }
 
 int ps8xxx_tcpc_get_status_register(const struct device *dev, enum tcpc_status_reg reg,
-				    int32_t *status)
+				    uint32_t *status)
 {
 	return -ENOSYS;
 }

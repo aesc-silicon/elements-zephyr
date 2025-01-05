@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # vim: set syntax=python ts=4 :
 #
-# Copyright (c) 2018 Intel Corporation
+# Copyright (c) 2018-2024 Intel Corporation
 # Copyright (c) 2024 Arm Limited (or its affiliates). All rights reserved.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -195,7 +195,7 @@ class TestPlan:
         self.add_configurations()
         num = self.add_testsuites(testsuite_filter=self.run_individual_testsuite)
         if num == 0:
-            raise TwisterRuntimeError("No test cases found at the specified location...")
+            raise TwisterRuntimeError("No testsuites found at the specified location...")
         if self.load_errors:
             raise TwisterRuntimeError(
                 f"Found {self.load_errors} errors loading {num} test configurations."
@@ -346,9 +346,13 @@ class TestPlan:
 
     def report(self):
         if self.options.test_tree:
+            if not self.options.detailed_test_id:
+                logger.info("Test tree is always shown with detailed test-id.")
             self.report_test_tree()
             return 0
         elif self.options.list_tests:
+            if not self.options.detailed_test_id:
+                logger.info("Test list is always shown with detailed test-id.")
             self.report_test_list()
             return 0
         elif self.options.list_tags:
@@ -551,18 +555,18 @@ class TestPlan:
             for _, ts in self.testsuites.items():
                 if ts.tags.intersection(tag_filter):
                     for case in ts.testcases:
-                        testcases.append(case.name)
+                        testcases.append(case.detailed_name)
         else:
             for _, ts in self.testsuites.items():
                 for case in ts.testcases:
-                    testcases.append(case.name)
+                    testcases.append(case.detailed_name)
 
         if exclude_tag := self.options.exclude_tag:
             for _, ts in self.testsuites.items():
                 if ts.tags.intersection(exclude_tag):
                     for case in ts.testcases:
-                        if case.name in testcases:
-                            testcases.remove(case.name)
+                        if case.detailed_name in testcases:
+                            testcases.remove(case.detailed_name)
         return testcases
 
     def add_testsuites(self, testsuite_filter=None):
@@ -571,7 +575,7 @@ class TestPlan:
         for root in self.env.test_roots:
             root = os.path.abspath(root)
 
-            logger.debug(f"Reading test case configuration files under {root}...")
+            logger.debug(f"Reading testsuite configuration files under {root}...")
 
             for dirpath, _, filenames in os.walk(root, topdown=True):
                 if self.SAMPLE_FILENAME in filenames:
@@ -614,27 +618,15 @@ class TestPlan:
                         )
 
                         # convert to fully qualified names
-                        _integration = []
-                        _platform_allow = []
-                        _platform_exclude = []
-                        for _ip in suite.integration_platforms:
-                            if _ip in self.platform_names:
-                                _integration.append(self.get_platform(_ip).name)
-                            else:
-                                logger.error(f"Platform {_ip} not found in the list of platforms")
-                        suite.integration_platforms = _integration
-                        for _pe in suite.platform_exclude:
-                            if _pe in self.platform_names:
-                                _platform_exclude.append(self.get_platform(_pe).name)
-                            else:
-                                logger.error(f"Platform {_pe} not found in the list of platforms")
-                        suite.platform_exclude = _platform_exclude
-                        for _pa in suite.platform_allow:
-                            if _pa in self.platform_names:
-                                _platform_allow.append(self.get_platform(_pa).name)
-                            else:
-                                logger.error(f"Platform {_pa} not found in the list of platforms")
-                        suite.platform_allow = _platform_allow
+                        suite.integration_platforms = self.verify_platforms_existence(
+                                suite.integration_platforms,
+                                f"integration_platforms in {suite.name}")
+                        suite.platform_exclude = self.verify_platforms_existence(
+                                suite.platform_exclude,
+                                f"platform_exclude in {suite.name}")
+                        suite.platform_allow =  self.verify_platforms_existence(
+                                suite.platform_allow,
+                                f"platform_allow in {suite.name}")
 
                         if suite.harness in ['ztest', 'test']:
                             if subcases is None:
@@ -812,14 +804,14 @@ class TestPlan:
         emulation_platforms = False
 
         if all_filter:
-            logger.info("Selecting all possible platforms per test case")
+            logger.info("Selecting all possible platforms per testsuite scenario")
             # When --all used, any --platform arguments ignored
             platform_filter = []
         elif not platform_filter and not emu_filter and not vendor_filter:
-            logger.info("Selecting default platforms per test case")
+            logger.info("Selecting default platforms per testsuite scenario")
             default_platforms = True
         elif emu_filter:
-            logger.info("Selecting emulation platforms per test case")
+            logger.info("Selecting emulation platforms per testsuite scenraio")
             emulation_platforms = True
         elif vendor_filter:
             vendor_platforms = True
@@ -828,12 +820,7 @@ class TestPlan:
         if platform_filter:
             logger.debug(f"Checking platform filter: {platform_filter}")
             # find in aliases and rename
-            self.verify_platforms_existence(platform_filter, "platform_filter")
-            for pf in platform_filter:
-                logger.debug(f"Checking platform in filter: {pf}")
-                if pf in self.platform_names:
-                    _platforms.append(self.get_platform(pf).name)
-            platform_filter = _platforms
+            platform_filter = self.verify_platforms_existence(platform_filter, "platform_filter")
             platforms = list(filter(lambda p: p.name in platform_filter, self.platforms))
         elif emu_filter:
             platforms = list(
@@ -862,7 +849,7 @@ class TestPlan:
 
         keyed_tests = {}
 
-        for ts_name, ts in self.testsuites.items():
+        for _, ts in self.testsuites.items():
             if (
                 ts.build_on_all
                 and not platform_filter
@@ -874,14 +861,10 @@ class TestPlan:
                     filter(lambda item: item.name in ts.integration_platforms, self.platforms)
                 )
                 if self.options.integration:
-                    self.verify_platforms_existence(
-                        ts.integration_platforms, f"{ts_name} - integration_platforms")
                     platform_scope = integration_platforms
                 else:
                     # if not in integration mode, still add integration platforms to the list
                     if not platform_filter:
-                        self.verify_platforms_existence(
-                            ts.integration_platforms, f"{ts_name} - integration_platforms")
                         platform_scope = platforms + integration_platforms
                     else:
                         platform_scope = platforms
@@ -898,7 +881,6 @@ class TestPlan:
                 and not integration
                 and platform_config.get('increased_platform_scope', True)
             ):
-                self.verify_platforms_existence(ts.platform_allow, f"{ts_name} - platform_allow")
                 a = set(platform_scope)
                 b = set(filter(lambda item: item.name in ts.platform_allow, self.platforms))
                 c = a.intersection(b)
@@ -976,31 +958,25 @@ class TestPlan:
                 if not force_platform:
 
                     if ts.arch_allow and plat.arch not in ts.arch_allow:
-                        instance.add_filter("Not in test case arch allow list", Filters.TESTSUITE)
+                        instance.add_filter("Not in testsuite arch allow list", Filters.TESTSUITE)
 
                     if ts.arch_exclude and plat.arch in ts.arch_exclude:
-                        instance.add_filter("In test case arch exclude", Filters.TESTSUITE)
+                        instance.add_filter("In testsuite arch exclude", Filters.TESTSUITE)
 
                     if ts.vendor_allow and plat.vendor not in ts.vendor_allow:
                         instance.add_filter(
-                            "Not in test suite vendor allow list",
+                            "Not in testsuite vendor allow list",
                             Filters.TESTSUITE
                         )
 
                     if ts.vendor_exclude and plat.vendor in ts.vendor_exclude:
-                        instance.add_filter("In test suite vendor exclude", Filters.TESTSUITE)
+                        instance.add_filter("In testsuite vendor exclude", Filters.TESTSUITE)
 
                     if ts.platform_exclude and plat.name in ts.platform_exclude:
-                        # works only when we have all platforms parsed, -p limits parsing...
-                        if not platform_filter:
-                            self.verify_platforms_existence(
-                                ts.platform_exclude,
-                                f"{ts_name} - platform_exclude"
-                            )
-                        instance.add_filter("In test case platform exclude", Filters.TESTSUITE)
+                        instance.add_filter("In testsuite platform exclude", Filters.TESTSUITE)
 
                 if ts.toolchain_exclude and toolchain in ts.toolchain_exclude:
-                    instance.add_filter("In test case toolchain exclude", Filters.TOOLCHAIN)
+                    instance.add_filter("In testsuite toolchain exclude", Filters.TOOLCHAIN)
 
                 if platform_filter and plat.name not in platform_filter:
                     instance.add_filter("Command line platform filter", Filters.CMD_LINE)
@@ -1026,7 +1002,10 @@ class TestPlan:
                         and toolchain and (toolchain not in plat.supported_toolchains) \
                         and "host" not in plat.supported_toolchains \
                         and ts.type != 'unit':
-                    instance.add_filter("Not supported by the toolchain", Filters.PLATFORM)
+                    instance.add_filter(
+                        f"Not supported by the toolchain: {toolchain}",
+                        Filters.PLATFORM
+                    )
 
                 if plat.ram < ts.min_ram:
                     instance.add_filter("Not enough RAM", Filters.PLATFORM)
@@ -1261,12 +1240,16 @@ class TestPlan:
         as platform_allow or integration_platforms options) is correct. If not -
         log and raise error.
         """
+        _platforms = []
         for platform in platform_names_to_verify:
             if platform in self.platform_names:
-                continue
+                p = self.get_platform(platform)
+                if p:
+                    _platforms.append(p.name)
             else:
                 logger.error(f"{log_info} - unrecognized platform - {platform}")
                 sys.exit(2)
+        return _platforms
 
     def create_build_dir_links(self):
         """

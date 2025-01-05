@@ -1254,6 +1254,11 @@ void bt_conn_set_state(struct bt_conn *conn, bt_conn_state_t state)
 		 */
 		switch (old_state) {
 		case BT_CONN_DISCONNECT_COMPLETE:
+			/* Any previously scheduled deferred work now becomes invalid
+			 * so cancel it here, before we yield to tx thread.
+			 */
+			k_work_cancel_delayable(&conn->deferred_work);
+
 			bt_conn_tx_notify(conn, true);
 
 			bt_conn_reset_rx_state(conn);
@@ -1716,15 +1721,12 @@ static bool can_initiate_feature_exchange(struct bt_conn *conn)
 	 * controller, as we know at compile time whether it supports or not
 	 * peripheral feature exchange.
 	 */
-	bool onboard_controller = IS_ENABLED(CONFIG_HAS_BT_CTLR);
-	bool supports_peripheral_feature_exchange = IS_ENABLED(CONFIG_BT_CTLR_PER_INIT_FEAT_XCHG);
-	bool is_central = IS_ENABLED(CONFIG_BT_CENTRAL) && conn->role == BT_HCI_ROLE_CENTRAL;
 
-	if (is_central) {
+	if (IS_ENABLED(CONFIG_BT_CENTRAL) && (conn->role == BT_HCI_ROLE_CENTRAL)) {
 		return true;
 	}
 
-	if (onboard_controller && supports_peripheral_feature_exchange) {
+	if (IS_ENABLED(CONFIG_HAS_BT_CTLR) && IS_ENABLED(CONFIG_BT_CTLR_PER_INIT_FEAT_XCHG)) {
 		return true;
 	}
 

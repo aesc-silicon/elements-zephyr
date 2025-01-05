@@ -65,6 +65,8 @@ The FRDM-MCXN236 board configuration supports the following hardware features:
 +-----------+------------+-------------------------------------+
 | ADC       | on-chip    | adc                                 |
 +-----------+------------+-------------------------------------+
+| USBHS     | on-chip    | USB device                          |
++-----------+------------+-------------------------------------+
 | LPCMP     | on-chip    | sensor(comparator)                  |
 +-----------+------------+-------------------------------------+
 | FLEXCAN   | on-chip    | CAN                                 |
@@ -77,6 +79,8 @@ The FRDM-MCXN236 board configuration supports the following hardware features:
 | LPTMR     | on-chip    | counter                             |
 +-----------+------------+-------------------------------------+
 | MRT       | on-chip    | counter                             |
++-----------+------------+-------------------------------------+
+| RTC       | on-chip    | rtc                                 |
 +-----------+------------+-------------------------------------+
 
 Targets available

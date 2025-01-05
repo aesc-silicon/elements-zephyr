@@ -175,6 +175,12 @@ endif()
 # @Intent: Set compiler flags to detect general stack overflows across all functions
 if(CONFIG_STACK_CANARIES)
   zephyr_compile_options($<TARGET_PROPERTY:compiler,security_canaries>)
+elseif(CONFIG_STACK_CANARIES_STRONG)
+  zephyr_compile_options($<TARGET_PROPERTY:compiler,security_canaries_strong>)
+elseif(CONFIG_STACK_CANARIES_ALL)
+  zephyr_compile_options($<TARGET_PROPERTY:compiler,security_canaries_all>)
+elseif(CONFIG_STACK_CANARIES_EXPLICIT)
+  zephyr_compile_options($<TARGET_PROPERTY:compiler,security_canaries_explicit>)
 endif()
 
 # @Intent: Obtain compiler optimizations flags and store in variables
@@ -842,7 +848,12 @@ if(CONFIG_LEGACY_GENERATED_INCLUDE_PATH)
     ${CMAKE_CURRENT_BINARY_DIR}/include/generated/syscall_list.h)
 endif()
 
-add_custom_command(OUTPUT include/generated/zephyr/syscall_dispatch.c ${syscall_list_h}
+add_custom_command(
+  OUTPUT
+  include/generated/zephyr/syscall_dispatch.c
+  include/generated/zephyr/syscall_exports_llext.c
+  syscall_weakdefs_llext.c
+  ${syscall_list_h}
   # Also, some files are written to include/generated/zephyr/syscalls/
   COMMAND
   ${PYTHON_EXECUTABLE}
@@ -850,7 +861,8 @@ add_custom_command(OUTPUT include/generated/zephyr/syscall_dispatch.c ${syscall_
   --json-file        ${syscalls_json}                     # Read this file
   --base-output      include/generated/zephyr/syscalls    # Write to this dir
   --syscall-dispatch include/generated/zephyr/syscall_dispatch.c # Write this file
-  --syscall-export-llext  include/generated/zephyr/syscall_export_llext.c
+  --syscall-exports-llext  include/generated/zephyr/syscall_exports_llext.c
+  --syscall-weakdefs-llext syscall_weakdefs_llext.c # compiled in CMake library 'syscall_weakdefs'
   --syscall-list     ${syscall_list_h}
   $<$<BOOL:${CONFIG_USERSPACE}>:--gen-mrsh-files>
   ${SYSCALL_LONG_REGISTERS_ARG}
@@ -1007,6 +1019,16 @@ if(CONFIG_KERNEL_WHOLE_ARCHIVE)
 else()
   set(WHOLE_ARCHIVE_LIBS ${ZEPHYR_LIBS_PROPERTY})
   set(NO_WHOLE_ARCHIVE_LIBS kernel)
+endif()
+
+if(CONFIG_LLEXT)
+  # LLEXT exports symbols for all syscalls, including unimplemented ones.
+  # Weak definitions for these must be added at the end of the link order
+  # to avoid shadowing actual implementations.
+  add_library(syscall_weakdefs syscall_weakdefs_llext.c)
+  add_dependencies(syscall_weakdefs zephyr_generated_headers)
+  target_link_libraries(syscall_weakdefs zephyr_interface)
+  list(APPEND NO_WHOLE_ARCHIVE_LIBS syscall_weakdefs)
 endif()
 
 get_property(OUTPUT_FORMAT        GLOBAL PROPERTY PROPERTY_OUTPUT_FORMAT)

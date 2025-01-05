@@ -17,7 +17,7 @@
 #include <zephyr/drivers/clock_control.h>
 #include <zephyr/sys/util.h>
 #include <zephyr/drivers/clock_control/stm32_clock_control.h>
-#include "clock_stm32_ll_mco.h"
+
 
 /* Macros to fill up prescaler values */
 #define z_ahb_prescaler(v) LL_RCC_SYSCLK_DIV_ ## v
@@ -355,6 +355,10 @@ static int stm32_clock_control_get_subsys_rate(const struct device *dev,
 #endif /* STM32_PLL3_ENABLED */
 	default:
 		return -ENOTSUP;
+	}
+
+	if (pclken->div) {
+		*rate /= (pclken->div + 1);
 	}
 
 	return 0;
@@ -903,9 +907,6 @@ int stm32_clock_control_init(const struct device *dev)
 
 	/* Update CMSIS variable */
 	SystemCoreClock = CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC;
-
-	/* configure MCO1/MCO2 based on Kconfig */
-	stm32_clock_control_mco_init();
 
 	return 0;
 }

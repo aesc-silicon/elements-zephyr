@@ -19,6 +19,7 @@
 
 	chosen {
 		zephyr,bt-hci = &hci;
+		zephyr,nbu = &nbu;
 	};
 
 	cpus {
@@ -39,11 +40,21 @@
 	};
 
 	soc {
-		flash: flash@10000000 {
-			reg = <0x10000000 DT_SIZE_M(1)>;
-			compatible = "soc-nv-flash";
-			write-block-size = <16>;
-			erase-block-size = <8192>;
+		fmu: memory-controller@50020000 {
+			ranges = <0x0 0x10000000 DT_SIZE_M(1)>;
+			#address-cells = <1>;
+			#size-cells = <1>;
+			compatible = "nxp,msf1";
+			reg = <0x50020000 0x1000>;
+			interrupts = <27 0>;
+			status = "disabled";
+
+			flash: flash@0 {
+				reg = <0x0 DT_SIZE_M(1)>;
+				compatible = "soc-nv-flash";
+				write-block-size = <16>;
+				erase-block-size = <8192>;
+			};
 		};
 
 		ctcm: sram@14000000 {
@@ -89,16 +100,6 @@
 				reg = <0x0 0x4b000>;
 				#address-cells = <1>;
 				#size-cells = <1>;
-
-				fmu: memory-controller@20000 {
-					ranges = <0x0 0x10000000 DT_SIZE_M(1)>;
-					#address-cells = <1>;
-					#size-cells = <1>;
-					compatible = "nxp,msf1";
-					reg = <0x20000 0x1000>;
-					interrupts = <27 0>;
-					status = "disabled";
-				};
 			};
 
 			fast_peripheral0: fast_peripherals0@8000000 {
@@ -171,7 +172,7 @@
 	};
 
 	lpuart0: serial@38000 {
-		compatible = "nxp,kinetis-lpuart";
+		compatible = "nxp,lpuart";
 		reg = <0x38000 0x34>;
 		interrupts = <44 0>;
 		clocks = <&scg SCG_K4_FIRC_CLK 0xe0>;
@@ -179,7 +180,7 @@
 	};
 
 	lpuart1: serial@39000 {
-		compatible = "nxp,kinetis-lpuart";
+		compatible = "nxp,lpuart";
 		reg = <0x39000 0x34>;
 		interrupts = <45 0>;
 		clocks = <&scg SCG_K4_FIRC_CLK 0xe4>;
@@ -305,10 +306,14 @@
 		status = "disabled";
 	};
 
+	nbu: nbu {
+		compatible = "nxp,nbu";
+		interrupts = <48 2>;
+		interrupt-names = "nbu_rx_int";
+	};
+
 	hci: hci_ble {
 		compatible = "nxp,hci-ble";
-		interrupts = <48 2>;
-		interrupt-names = "hci_int";
 	};
 
 	flexcan0: can@3b000 {

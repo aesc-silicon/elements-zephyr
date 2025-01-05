@@ -18,11 +18,56 @@ the :ref:`release notes<zephyr_4.1>`.
 Build System
 ************
 
+BOSSA Runner
+============
+
+The ``bossac`` runner has been changed to no longer do a full erase by default when flashing. To
+perform a full erase, pass the ``--erase`` option when executing ``west flash``.
+
 Kernel
 ******
 
+Security
+********
+
+* New options for stack canaries have been added, providing users with finer control over stack
+  protection. With this change, :kconfig:option:`CONFIG_STACK_CANARIES` no longer enables the
+  compiler option ``-fstack-protector-all``. Users who wish to use this option must now enable
+  :kconfig:option:`CONFIG_STACK_CANARIES_ALL`.
+
 Boards
 ******
+
+* Shield ``mikroe_weather_click`` now supports both I2C and SPI interfaces. Users should select
+  the required configuration by using ``mikroe_weather_click_i2c`` or ``mikroe_weather_click_spi``
+  instead of ``mikroe_weather_click``.
+
+Devicetree
+**********
+
+* The :dtcompatible:`microchip,cap1203` driver has changed its compatible to
+  :dtcompatible:`microchip,cap12xx` and has been updated to support multiple
+  channels.
+  The number of available channels is derived from the length of the devicetree
+  array property ``input-codes``.
+  The :kconfig:option:`CONFIG_INPUT_CAP1203_POLL` has been removed:
+  If the devicetree property ``int-gpios`` is present, interrupt mode is used
+  otherwise, polling is used.
+  The :kconfig:option:`CONFIG_INPUT_CAP1203_PERIOD` has been replaced with
+  the devicetree property ``poll-interval-ms``.
+  In interrupt mode, the devicetree property ``repeat`` is supported.
+
+Raspberry Pi
+============
+
+* ``CONFIG_SOC_SERIES_RP2XXX`` is renamed to :kconfig:option:`CONFIG_SOC_SERIES_RP2040`.
+
+STM32
+=====
+
+* MCO clock source and prescaler are now exclusively configured by the DTS
+  as it was introduced earlier.
+  The Kconfig method for configuration is now removed.
 
 Modules
 *******
@@ -57,12 +102,13 @@ LVGL
 Device Drivers and Devicetree
 *****************************
 
-* Device driver APIs are placed into iterable sections (:github:`71773`) to allow for runtime
-  checking. See :ref:`device_driver_api` for more details.
+* Device driver APIs are placed into iterable sections (:github:`71773` and :github:`82102`) to
+  allow for runtime checking. See :ref:`device_driver_api` for more details.
   The :c:macro:`DEVICE_API()` macro should be used by out-of-tree driver implementations for
-  the following driver classes:
+  all the upstream driver classes.
 
-    * :c:struct:`adc_driver_api`
+* The :c:func:`video_buffer_alloc` and :c:func:`video_buffer_aligned_alloc` functions in the
+  video API now take an additional timeout parameter.
 
 ADC
 ===
@@ -121,11 +167,23 @@ I2C
 Input
 =====
 
+PWM
+===
+
+* Renamed the ``compatible`` from ``renesas,ra8-pwm`` to :dtcompatible:`renesas,ra-pwm`.
+
 Interrupt Controller
 ====================
 
 LED Strip
 =========
+
+MMU/MPU
+=======
+
+* Renamed the ``compatible`` from ``nxp,kinetis-mpu`` to :dtcompatible:`nxp,sysmpu` and added
+  its corresponding binding.
+* Renamed the Kconfig option ``CPU_HAS_NXP_MPU`` to :kconfig:option:`CPU_HAS_NXP_SYSMPU`.
 
 Pin Control
 ===========
@@ -157,11 +215,18 @@ Pin Control
       };
 
 
+PWM
+===
+
+* Renamed the ``compatible`` from ``nxp,kinetis-ftm-pwm`` to :dtcompatible:`nxp,ftm-pwm`.
+
 Sensors
 =======
 
 Serial
 ======
+
+* Renamed the ``compatible`` from ``nxp,kinetis-lpuart`` to :dtcompatible:`nxp,lpuart`.
 
 Stepper
 =======
@@ -169,14 +234,30 @@ Stepper
   * Renamed the ``compatible`` from ``zephyr,gpio-steppers`` to :dtcompatible:`zephyr,gpio-stepper`.
   * Renamed the ``stepper_set_actual_position`` function to :c:func:`stepper_set_reference_position`.
   * Renamed the ``stepper_enable_constant_velocity_mode`` function to :c:func:`stepper_run`.
+  * Renamed the ``stepper_move`` function to :c:func:`stepper_move_by`.
+  * Renamed the ``stepper_set_target_position`` function to :c:func:`stepper_move_to`.
+  * The :kconfig:option:`STEPPER_ADI_TMC_RAMP_GEN` is now deprecated and is replaced with the new
+    :kconfig:option:`STEPPER_ADI_TMC5041_RAMP_GEN` option.
 
 SPI
 ===
 
 * Renamed the ``compatible`` from ``nxp,imx-lpspi`` to :dtcompatible:`nxp,lpspi`.
+* Renamed the ``compatible`` from ``nxp,kinetis-dspi`` to :dtcompatible:`nxp,dspi`.
 
 Regulator
 =========
+
+RTC
+===
+
+* Renamed the ``compatible`` from ``nxp,kinetis-rtc`` to :dtcompatible:`nxp,rtc`.
+
+Timer
+=====
+
+* Renamed the ``compatible`` from ``nxp,kinetis-ftm`` to :dtcompatible:`nxp,ftm` and relocate it
+  under ``dts/bindings/timer``.
 
 Video
 =====
@@ -191,7 +272,15 @@ Video
 Watchdog
 ========
 
+Wi-Fi
+=====
+
 * Renamed the ``compatible`` from ``nxp,kinetis-wdog32`` to :dtcompatible:`nxp,wdog32`.
+
+* The config options :kconfig:option:`CONFIG_NXP_WIFI_BUILD_ONLY_MODE` and
+  :kconfig:option:`CONFIG_NRF_WIFI_BUILD_ONLY_MODE` are now unified under
+  :kconfig:option:`CONFIG_BUILD_ONLY_NO_BLOBS` making it a common entry point
+  for any vendor to enable builds without blobs.
 
 Bluetooth
 *********
@@ -275,6 +364,10 @@ Networking
   rather than directly in the :c:struct:`http_client_ctx` to correctly handle concurrent requests
   on different HTTP/2 streams.
 
+* The :kconfig:option:`CONFIG_NET_L2_OPENTHREAD` symbol no longer implies the
+  :kconfig:option:`CONFIG_NVS` Kconfig option. Platforms using OpenThread must explicitly enable
+  either the :kconfig:option:`CONFIG_NVS` or :kconfig:option:`CONFIG_ZMS` Kconfig option.
+
 Other Subsystems
 ****************
 
@@ -289,6 +382,13 @@ MCUmgr
 
 Modem
 =====
+
+LoRa
+====
+
+* The function :c:func:`lora_recv_async` and callback ``lora_recv_cb`` now include an
+  additional ``user_data`` parameter, which is a void pointer. This parameter can be used to reference
+  any user-defined data structure. To maintain the current behavior, set this parameter to ``NULL``.
 
 Architectures
 *************
