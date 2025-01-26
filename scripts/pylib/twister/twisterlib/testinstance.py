@@ -49,7 +49,7 @@ class TestInstance:
 
     __test__ = False
 
-    def __init__(self, testsuite, platform, outdir):
+    def __init__(self, testsuite, platform, toolchain, outdir):
 
         self.testsuite: TestSuite = testsuite
         self.platform: Platform = platform
@@ -63,12 +63,15 @@ class TestInstance:
         self.execution_time = 0
         self.build_time = 0
         self.retries = 0
+        self.toolchain = toolchain
 
-        self.name = os.path.join(platform.name, testsuite.name)
+        self.name = os.path.join(platform.name, toolchain, testsuite.name)
         self.dut = None
 
         if testsuite.detailed_test_id:
-            self.build_dir = os.path.join(outdir, platform.normalized_name, testsuite.name)
+            self.build_dir = os.path.join(
+                outdir, platform.normalized_name, self.toolchain, testsuite.name
+            )
         else:
             # if suite is not in zephyr,
             # keep only the part after ".." in reconstructed dir structure
@@ -76,6 +79,7 @@ class TestInstance:
             self.build_dir = os.path.join(
                 outdir,
                 platform.normalized_name,
+                self.toolchain,
                 source_dir_rel,
                 testsuite.name
             )
@@ -101,9 +105,12 @@ class TestInstance:
                 self.recording.extend(recording)
 
             filename = os.path.join(self.build_dir, fname_csv)
+            fieldnames = set()
+            for r in self.recording:
+                fieldnames.update(r)
             with open(filename, 'w') as csvfile:
                 cw = csv.DictWriter(csvfile,
-                                    fieldnames = self.recording[0].keys(),
+                                    fieldnames = sorted(list(fieldnames)),
                                     lineterminator = os.linesep,
                                     quoting = csv.QUOTE_NONNUMERIC)
                 cw.writeheader()
@@ -209,7 +216,7 @@ class TestInstance:
     def testsuite_runnable(testsuite, fixtures):
         can_run = False
         # console harness allows us to run the test and capture data.
-        if testsuite.harness in [ 'console', 'ztest', 'pytest', 'test', 'gtest', 'robot']:
+        if testsuite.harness in ['console', 'ztest', 'pytest', 'test', 'gtest', 'robot', 'ctest']:
             can_run = True
             # if we have a fixture that is also being supplied on the
             # command-line, then we need to run the test, not just build it.
@@ -252,6 +259,8 @@ class TestInstance:
             handler.ready = True
         else:
             handler = Handler(self, "", *common_args)
+            if self.testsuite.harness == "ctest":
+                handler.ready = True
 
         self.handler = handler
 
@@ -287,6 +296,7 @@ class TestInstance:
 
         target_ready = bool(self.testsuite.type == "unit" or \
                             self.platform.type == "native" or \
+                            self.testsuite.harness == "ctest" or \
                             (simulator and simulator.name in SUPPORTED_SIMS and \
                              simulator.name not in self.testsuite.simulation_exclude) or \
                             device_testing)

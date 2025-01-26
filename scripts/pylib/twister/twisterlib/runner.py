@@ -43,7 +43,7 @@ from twisterlib.environment import ZEPHYR_BASE
 sys.path.insert(0, os.path.join(ZEPHYR_BASE, "scripts/pylib/build_helpers"))
 from domains import Domains
 from twisterlib.environment import TwisterEnv
-from twisterlib.harness import HarnessImporter, Pytest
+from twisterlib.harness import Ctest, HarnessImporter, Pytest
 from twisterlib.log_helper import log_command
 from twisterlib.platform import Platform
 from twisterlib.testinstance import TestInstance
@@ -598,10 +598,13 @@ class CMake:
                     log.write(log_msg)
 
             if log_msg:
-                overflow_found = re.findall(
-                    "region `(FLASH|ROM|RAM|ICCM|DCCM|SRAM|dram\\d_\\d_seg)' overflowed by",
-                    log_msg
+                pattern = (
+                    r"region `(FLASH|ROM|RAM|ICCM|DCCM|SRAM|"
+                    r"dram\d_\d_seg|iram\d_\d_seg)' "
+                    "overflowed by"
                 )
+                overflow_found = re.findall(pattern, log_msg)
+
                 imgtool_overflow_found = re.findall(
                     r"Error: Image size \(.*\) \+ trailer \(.*\) exceeds requested size",
                     log_msg
@@ -657,6 +660,9 @@ class CMake:
                 '-DCONFIG_ASSERT=y',
                 '-DCONFIG_COVERAGE=y'
             ])
+
+        if self.instance.toolchain:
+            cmake_args.append(f'-DZEPHYR_TOOLCHAIN_VARIANT={self.instance.toolchain}')
 
         # If needed, run CMake using the package_helper script first, to only run
         # a subset of all cmake modules. This output will be used to filter
@@ -830,7 +836,13 @@ class FilterBuilder(CMake):
             and self.env.options.west_flash is None
         ):
             logger.warning("Sysbuild test will be skipped. West must be used for flashing.")
-            return {os.path.join(self.platform.name, self.testsuite.name): True}
+            return {
+                os.path.join(
+                    self.platform.name,
+                    self.instance.toolchain,
+                    self.testsuite.name
+                ): True
+            }
 
         if self.testsuite and self.testsuite.filter:
             try:
@@ -846,9 +858,21 @@ class FilterBuilder(CMake):
                 raise se
 
             if not ret:
-                return {os.path.join(self.platform.name, self.testsuite.name): True}
+                return {
+                    os.path.join(
+                        self.platform.name,
+                        self.instance.toolchain,
+                        self.testsuite.name
+                    ): True
+                }
             else:
-                return {os.path.join(self.platform.name, self.testsuite.name): False}
+                return {
+                    os.path.join(
+                        self.platform.name,
+                        self.instance.toolchain,
+                        self.testsuite.name
+                    ): False
+                }
         else:
             self.platform.filter_data = filter_data
             return filter_data
@@ -1210,9 +1234,12 @@ class ProjectBuilder(FilterBuilder):
                         # The 1st capture group is new ztest suite name.
                         # The 2nd capture group is new ztest unit test name.
                         new_ztest_suite = m_[1]
-                        if new_ztest_suite not in self.instance.testsuite.ztest_suite_names:
-                            logger.warning(
-                                f"Unexpected Ztest suite '{new_ztest_suite}' "
+                        if self.trace and \
+                           new_ztest_suite not in self.instance.testsuite.ztest_suite_names:
+                            # This can happen if a ZTEST_SUITE name is macro-generated
+                            # in the test source files, e.g. based on DT information.
+                            logger.debug(
+                                f"Unexpected Ztest suite '{new_ztest_suite}' is "
                                 f"not present in: {self.instance.testsuite.ztest_suite_names}"
                             )
                         test_func_name = m_[2].replace("test_", "", 1)
@@ -1222,10 +1249,12 @@ class ProjectBuilder(FilterBuilder):
                         detected_cases.append(testcase_id)
 
         logger.debug(
-            f"Test instance {self.instance.name} already has {len(self.instance.testcases)} cases."
+            f"Test instance {self.instance.name} already has {len(self.instance.testcases)} "
+            f"testcase(s) known: {self.instance.testcases}"
         )
         if detected_cases:
-            logger.debug(f"Detected Ztest cases: [{', '.join(detected_cases)}] in {elf_file}")
+            logger.debug(f"Detected {len(detected_cases)} Ztest case(s): "
+                         f"[{', '.join(detected_cases)}] in {elf_file}")
             tc_keeper = {
                 tc.name: {'status': tc.status, 'reason': tc.reason}
                 for tc in self.instance.testcases
@@ -1543,6 +1572,8 @@ class ProjectBuilder(FilterBuilder):
                      and hasattr(self.instance.handler, 'seed')
                      and self.instance.handler.seed is not None ):
                     more_info += "/seed: " + str(self.options.seed)
+                if instance.toolchain:
+                    more_info += f" <{instance.toolchain}>"
             logger.info(
                 f"{results.done - results.filtered_static:>{total_tests_width}}/{total_to_do}"
                 f" {instance.platform.name:<25} {instance.testsuite.name:<50}"
@@ -1717,6 +1748,8 @@ class ProjectBuilder(FilterBuilder):
             #
             if isinstance(harness, Pytest):
                 harness.pytest_run(instance.handler.get_test_timeout())
+            elif isinstance(harness, Ctest):
+                harness.ctest_run(instance.handler.get_test_timeout())
             else:
                 instance.handler.handle(harness)
 

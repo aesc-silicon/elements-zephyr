@@ -24,6 +24,10 @@ https://docs.zephyrproject.org/latest/security/vulnerabilities.html
 API Changes
 ***********
 
+ * Stream Flash initialization function :c:func:`stream_flash_init` no longer does
+   device size autodetection and instead requires user to explicitly provide size
+   of area available for Stream Flash instance operation.
+
 Removed APIs in this release
 ============================
 
@@ -55,9 +59,9 @@ Architectures
 * Common
 
   * Introduced :kconfig:option:`CONFIG_ARCH_HAS_CUSTOM_CURRENT_IMPL`, which can be selected when
-    an architecture implemented and enabled its own :c:func:`arch_current_thread` and
+    an architecture implements :c:func:`arch_current_thread` and
     :c:func:`arch_current_thread_set` functions for faster retrieval of the current CPU's thread
-    pointer. When enabled, ``_current`` variable will be routed to the
+    pointer. When enabled, the ``_current`` symbol will be routed to
     :c:func:`arch_current_thread` (:github:`80716`).
 
 * ARC
@@ -91,6 +95,9 @@ Bluetooth
 
   * :kconfig:option:`CONFIG_BT_BUF_ACL_RX_COUNT` has been deprecated and
     :kconfig:option:`CONFIG_BT_BUF_ACL_RX_COUNT_EXTRA` has been added.
+
+  * The ECDH HCI command/event emulation layer has been removed, meaning the host will now always
+    do direct calls to PSA to perform these operations.
 
 * HCI Drivers
 
@@ -142,6 +149,10 @@ Build system and Infrastructure
     its Test Scenario name prefix which is the same as the parent Test Suite id (:github:`82302`).
     Twister XML reports have full testsuite name as ``testcase.classname property`` resolving
     possible duplicate testcase elements in ``twister_report.xml`` testsuite container.
+
+* West
+
+  * Added support for the ``--erase`` option on the OpenOCD runner for boards which specify ``--cmd-erase``.
 
 Drivers and Sensors
 *******************
@@ -216,6 +227,8 @@ Drivers and Sensors
 
 * Modem
 
+  * HL7800: Fix socket port byte order. This resolves issues with TLS handshake failures. (:github:`83763`)
+
 * MIPI-DBI
 
 * MSPI
@@ -238,6 +251,41 @@ Drivers and Sensors
 
 * Sensors
 
+  * Sensor Clock
+
+    * The asynchronous sensor API now supports external clock sources. To use an external clock source
+      with the asynchronous sensor API, the following configurations are required:
+
+      * Enable one of the Kconfig options:
+        :kconfig:option:`CONFIG_SENSOR_CLOCK_COUNTER`,
+        :kconfig:option:`CONFIG_SENSOR_CLOCK_RTC`, or
+        :kconfig:option:`CONFIG_SENSOR_CLOCK_SYSTEM`.
+
+      * If not using the system clock, define the ``zephyr,sensor-clock`` property in the device tree to specify
+        the external clock source.
+
+        A typical configuration in the device tree structure is as follows:
+
+        .. code-block:: devicetree
+
+          / {
+            chosen {
+              zephyr,sensor-clock = &timer0;
+            };
+          };
+
+          &timer0 {
+            status = "okay";
+          };
+
+  * WE
+
+    * Replaced outdated :dtcompatible:`we,wsen-pdus` differential pressure sensor driver
+      and renamed it to :dtcompatible:`we,wsen-pdus-25131308XXXXX`.
+
+    * Replaced outdated :dtcompatible:`we,wsen-tids` temperature sensor driver
+      and renamed it to :dtcompatible:`we,wsen-tids-2521020222501`.
+
 * Serial
 
 * SPI
@@ -255,7 +303,13 @@ Drivers and Sensors
   * Changed :file:`include/zephyr/drivers/video-controls.h` to have control IDs (CIDs) matching
     those present in the Linux kernel.
 
+  * Changed ``video_pix_fmt_bpp()`` returning the byte count and only supports 8-bit depth,
+    into ``video_bits_per_pixel()`` returning the bit count and supports any color depth.
+
 * Watchdog
+
+  * Added :kconfig:option:`CONFIG_HAS_WDT_NO_CALLBACKS` which drivers select when they do not support
+    a callback being provided in :c:struct:`wdt_timeout_cfg`.
 
 * Wi-Fi
 

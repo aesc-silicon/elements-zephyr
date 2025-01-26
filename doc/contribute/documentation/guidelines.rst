@@ -700,6 +700,8 @@ Cross-referencing C documentation
 Visual Elements
 ***************
 
+.. _doc_images:
+
 Images
 ======
 
@@ -1005,6 +1007,15 @@ Doxygen API documentation
    Will render as:
 
       .. doxygengroup:: can_interface
+
+
+   .. rubric:: Options
+
+   .. rst:directive:option:: project
+      :type: project name (optional)
+
+      Associated Doxygen project. This can be useful when multiple Doxygen
+      projects are configured.
 
 .. rst:role:: c:group
 

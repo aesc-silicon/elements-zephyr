@@ -83,6 +83,8 @@ struct usbd_cdc_acm_desc {
 struct cdc_acm_uart_data {
 	/* Pointer to the associated USBD class node */
 	struct usbd_class_data *c_data;
+	/* Pointer to the interface description node or NULL */
+	struct usbd_desc_node *const if_desc_data;
 	/* Pointer to the class interface descriptors */
 	struct usbd_cdc_acm_desc *const desc;
 	const struct usb_desc_header **const fs_desc;
@@ -99,6 +101,15 @@ struct cdc_acm_uart_data {
 	bool line_state_rts;
 	/* UART actual DTR state */
 	bool line_state_dtr;
+	/* When flow_ctrl is set, poll out is blocked when the buffer is full,
+	 * roughly emulating flow control.
+	 */
+	bool flow_ctrl;
+	/* Used to enqueue a ZLP transfer when the previous IN transfer length
+	 * was a multiple of the endpoint MPS and no more data is added to
+	 * the TX FIFO during the user callback execution.
+	 */
+	bool zlp_needed;
 	/* UART API IRQ callback */
 	uart_irq_callback_user_data_t cb;
 	/* UART API user callback data */
@@ -107,10 +118,6 @@ struct cdc_acm_uart_data {
 	struct k_work irq_cb_work;
 	struct cdc_acm_uart_fifo rx_fifo;
 	struct cdc_acm_uart_fifo tx_fifo;
-	/* When flow_ctrl is set, poll out is blocked when the buffer is full,
-	 * roughly emulating flow control.
-	 */
-	bool flow_ctrl;
 	/* USBD CDC ACM TX fifo work */
 	struct k_work_delayable tx_fifo_work;
 	/* USBD CDC ACM RX fifo work */
@@ -483,12 +490,21 @@ static int usbd_cdc_acm_ctd(struct usbd_class_data *const c_data,
 
 static int usbd_cdc_acm_init(struct usbd_class_data *const c_data)
 {
+	struct usbd_context *uds_ctx = usbd_class_get_ctx(c_data);
 	const struct device *dev = usbd_class_get_private(c_data);
 	struct cdc_acm_uart_data *data = dev->data;
 	struct usbd_cdc_acm_desc *desc = data->desc;
 
 	desc->if0_union.bControlInterface = desc->if0.bInterfaceNumber;
 	desc->if0_union.bSubordinateInterface0 = desc->if1.bInterfaceNumber;
+
+	if (data->if_desc_data != NULL) {
+		if (usbd_add_descriptor(uds_ctx, data->if_desc_data)) {
+			LOG_ERR("Failed to add interface string descriptor");
+		} else {
+			desc->if0.iInterface = usbd_str_desc_get_idx(data->if_desc_data);
+		}
+	}
 
 	return 0;
 }
@@ -573,6 +589,8 @@ static void cdc_acm_tx_fifo_handler(struct k_work *work)
 
 	len = ring_buf_get(data->tx_fifo.rb, buf->data, buf->size);
 	net_buf_add(buf, len);
+
+	data->zlp_needed = len != 0 && len % cdc_acm_get_bulk_mps(c_data) == 0;
 
 	ret = usbd_ep_enqueue(c_data, buf);
 	if (ret) {
@@ -844,9 +862,12 @@ static void cdc_acm_irq_cb_handler(struct k_work *work)
 		cdc_acm_work_submit(&data->rx_fifo_work);
 	}
 
-	if (data->tx_fifo.altered) {
-		LOG_DBG("tx fifo altered, submit work");
-		if (!atomic_test_bit(&data->state, CDC_ACM_TX_FIFO_BUSY)) {
+	if (!atomic_test_bit(&data->state, CDC_ACM_TX_FIFO_BUSY)) {
+		if (data->tx_fifo.altered) {
+			LOG_DBG("tx fifo altered, submit work");
+			cdc_acm_work_schedule(&data->tx_fifo_work, K_NO_WAIT);
+		} else if (data->zlp_needed) {
+			LOG_DBG("zlp needed, submit work");
 			cdc_acm_work_schedule(&data->tx_fifo_work, K_NO_WAIT);
 		}
 	}
@@ -1249,12 +1270,21 @@ const static struct usb_desc_header *cdc_acm_hs_desc_##n[] = {			\
 			  &usbd_cdc_acm_api,					\
 			  (void *)DEVICE_DT_GET(DT_DRV_INST(n)), NULL);		\
 										\
+	IF_ENABLED(DT_INST_NODE_HAS_PROP(n, label), (				\
+	USBD_DESC_STRING_DEFINE(cdc_acm_if_desc_data_##n,			\
+				DT_INST_PROP(n, label),				\
+				USBD_DUT_STRING_INTERFACE);			\
+	))									\
+										\
 	RING_BUF_DECLARE(cdc_acm_rb_rx_##n, DT_INST_PROP(n, rx_fifo_size));	\
 	RING_BUF_DECLARE(cdc_acm_rb_tx_##n, DT_INST_PROP(n, tx_fifo_size));	\
 										\
 	static struct cdc_acm_uart_data uart_data_##n = {			\
 		.line_coding = CDC_ACM_DEFAULT_LINECODING,			\
 		.c_data = &cdc_acm_##n,						\
+		IF_ENABLED(DT_INST_NODE_HAS_PROP(n, label), (			\
+		.if_desc_data = &cdc_acm_if_desc_data_##n,			\
+		))								\
 		.rx_fifo.rb = &cdc_acm_rb_rx_##n,				\
 		.tx_fifo.rb = &cdc_acm_rb_tx_##n,				\
 		.flow_ctrl = DT_INST_PROP(n, hw_flow_control),			\
