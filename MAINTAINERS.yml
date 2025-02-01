@@ -3560,6 +3560,7 @@ Raspberry Pi Pico Platforms:
     - soburi
   collaborators:
     - yonsch
+    - threeeights
   files:
     - boards/raspberrypi/
     - boards/adafruit/kb2040/
@@ -3577,9 +3578,10 @@ Silabs Platforms:
   status: maintained
   maintainers:
     - jhedberg
+    - asmellby
   collaborators:
     - jerome-pouiller
-    - asmellby
+    - Martinhoff-maker
   files:
     - soc/silabs/
     - boards/silabs/
@@ -3717,6 +3719,7 @@ NXP Drivers:
     - decsny
     - manuargue
     - dbaluta
+    - Raymond0225
   files-regex:
     - ^drivers/.*nxp.*
     - ^drivers/.*mcux.*
@@ -4959,6 +4962,7 @@ West:
     - soburi
   collaborators:
     - yonsch
+    - threeeights
   files:
     - modules/hal_rpi_pico/
   labels:
@@ -4968,13 +4972,14 @@ West:
   status: maintained
   maintainers:
     - jhedberg
+    - asmellby
   collaborators:
     - jerome-pouiller
-    - asmellby
     - sateeshkotapati
     - yonsch
     - mnkp
     - rettichschnidi
+    - Martinhoff-maker
   files:
     - modules/hal_silabs/
   labels:
