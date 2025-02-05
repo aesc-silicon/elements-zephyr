@@ -162,6 +162,15 @@ ARC arch:
   tests:
     - arch.arc
 
+Arduino Platforms:
+  status: maintained
+  maintainers:
+    - pillo79
+  collaborators:
+    - facchinm
+  files:
+    - boards/arduino/
+
 ARM arch:
   status: maintained
   maintainers:
@@ -3431,6 +3440,7 @@ ADI Platforms:
   collaborators:
     - ozersa
     - ttmut
+    - yasinustunerg
     - galak
     - microbuilder
   files:
@@ -4775,6 +4785,7 @@ West:
   collaborators:
     - ozersa
     - ttmut
+    - yasinustunerg
   files: []
   labels:
     - "platform: ADI"

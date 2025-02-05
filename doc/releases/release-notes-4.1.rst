@@ -138,6 +138,13 @@ New APIs and options
   * :kconfig:option:`CONFIG_MBEDTLS_PSA_STATIC_KEY_SLOTS`
   * :kconfig:option:`CONFIG_MBEDTLS_PSA_KEY_SLOT_COUNT`
 
+* Management
+
+  * MCUmgr
+
+    * Image management :c:macro:`MGMT_EVT_OP_IMG_MGMT_DFU_CONFIRMED` now has image data field
+      :c:struct:`img_mgmt_image_confirmed`.
+
 * Other
 
   * :kconfig:option:`CONFIG_BT_BUF_ACL_RX_COUNT_EXTRA`
@@ -149,7 +156,7 @@ New Boards
 **********
 ..
   You may update this list as you contribute a new board during the release cycle, in order to make
-  is visible to people who might be looking at the working draft of the release notes. However, note
+  it visible to people who might be looking at the working draft of the release notes. However, note
   that this list will be recomputed at the time of the release, so you don't *have* to update it.
   In any case, just link the board, further details go in the board description.
 
