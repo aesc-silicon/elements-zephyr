@@ -54,6 +54,13 @@ Boards
   instead of pin reset when flashing with ``west flash``. If you want to keep
   using pin reset on the nRF52 family of ICs you can use ``west flash --pinreset``.
 
+* Erasing the external memory when programming a new firmware image with ``west
+  flash`` on the nRF52 and nRF53 series now always correctly honors the
+  ``--erase`` flag (and its absence) both when using the ``nrfjprog`` and
+  ``nrfutil`` backends.  Prior to this release, the ``nrjfprog`` backend would
+  always erase only the sectors of the external flash used by the new firmware,
+  and the ``nrfutil`` one would always erase the whole external flash.
+
 Devicetree
 **********
 
@@ -407,6 +414,7 @@ Timer
 
 * Renamed the ``compatible`` from ``nxp,kinetis-ftm`` to :dtcompatible:`nxp,ftm` and relocate it
   under ``dts/bindings/timer``.
+* Renamed the device tree property from ``ticks_us`` to ``ticks-us``.
 
 USB
 ===
@@ -488,6 +496,10 @@ Bluetooth Audio
   be called. All Kconfig options still remain. Runtime configuration cannot override a disabled
   Kconfig option. (:github:`83730`)
 
+* Several services and service client (AICS, ASCS, CSIP, HAS, MCS, PACS, TBS, VCP and VOCS) now
+  depend on :kconfig:option:`CONFIG_BT_SMP` and may need to be explicitly enabled.
+  (:github:`84994``)
+
 Bluetooth Classic
 =================
 
@@ -550,6 +562,9 @@ Networking
 * The :kconfig:option:`CONFIG_NET_L2_OPENTHREAD` symbol no longer implies the
   :kconfig:option:`CONFIG_NVS` Kconfig option. Platforms using OpenThread must explicitly enable
   either the :kconfig:option:`CONFIG_NVS` or :kconfig:option:`CONFIG_ZMS` Kconfig option.
+
+* ``CONFIG_NET_TC_SKIP_FOR_HIGH_PRIO`` was deprecated in favour of
+  :kconfig:option:`CONFIG_NET_TC_TX_SKIP_FOR_HIGH_PRIO` to avoid naming ambiguity.
 
 Other Subsystems
 ****************
