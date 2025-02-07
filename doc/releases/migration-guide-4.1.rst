@@ -236,6 +236,7 @@ I2C
 ===
 
 * Renamed the ``compatible`` from ``nxp,imx-lpi2c`` to :dtcompatible:`nxp,lpi2c`.
+* Renamed the device tree property ``port_sel`` to ``port-sel```.
 
 I2S
 ===
@@ -327,6 +328,21 @@ SDHC
 
 Sensors
 =======
+
+  * The :dtcompatible:`we,wsen-pads` driver has been renamed to
+    :dtcompatible:`we,wsen-pads-2511020213301`.
+    The Device Tree can be configured as follows:
+
+    .. code-block:: devicetree
+
+      &i2c0 {
+        pads:pads-2511020213301@5d {
+          compatible = "we,wsen-pads-2511020213301";
+          reg = <0x5d>;
+          odr = < 10 >;
+          interrupt-gpios = <&gpio1 1 GPIO_ACTIVE_HIGH>;
+        };
+      };
 
   * The :dtcompatible:`we,wsen-pdus` driver has been renamed to
     :dtcompatible:`we,wsen-pdus-25131308XXXXX`.
@@ -469,6 +485,16 @@ Bluetooth Mesh
   set as deprecated. Default option for platforms that do not support TF-M
   is :kconfig:option:`CONFIG_BT_MESH_USES_MBEDTLS_PSA`.
 
+* Mesh key representations are not backward compatible if images are built with TinyCrypt and
+  crypto libraries based on the PSA API. Mesh no longer stores the key values for those crypto
+  libraries. The crypto library stores the keys in the internal trusted storage.
+  If a provisioned device is going to update its image that was built with
+  the :kconfig:option:`CONFIG_BT_MESH_USES_TINYCRYPT` Kconfig option set on an image
+  that was built with :kconfig:option:`CONFIG_BT_MESH_USES_MBEDTLS_PSA` or
+  :kconfig:option:`CONFIG_BT_MESH_USES_TFM_PSA` without erasing the persistent area,
+  it should be unprovisioned first and reprovisioned after update again.
+  If the image is changed over Mesh DFU, use :c:enumerator:`BT_MESH_DFU_EFFECT_UNPROV`.
+
 * Mesh explicitly depends on the Secure Storage subsystem if storing into
   non-volatile memory (:kconfig:option:`CONFIG_BT_SETTINGS`) is enabled and
   Mbed TLS library (:kconfig:option:`CONFIG_BT_MESH_USES_MBEDTLS_PSA`) is used.
@@ -580,6 +606,10 @@ Filesystem
 
 hawkBit
 =======
+
+* The Kconfig symbols :kconfig:option:`CONFIG_SMF` and
+  :kconfig:option:`CONFIG_SMF_ANCESTOR_SUPPORT` are now required to be enabled to use the
+  hawkBit subsystem.
 
 MCUmgr
 ======
