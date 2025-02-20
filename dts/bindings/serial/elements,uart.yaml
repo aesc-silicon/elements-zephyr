@@ -1,0 +1,24 @@
+#
+# Copyright (c) 2021 Phytec Messtechnik GmbH
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+---
+
+description: Elements UART - This binding gives a base representation of the Elements UART
+
+compatible: "elements,uart"
+
+# inherits:
+include: uart-controller.yaml
+
+properties:
+    reg:
+      type: array
+      description: mmio register space
+      required: true
+
+    interrupts:
+      type: array
+      required: true
+      description: required interrupts
