@@ -1,0 +1,11 @@
+identifier: elemrv_elemrv-n
+name: ElemRV-N
+type: mcu
+arch: risc-v
+toolchain:
+  - zephyr
+ram: 1024
+vendor: aesc
+supported:
+  - gpio
+  - uart
