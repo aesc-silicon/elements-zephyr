@@ -1,0 +1,73 @@
+/*
+ * Copyright (c) 2025 aesc silicon
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <freq.h>
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+
+	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		cpu@0 {
+			compatible = "vexriscv", "riscv";
+			device_type = "cpu";
+			reg = <0>;
+			riscv,isa = "rv32imc";
+			status = "okay";
+
+			hlic: interrupt-controller {
+				compatible = "riscv,cpu-intc";
+				#address-cells = <0>;
+				#interrupt-cells = <1>;
+				interrupt-controller;
+			};
+		};
+
+	};
+
+	soc {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "elements,elements-soc", "simple-bus";
+		ranges;
+
+		flash0: flash@a0010000 {
+			compatible = "soc-nv-flash";
+			reg = <0xA0010000 0x40000>;
+		};
+
+		ram0: memory@90000000 {
+			device_type = "memory";
+			compatible = "mmio-sram";
+			reg = <0x90000000 0x20000>;
+		};
+
+		plic: interrupt-controller@80000000 {
+			compatible = "sifive,plic-1.0.0";
+			#address-cells = <0>;
+			#interrupt-cells = <2>;
+			interrupt-controller;
+			interrupts-extended = <&hlic 11>;
+			reg = <0x80000000 0x2000
+			       0x80002000 0xf000
+			       0x8000F000 0x10000>;
+			reg-names = "prio", "irq_en", "reg";
+			riscv,max-priority = <7>;
+			riscv,ndev = <0>;
+		};
+
+		mtimer: machine-timer@f0020000 {
+			compatible = "riscv,machine-timer";
+			reg = <0xF0020000 0x8 0xF0020008 0x8>;
+			interrupts-extended = <&hlic 7>;
+			status = "okay";
+		};
+	};
+};
