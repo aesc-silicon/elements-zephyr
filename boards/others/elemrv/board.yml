@@ -1,0 +1,6 @@
+board:
+  name: elemrv
+  full_name: ElemRV-N
+  vendor: others
+  socs:
+  - name: elemrv-n
