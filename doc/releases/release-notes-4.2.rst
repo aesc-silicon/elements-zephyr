@@ -51,6 +51,10 @@ API Changes
 Removed APIs and options
 ========================
 
+* Removed the deprecated the ``net_buf_put()`` and ``net_buf_get()`` API functions.
+
+* Removed the deprecated ``include/zephyr/net/buf.h`` header file.
+
 Deprecated APIs and options
 ===========================
 
@@ -103,6 +107,8 @@ New Samples
 ..
   Same as above for boards and drivers, this will also be recomputed at the time of the release.
  Just link the sample, further details go in the sample documentation itself.
+
+* :zephyr:code-sample:`stepper`
 
 Other notable changes
 *********************
