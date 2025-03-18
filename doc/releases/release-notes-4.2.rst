@@ -63,6 +63,10 @@ Deprecated APIs and options
 
 ===========================
 
+* ``arduino_uno_r4_minima`` and ``arduino_uno_r4_wifi`` board targets have been deprecated in favor
+  of a new ``arduino_uno_r4`` board with revisions (``arduino_uno_r4@minima`` and
+  ``arduino_uno_r4@wifi``).
+
 New APIs and options
 ====================
 
@@ -90,10 +94,17 @@ New APIs and options
 
     * :c:func:`bt_le_get_local_features`
     * :c:func:`bt_le_bond_exists`
+    * :c:func:`bt_br_bond_exists`
 
 * Display
 
   * :c:func:`display_clear`
+
+    * LE Connection Subrating is no longer experimental.
+
+* Other
+
+  * :c:func:`count_bits`
 
 New Boards
 **********
