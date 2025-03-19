@@ -102,9 +102,9 @@ New APIs and options
 
     * LE Connection Subrating is no longer experimental.
 
-* Other
+* Stepper
 
-  * :c:func:`count_bits`
+  * :c:func:`stepper_stop()`
 
 New Boards
 **********
