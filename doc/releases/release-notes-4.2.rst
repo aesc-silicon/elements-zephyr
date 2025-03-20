@@ -70,6 +70,10 @@ Deprecated APIs and options
 New APIs and options
 ====================
 
+* I2C
+
+  * :c:func:`i2c_configure_dt`.
+
 ..
   Link to new APIs here, in a group if you think it's necessary, no need to get
   fancy just list the link, that should contain the documentation. If you feel
@@ -95,12 +99,20 @@ New APIs and options
     * :c:func:`bt_le_get_local_features`
     * :c:func:`bt_le_bond_exists`
     * :c:func:`bt_br_bond_exists`
+    * :c:func:`bt_conn_lookup_addr_br`
+    * :c:func:`bt_conn_get_dst_br`
 
 * Display
 
   * :c:func:`display_clear`
 
     * LE Connection Subrating is no longer experimental.
+
+* Networking:
+
+  * IPv4
+
+    * :kconfig:option:`CONFIG_NET_IPV4_MTU`
 
 * Stepper
 
