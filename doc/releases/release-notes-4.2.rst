@@ -61,11 +61,17 @@ Deprecated APIs and options
   renamed and deprecated. Use :kconfig:option:`CONFIG_SCHED_SIMPLE` and
   :kconfig:option:`CONFIG_WAITQ_SIMPLE` instead.
 
+* TLS credential type ``TLS_CREDENTIAL_SERVER_CERTIFICATE`` was renamed and
+  deprecated, use :c:enumerator:`TLS_CREDENTIAL_PUBLIC_CERTIFICATE` instead.
+
 ===========================
 
 * ``arduino_uno_r4_minima`` and ``arduino_uno_r4_wifi`` board targets have been deprecated in favor
   of a new ``arduino_uno_r4`` board with revisions (``arduino_uno_r4@minima`` and
   ``arduino_uno_r4@wifi``).
+
+* ``esp32c6_devkitc`` board target has been deprecated and renamed to
+  ``esp32c6_devkitc/esp32c6/hpcore``.
 
 New APIs and options
 ====================
