@@ -227,6 +227,13 @@ Bluetooth Host
   each role may be different. Any existing uses/checks for ``BT_ISO_CHAN_TYPE_CONNECTED``
   can be replaced with an ``||`` of the two. (:github:`75549`)
 
+Bluetooth Classic
+=================
+
+* The parameters of HFP AG callback ``sco_disconnected`` of the struct :c:struct:`bt_hfp_ag_cb`
+  have been changed to SCO connection object ``struct bt_conn *sco_conn`` and the disconnection
+  reason of the SCO connection ``uint8_t reason``.
+
 Networking
 **********
 
@@ -250,6 +257,16 @@ Networking
   now accepts additional ``param`` parameter to support MQTT 5.0 case. The parameter
   is optional and not used with older MQTT versions - MQTT 3.1.1 users should pass
   NULL as an argument.
+
+* The ``AF_PACKET/SOCK_RAW/IPPROTO_RAW`` socket combination is no longer supported,
+  as ``AF_PACKET`` sockets should only accept IEEE 802.3 protocol numbers. As an
+  alternative, ``AF_PACKET/SOCK_DGRAM/ETH_P_ALL`` or ``AF_INET(6)/SOCK_RAW/IPPROTO_IP``
+  sockets can be used, depending on the actual use case.
+
+* The HTTP server now respects the configured ``_concurrent`` and  ``_backlog`` values. Check that
+  you provide applicable values to :c:macro:`HTTP_SERVICE_DEFINE_EMPTY`,
+  :c:macro:`HTTPS_SERVICE_DEFINE_EMPTY`, :c:macro:`HTTP_SERVICE_DEFINE` and
+  :c:macro:`HTTPS_SERVICE_DEFINE`.
 
 SPI
 ===
