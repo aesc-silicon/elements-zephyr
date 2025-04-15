@@ -174,6 +174,10 @@ Sensors
 * :dtcompatible:`ti,tmp116` has been renamed to :dtcompatible:`ti,tmp11x` because it supports
   tmp116, tmp117 and tmp119.
 
+* :dtcompatible:`meas,ms5837` has been replaced by :dtcompatible:`meas,ms5837-30ba`
+  and :dtcompatible:`meas,ms5837-02ba`. In order to use one of the two variants, the
+  status property needs to be used as well.
+
 Serial
 =======
 
@@ -288,6 +292,13 @@ SPI
 
 Other subsystems
 ****************
+
+ZBus
+====
+
+* The function :c:func:`zbus_chan_add_obs` now requires a :c:struct:`zbus_observer_node` as an argument,
+  which was previously allocated through :c:func:`k_malloc` internally. The structure must remain valid
+  in memory until :c:func:`zbus_chan_rem_obs` is called.
 
 Modules
 *******
