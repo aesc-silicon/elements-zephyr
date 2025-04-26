@@ -167,7 +167,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: dbc28ad4c1bdcdb25e79ca225cb5528a75d8dc91
+      revision: c811e7e58ecb2574a4ae6a1c777015185cdaf199
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -308,7 +308,7 @@ manifest:
       groups:
         - crypto
     - name: mcuboot
-      revision: 20f98e0a975c24864872e0df5701eb1082e9c957
+      revision: 81315483fcbdf1f1524c2b34a1fd4de6c77cd0f4
       path: bootloader/mcuboot
       groups:
         - bootloader
