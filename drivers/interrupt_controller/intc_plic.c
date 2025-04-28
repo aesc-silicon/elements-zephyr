@@ -502,6 +502,8 @@ static void plic_irq_handler(const struct device *dev)
 	/* Get the IRQ number generating the interrupt */
 	const uint32_t local_irq = sys_read32(claim_complete_addr);
 
+	printk("IRQ!\n");
+
 #ifdef CONFIG_PLIC_SHELL_IRQ_COUNT
 	uint16_t *cpu_count = get_irq_hit_count_cpu(dev, cpu_id, local_irq);
 	uint16_t *total_count = get_irq_hit_count_total(dev, local_irq);

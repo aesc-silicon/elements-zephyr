@@ -214,11 +214,11 @@ static int uart_elements_irq_is_pending(const struct device *dev)
 static int uart_elements_irq_update(const struct device *dev)
 {
 
-	volatile struct uart_elements_regs *uart = DEV_UART(dev);
+	//volatile struct uart_elements_regs *uart = DEV_UART(dev);
 
-	uart->ip = DEV_UART_IRQ_TX_EN | DEV_UART_IRQ_RX_EN;
+	//uart->ip = DEV_UART_IRQ_TX_EN | DEV_UART_IRQ_RX_EN;
 
-	return 0;
+	return 1;
 }
 
 static void uart_elements_irq_callback_set(const struct device *dev,

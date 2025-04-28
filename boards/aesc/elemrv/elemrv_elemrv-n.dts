@@ -21,23 +21,52 @@
 	};
 
 	aliases {
-		led0 = &heartbeat_led;
+		led0 = &led0;
+		sw0 = &button0;
+	};
+
+	soc {
+		flash0: flash@a0010000 {
+			compatible = "soc-nv-flash";
+			reg = <0xA0010000 0x40000>;
+		};
+
+		ram0: memory@90000000 {
+			device_type = "memory";
+			compatible = "mmio-sram";
+			reg = <0x90000000 0x20000>;
+		};
 	};
 
 	leds: leds {
 		compatible = "gpio-leds";
-		heartbeat_led: led_0 {
+		led0: led0 {
 			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
-			label = "Heartbeat LED";
+			label = "LED_0";
+		};
+
+		led1: led1 {
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+			label = "LED_1";
+		};
+
+		led2: led2 {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "LED_2";
 		};
 	};
-	keys {
+
+	keys: keys {
 		compatible = "gpio-keys";
-		reset_btn: reset_btn {
-			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
-			label = "Reset Button";
+		button0: button0 {
+			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+			label = "BUTTON_0";
 		};
 	};
+};
+
+&cpu0 {
+	clock-frequency = <DT_FREQ_M(20)>;
 };
 
 &uart0 {

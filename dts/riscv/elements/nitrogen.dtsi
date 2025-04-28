@@ -15,7 +15,7 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
-		cpu@0 {
+		cpu0: cpu@0 {
 			compatible = "vexriscv", "riscv";
 			device_type = "cpu";
 			reg = <0>;
@@ -37,17 +37,6 @@
 		#size-cells = <1>;
 		compatible = "elements,elements-soc", "simple-bus";
 		ranges;
-
-		flash0: flash@a0010000 {
-			compatible = "soc-nv-flash";
-			reg = <0xA0010000 0x40000>;
-		};
-
-		ram0: memory@90000000 {
-			device_type = "memory";
-			compatible = "mmio-sram";
-			reg = <0x90000000 0x20000>;
-		};
 
 		plic: interrupt-controller@80000000 {
 			compatible = "sifive,plic-1.0.0";

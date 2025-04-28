@@ -25,7 +25,7 @@
 #include <elements/drivers/ip_identification.h>
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(DT_DRV_COMPAT, CONFIG_GPIO_LOG_LEVEL);
+LOG_MODULE_REGISTER(elements_gpio, CONFIG_GPIO_LOG_LEVEL);
 
 typedef void (*elements_cfg_func_t)(void);
 
@@ -46,7 +46,6 @@ struct gpio_elements_regs {
 	uint32_t read;
 	uint32_t write;
 	uint32_t direction;
-	uint32_t reserved1;
 	uint32_t high_ip;
 	uint32_t high_ie;
 	uint32_t low_ip;
@@ -70,15 +69,6 @@ struct gpio_elements_data {
 #define DEV_GPIO(dev) 							      \
 	((struct gpio_elements_regs *)DEVICE_MMIO_NAMED_GET(dev, regs))
 
-/**
- * @brief Configure pin
- *
- * @param dev Device structure
- * @param pin The pin number
- * @param flags Flags of pin or port
- *
- * @return 0 if successful, failed otherwise
- */
 static int gpio_elements_config(const struct device *dev, gpio_pin_t pin,
 				gpio_flags_t flags)
 {
@@ -184,6 +174,10 @@ static int gpio_elements_pin_interrupt_configure(const struct device *dev,
 {
 	volatile struct gpio_elements_regs *gpio = DEV_GPIO(dev);
 	volatile struct gpio_elements_config *cfg = DEV_CFG(dev);
+	printk("configure\n");
+	printk("mode: %x\n", int_mode);
+	printk("trig: %x\n", int_trig);
+	printk("irq: %i\n", cfg->irq_no);
 
 	/* Disable all interrupts */
 	gpio->high_ie &= ~BIT(pin);
@@ -193,7 +187,7 @@ static int gpio_elements_pin_interrupt_configure(const struct device *dev,
 
 	/* Disable interrupt for the pin at PLIC level */
 	if (int_mode & GPIO_INT_MODE_DISABLED) {
-		irq_disable(irq_to_level_2(cfg->irq_no));
+		irq_disable(cfg->irq_no);
 		return 0;
 	}
 
@@ -207,7 +201,7 @@ static int gpio_elements_pin_interrupt_configure(const struct device *dev,
 			gpio->rise_ie |= BIT(pin);
 			gpio->fall_ie |= BIT(pin);
 		/* Rising edge */
-		} else if (int_trig & GPIO_INT_TRIG_HIGH) {
+		} else if (int_trig & GPIO_INT_HIGH_1) {
 			gpio->rise_ie |= BIT(pin);
 		/* Falling edge */
 		} else {
@@ -225,7 +219,7 @@ static int gpio_elements_pin_interrupt_configure(const struct device *dev,
 			gpio->low_ie |= BIT(pin);
 		}
 	}
-	irq_enable(irq_to_level_2(cfg->irq_no));
+	irq_enable(cfg->irq_no);
 
 	return 0;
 }
@@ -241,15 +235,6 @@ static int gpio_elements_manage_callback(const struct device *dev,
 
 #endif /* CONFIG_GPIO_INTERRUPT */
 
-/**
- * @brief Initialize a GPIO controller
- *
- * Perform basic initialization of a GPIO controller
- *
- * @param dev GPIO device struct
- *
- * @return 0
- */
 static int gpio_elements_init(const struct device *dev)
 {
 #ifdef CONFIG_GPIO_ELEMENTS_INTERRUPT

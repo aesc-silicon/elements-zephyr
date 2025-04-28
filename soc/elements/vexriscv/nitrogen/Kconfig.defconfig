@@ -18,17 +18,11 @@ config RISCV_MACHINE_TIMER
 config RISCV_HAS_PLIC
 	default y
 
-config MULTI_LEVEL_INTERRUPTS
-	default y
-
-config 2ND_LEVEL_INTERRUPTS
-	default y
-
 config 2ND_LVL_ISR_TBL_OFFSET
-	default 1
+	default 12
 
 config 2ND_LVL_INTR_00_OFFSET
-	default 12
+	default 23
 
 config NUM_IRQS
 	default 32
