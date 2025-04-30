@@ -1,0 +1,16 @@
+# Copyright (c) 2025 aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_SERIES_NITROGEN
+	bool
+	select SOC_FAMILY_ELEMENTS_VEXRISCV
+
+config SOC_ELEMRV_N
+	bool
+	select SOC_SERIES_NITROGEN
+
+config SOC_SERIES
+	default "nitrogen" if SOC_SERIES_NITROGEN
+
+config SOC
+	default "elemrv-n" if SOC_ELEMRV_N
