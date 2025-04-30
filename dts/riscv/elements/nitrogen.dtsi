@@ -58,5 +58,11 @@
 			interrupts-extended = <&hlic 7>;
 			status = "okay";
 		};
+
+		reset: reset-controller@f0030000 {
+			compatible = "elements,rst";
+			reg = <0xF0030000 0x12>;
+			status = "okay";
+		};
 	};
 };

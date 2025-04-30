@@ -1,0 +1,9 @@
+# Copyright (c) 2025 aesc silicon
+# SPDX-License-Identifier: Apache-2.0
+
+config RESET_ELEMENTS
+	bool "ELEMENTS reset driver"
+	default y
+	depends on DT_HAS_ELEMENTS_RST_ENABLED
+	help
+	  This option enables the reset driver for Elements reset controller.
