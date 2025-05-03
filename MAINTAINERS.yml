@@ -2319,6 +2319,19 @@ EC Host Commands:
   tests:
     - mgmt.ec_host_cmd
 
+Elements Platform:
+  status: maintained
+  maintainers:
+    - dnltz
+  files:
+    - soc/elements/
+    - dts/riscv/elements/
+    - boards/others/elemrv/
+  files-regex:
+    - ^drivers/.*elements(\.c)?$
+  labels:
+    - "area: Elements Platform"
+
 Xen Platform:
   status: maintained
   maintainers:
