@@ -992,6 +992,7 @@ Display drivers:
     - jfischer-no
     - danieldegrasse
     - VynDragon
+    - jarmouniA
   files:
     - drivers/display/
     - dts/bindings/display/
@@ -4589,6 +4590,9 @@ TDK Sensors:
   status: maintained
   maintainers:
     - RobinKastberg
+  collaborators:
+    - bjorniuppsala
+    - LoveKarlsson
   files:
     - cmake/*/iar/
     - include/zephyr/toolchain/iar.h
