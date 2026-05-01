@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2026 Aesc Silicon
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Aesc Silicon Programmable IO controller.
+
+  A programmable state machine that executes a user-defined instruction
+  sequence from on-chip program memory to drive and sample IO pins without
+  continuous CPU intervention.
+
+  Example node:
+
+    pio0: pio@10010000 {
+      compatible = "aesc,pio";
+      reg = <0x10010000 0x100>;
+      clock-frequency = <50000000>;
+      aesc,clock-divider = <49>;
+      aesc,read-delay = <2>;
+    };
+
+compatible: "aesc,pio"
+
+include: [pinctrl-device.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  clock-frequency:
+    type: int
+    required: true
+    description: |
+      Input clock frequency in Hz. Used by the driver to compute the
+      clock divider register value from a desired tick frequency.
+
+  aesc,tick-frequency:
+    type: int
+    required: false
+    description: |
+      Frequency in Hz of the internal clock-divider tick used by WAIT, READ
+      and LOOP instructions. The driver computes the clock divider register
+      value as:
+
+        clockDivider = (clock-frequency / aesc,tick-frequency) - 1
+
+      Requires clock-frequency to be set. Must evenly divide clock-frequency;
+      if it does not, the result is rounded down and the actual tick frequency
+      will be slightly lower than requested.
+
+  aesc,read-delay:
+    type: int
+    required: false
+    default: 0
+    description: |
+      Number of clock-divider ticks to wait after setting a pin to input
+      before sampling it during a READ instruction. Allows the line to
+      settle before capture.
