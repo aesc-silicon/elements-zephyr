@@ -1,0 +1,15 @@
+# SPDX-FileCopyrightText: 2026 Aesc Silicon
+# SPDX-License-Identifier: Apache-2.0
+
+config PIO_AESC
+	bool "Aesc Silicon Programmable IO Controller"
+	default y
+	depends on DT_HAS_AESC_PIO_ENABLED
+
+if PIO_AESC
+
+module = PIO_AESC
+module-str = pio_aesc
+source "subsys/logging/Kconfig.template.log_config"
+
+endif # PIO_AESC
