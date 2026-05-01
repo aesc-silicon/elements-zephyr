@@ -12,6 +12,19 @@
 		pinmux = <0 AESC_PINMUX_MUX0>;
 	};
 
+	/* PIO0 */
+	pio0_pin0_default: pio0_pin0_default {
+		pinmux = <5 AESC_PINMUX_MUX1>;
+	};
+
+	pio0_pin1_default: pio0_pin1_default {
+		pinmux = <6 AESC_PINMUX_MUX1>;
+	};
+
+	pio0_pin2_default: pio0_pin2_default {
+		pinmux = <7 AESC_PINMUX_MUX1>;
+	};
+
 	/* UART0 */
 	uart0_tx_default: uart0_tx_default {
 		pinmux = <14 AESC_PINMUX_MUX0>;

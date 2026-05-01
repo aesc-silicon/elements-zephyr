@@ -27,6 +27,14 @@
 			status = "disabled";
 		};
 
+		pio0: pio@f0003000 {
+			compatible = "aesc,pio";
+			reg = <0xf0003000 0x1000>;
+			interrupt-parent = <&plic>;
+			interrupts = <7 1>;
+			status = "disabled";
+		};
+
 		uart0: uart0@f0006000 {
 			compatible = "aesc,uart";
 			reg = <0xf0006000 0x1000>;

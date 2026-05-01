@@ -67,6 +67,14 @@
 	status = "okay";
 };
 
+&pio0 {
+	pinctrl-0 = <&pio0_pin0_default &pio0_pin1_default &pio0_pin2_default>;
+	pinctrl-names = "default";
+	clock-frequency = <DT_FREQ_M(50)>;
+	aesc,tick-frequency = <DT_FREQ_K(1)>;
+	status = "okay";
+};
+
 &plic {
 	riscv,ndev = <7>;
 };
