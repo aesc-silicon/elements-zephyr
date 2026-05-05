@@ -4,3 +4,4 @@ board:
   vendor: aesc
   socs:
   - name: elemrv_n
+  - name: elemrv_h

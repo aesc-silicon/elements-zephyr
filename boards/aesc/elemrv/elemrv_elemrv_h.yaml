@@ -1,0 +1,13 @@
+identifier: elemrv/elemrv_h
+name: ElemRV-H
+type: mcu
+arch: riscv
+toolchain:
+  - cross-compile
+  - zephyr
+ram: 4
+flash: 32
+vendor: aesc
+supported:
+  - gpio
+  - uart

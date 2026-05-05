@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2025 Aesc Silicon
+ * Copyright (c) 2026 Aesc Silicon
  *
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <aesc/nitrogen.dtsi>
+#include <aesc/hydrogen.dtsi>
 
 / {
 	#address-cells = <1>;
@@ -13,7 +13,7 @@
 	soc {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "aesc,elemrv-n-soc", "simple-bus";
+		compatible = "aesc,elemrv-h-soc", "simple-bus";
 		ranges;
 
 		gpio0: gpio@f0000000 {
@@ -26,26 +26,34 @@
 			status = "disabled";
 		};
 
-		pio0: pio@f0003000 {
-			compatible = "aesc,pio";
-			reg = <0xf0003000 0x1000>;
+		i2c0: i2c@f0001000 {
+			compatible = "aesc,i2c";
+			reg = <0xf0001000 0x1000>;
 			interrupt-parent = <&plic>;
-			interrupts = <7 1>;
+			interrupts = <2 1>;
 			status = "disabled";
 		};
 
-		pwm0: pwm@f0004000 {
-			compatible = "aesc,pwm";
-			reg = <0xf0004000 0x1000>;
+		pio0: pio@f0002000 {
+			compatible = "aesc,pio";
+			reg = <0xf0002000 0x1000>;
 			interrupt-parent = <&plic>;
-			interrupts = <8 1>;
+			interrupts = <3 1>;
+			status = "disabled";
+		};
+
+		pwm0: pwm@f0003000 {
+			compatible = "aesc,pwm";
+			reg = <0xf0003000 0x1000>;
+			interrupt-parent = <&plic>;
+			interrupts = <4 1>;
 			#pwm-cells = <3>;
 			status = "disabled";
 		};
 
-		uart0: uart0@f0006000 {
+		uart0: uart0@f0004000 {
 			compatible = "aesc,uart";
-			reg = <0xf0006000 0x1000>;
+			reg = <0xf0004000 0x1000>;
 			interrupt-parent = <&plic>;
 			interrupts = <5 1>;
 			status = "disabled";

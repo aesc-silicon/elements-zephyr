@@ -1,0 +1,127 @@
+/*
+ * Copyright (C) 2026 Aesc Silicon
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include <aesc/elemrv-h.dtsi>
+#include <zephyr/dt-bindings/pwm/pwm.h>
+#include "elemrv_elemrv_h-pinctrl.dtsi"
+
+/ {
+	model = "ElemRV-H";
+	compatible = "aesc,elemrv-h";
+
+	aliases {
+		led0 = &led0;
+		sw0 = &button0;
+		pressure-sensor = &bmp180;
+		pwm-led0 = &pwm_led0;
+	};
+
+	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,sram = &ocram;
+		zephyr,flash = &flash;
+	};
+
+	leds: leds {
+		compatible = "gpio-leds";
+
+		led0: led0 {
+			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+			label = "LED_0";
+		};
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+
+		pwm_led0: pwm_led0 {
+			pwms = <&pwm0 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+		};
+	};
+
+	buttons: buttons {
+		compatible = "gpio-keys";
+
+		button0: button0 {
+			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+			label = "BUTTON_0";
+		};
+	};
+
+	soc {
+		ocram: memory@80000000 {
+			device_type = "memory";
+			compatible = "mmio-sram";
+			reg = <0x80000000 DT_SIZE_K(8)>;
+		};
+
+		flash: flash@a0010000 {
+			compatible = "soc-nv-flash";
+			reg = <0xa0010000 DT_SIZE_K(128)>;
+		};
+	};
+};
+
+&cpu0 {
+	clock-frequency = <DT_FREQ_M(50)>;
+};
+
+&gpio0 {
+	pinctrl-0 = <&gpio0_pin1_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&i2c0 {
+	pinctrl-0 = <&i2c0_scl_default &i2c0_sda_default &i2c0_irq_default>;
+	pinctrl-names = "default";
+	input-frequency = <DT_FREQ_M(50)>;
+	clock-frequency = <DT_FREQ_K(100)>;
+	status = "okay";
+
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	bmp180: bmp180@77 {
+		compatible = "bosch,bmp180";
+		reg = <0x77>;
+		osr-press = <1>;
+	};
+};
+
+&pio0 {
+	pinctrl-0 = <&pio0_pin1_default &pio0_pin2_default>;
+	pinctrl-names = "default";
+	clock-frequency = <DT_FREQ_M(50)>;
+	aesc,tick-frequency = <DT_FREQ_K(1)>;
+	status = "okay";
+};
+
+&pinctrl {
+	status = "okay";
+};
+
+&plic {
+	riscv,ndev = <5>;
+};
+
+&pwm0 {
+	pinctrl-0 = <&pwm0_out0_default &pwm0_comp0_default>;
+	pinctrl-names = "default";
+	input-frequency = <DT_FREQ_M(50)>;
+	status = "okay";
+};
+
+&uart0 {
+	clock-frequency = <DT_FREQ_M(50)>;
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_tx_default &uart0_rx_default &uart0_cts_default &uart0_rts_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
