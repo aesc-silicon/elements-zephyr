@@ -1,0 +1,38 @@
+# SPDX-FileCopyrightText: 2026 Aesc Silicon
+# SPDX-License-Identifier: Apache-2.0
+
+title: Aesc Silicon PWM Controller
+
+description: |
+  Aesc Silicon multi-channel PWM controller IP core. Supports edge-aligned
+  and center-aligned modes, complementary outputs, dead-time insertion,
+  N-shot operation, and phase offset for multi-phase applications.
+
+compatible: "aesc,pwm"
+
+include: [pwm-controller.yaml, pinctrl-device.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  input-frequency:
+    type: int
+    required: true
+    description: |
+      System clock frequency in Hz fed into the IP core. Used by the driver
+      to report the cycle rate via get_cycles_per_sec().
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
+pwm-cells:
+  - channel
+  - period
+  - flags
