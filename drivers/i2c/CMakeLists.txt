@@ -21,6 +21,7 @@ zephyr_library_sources_ifdef(CONFIG_USERSPACE i2c_handlers.c)
 add_subdirectory_ifdef(CONFIG_I2C_TARGET target)
 
 # zephyr-keep-sorted-start
+zephyr_library_sources_ifdef(CONFIG_I2C_AESC i2c_aesc.c)
 zephyr_library_sources_ifdef(CONFIG_I2C_AMBIQ i2c_ambiq.c)
 zephyr_library_sources_ifdef(CONFIG_I2C_AMBIQ_IOS i2c_ambiq_ios.c)
 zephyr_library_sources_ifdef(CONFIG_I2C_ANDES_ATCIIC100 i2c_andes_atciic100.c)

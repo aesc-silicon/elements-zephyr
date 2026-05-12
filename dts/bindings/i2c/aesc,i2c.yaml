@@ -1,0 +1,42 @@
+# SPDX-FileCopyrightText: 2026 Aesc Silicon
+# SPDX-License-Identifier: Apache-2.0
+
+title: Aesc Silicon I2C Controller
+
+description: |
+  Aesc Silicon I2C controller IP core. Supports standard mode (100 kHz),
+  fast mode (400 kHz), and fast-plus mode (1 MHz).
+
+compatible: "aesc,i2c"
+
+include: [i2c-controller.yaml, pinctrl-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  input-frequency:
+    type: int
+    required: true
+    description: |
+      System clock frequency in Hz fed into the IP core clock divider.
+      Used together with clock-frequency to compute the divider register value.
+
+  clock-frequency:
+    required: true
+    description: |
+      Target I2C SCL frequency in Hz. Supported values are 100000 (standard),
+      400000 (fast), and 1000000 (fast-plus).
+
+  pinctrl-0:
+    description: |
+      Pin configuration for the SCL and SDA signals.
+      Phandles must reference pinctrl nodes for the I2C peripheral signals.
+      Example: pinctrl-0 = <&i2c0_scl &i2c0_sda>;
+    required: true
+
+  pinctrl-names:
+    required: true
