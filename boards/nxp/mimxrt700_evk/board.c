@@ -186,14 +186,10 @@ void board_early_init_hook(void)
 #endif
 
 #if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(edma0))
-	CLOCK_EnableClock(kCLOCK_Dma0);
-	RESET_ClearPeripheralReset(kDMA0_RST_SHIFT_RSTn);
 	edma_enable_all_request(0);
 #endif
 
 #if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(edma1))
-	CLOCK_EnableClock(kCLOCK_Dma1);
-	RESET_ClearPeripheralReset(kDMA1_RST_SHIFT_RSTn);
 	edma_enable_all_request(1);
 #endif
 
@@ -415,7 +411,8 @@ void board_early_init_hook(void)
 	CLOCK_SetClkDiv(kCLOCK_DivOstimerClk, 1U);
 #endif
 
-#if DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(usb0)) && CONFIG_UDC_NXP_EHCI
+#if ((DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(usb0)) && CONFIG_UDC_NXP_EHCI) || \
+	(DT_NODE_HAS_STATUS_OKAY(DT_NODELABEL(usbh0)) && (CONFIG_UHC_NXP_EHCI)))
 	/* Power on COM VDDN domain for USB */
 	POWER_DisablePD(kPDRUNCFG_DSR_VDDN_COM);
 

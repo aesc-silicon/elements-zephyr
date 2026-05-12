@@ -35,6 +35,12 @@ Kernel
 Boards
 ******
 
+* The Kconfig options :kconfig:option:`CONFIG_SRAM_SIZE` and
+  :kconfig:option:`CONFIG_SRAM_BASE_ADDRESS` have been deprecated, boards should instead use the
+  devicetree ``zephyr.sram`` chosen node to specify the RAM node which will be used (whose values
+  populated the Kconfig values). If either option is manually adjusted, it will cause
+  :kconfig:option:`CONFIG_SRAM_DEPRECATED_KCONFIG_SET` to be set which indicates this deprecation.
+
 Device Drivers and Devicetree
 *****************************
 
@@ -121,6 +127,13 @@ NXP
   ``zephyr,system-timer`` chosen property, so boards that added the overlay
   described in the Zephyr 4.4 migration guide can remove it.
 
+PWM
+===
+
+* The ``pcrs`` property (array type) of :dtcompatible:`microchip,xec-pwm` has been replaced
+  by ``pcr-scr`` (int type) to use encoded PCR register index and bit position macros
+  (:github:`104570`).
+
 SD Host Controller
 ==================
 
@@ -145,6 +158,14 @@ SD Host Controller
 * For :dtcompatible:`st,stm32-sdmmc`, the ``sdhi-on-gpios`` property has been
   consolidated into the existing ``pwr-gpios`` property. Replace
   ``sdhi-on-gpios`` with ``pwr-gpios`` in out-of-tree devicetree nodes.
+
+Sensor
+======
+
+* The ``girqs`` and ``pcrs`` properties (array type) of :dtcompatible:`microchip,xec-tach` have been
+  replaced by ``pcr-scr`` (int type) to use encoded PCR register index and bit position macros.
+  GIRQ configuration is now handled via the ``microchip,dmec-ecia-girq`` binding include
+  (:github:`104808`).
 
 STM32
 =====
