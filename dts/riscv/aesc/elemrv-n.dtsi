@@ -35,6 +35,15 @@
 			status = "disabled";
 		};
 
+		pwm0: pwm@f0004000 {
+			compatible = "aesc,pwm";
+			reg = <0xf0004000 0x1000>;
+			interrupt-parent = <&plic>;
+			interrupts = <8 1>;
+			#pwm-cells = <3>;
+			status = "disabled";
+		};
+
 		uart0: uart0@f0006000 {
 			compatible = "aesc,uart";
 			reg = <0xf0006000 0x1000>;

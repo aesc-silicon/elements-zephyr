@@ -25,6 +25,15 @@
 		pinmux = <7 AESC_PINMUX_MUX1>;
 	};
 
+	/* PWM0 */
+	pwm0_out0_default: pwm0_out0_default {
+		pinmux = <8 AESC_PINMUX_MUX1>;
+	};
+
+	pwm0_out1_default: pwm0_out1_default {
+		pinmux = <9 AESC_PINMUX_MUX1>;
+	};
+
 	/* UART0 */
 	uart0_tx_default: uart0_tx_default {
 		pinmux = <14 AESC_PINMUX_MUX0>;
