@@ -86,7 +86,7 @@
 };
 
 &plic {
-	riscv,ndev = <7>;
+	riscv,ndev = <10>;
 };
 
 &pwm0 {

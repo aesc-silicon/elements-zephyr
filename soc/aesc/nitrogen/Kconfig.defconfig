@@ -21,7 +21,7 @@ config XIP
 if SOC_ELEMRV_N
 
 config NUM_IRQS
-	default 19
+	default 32
 
 endif # SOC_ELEMRV_N
 
