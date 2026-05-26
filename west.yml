@@ -203,12 +203,12 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 3c08112f3d92c81b98134479c01d3cfd40f54016
+      revision: 1a6de0af0a0e5f65b88d52df006aa8cdf29fe92f
       path: modules/hal/nordic
       groups:
         - hal
     - name: hal_nuvoton
-      revision: fc037be030993efd998c89309c0f840f31491ca6
+      revision: 3b93ad491b712d22a5216e0f78ecc6de470ed37d
       path: modules/hal/nuvoton
       groups:
         - hal
