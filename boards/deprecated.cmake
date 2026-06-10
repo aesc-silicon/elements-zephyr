@@ -79,3 +79,6 @@ set(ai_m62_12f_DEPRECATED
 set(ai_wb2_12f_DEPRECATED
     ai_wb2_12f_kit
 )
+set(elemrv/elemrv_n_DEPRECATED
+    elemrv_flask/elemrv_n
+)
