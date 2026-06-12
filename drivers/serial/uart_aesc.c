@@ -202,12 +202,6 @@ static int uart_aesc_irq_is_pending(const struct device *dev)
 	return !!(uart->ip);
 }
 
-static int uart_aesc_irq_update(const struct device *dev)
-{
-	ARG_UNUSED(dev);
-	return 1;
-}
-
 static void uart_aesc_irq_callback_set(const struct device *dev,
 					uart_irq_callback_user_data_t cb,
 					void *user_data)
@@ -292,7 +286,6 @@ static DEVICE_API(uart, uart_aesc_driver_api) = {
 	.irq_err_enable   = uart_aesc_irq_err_enable,
 	.irq_err_disable  = uart_aesc_irq_err_disable,
 	.irq_is_pending   = uart_aesc_irq_is_pending,
-	.irq_update       = uart_aesc_irq_update,
 	.irq_callback_set = uart_aesc_irq_callback_set,
 #endif
 };
