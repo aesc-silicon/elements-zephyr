@@ -188,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_infineon
-      revision: dca66de9669d20c3d6b2e86881d205baf8dd5c88
+      revision: a5c0f8959ca5ee45250094dd3920b1585d496b40
       path: modules/hal/infineon
       groups:
         - hal
@@ -203,7 +203,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 19f742b45acb7e660ed3673cab819c103de5e856
+      revision: aa969cd8a4e1a3af411026e1520059be77f76444
       path: modules/hal/nordic
       groups:
         - hal
@@ -213,7 +213,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 113fb585480b38d1d746db4c320b70beb13036e5
+      revision: f2a28824f26c55ee68e36f04fb748db9f6a00ed3
       path: modules/hal/nxp
       groups:
         - hal
