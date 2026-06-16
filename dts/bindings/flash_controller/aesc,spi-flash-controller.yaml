@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2026 Aesc Silicon
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  Aesc Silicon SPI flash controller.
+
+  Exposes the execute-in-place (XIP) mapped SPI NOR flash as a read-only flash
+  device. The flash region is described by a soc-nv-flash child node, e.g.:
+
+    flash_controller: flash-controller@f0024000 {
+        compatible = "aesc,spi-flash-controller";
+        reg = <0xf0024000 0x2000>;
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+        flash0: flash@a0010000 {
+            compatible = "soc-nv-flash";
+            reg = <0xa0010000 DT_SIZE_K(512)>;
+        };
+    };
+
+compatible: "aesc,spi-flash-controller"
+
+include: flash-controller.yaml
+
+properties:
+  aesc,quad-mode:
+    type: boolean
+    description: |
+      Switch the XIP controller to quad (4-bit) SPI protocol at driver init.
+      Use this when no first-stage bootloader has already configured the
+      flash interface. When absent, the controller keeps its reset (single
+      bit) read mode.
