@@ -3520,9 +3520,20 @@ Kernel:
     - include/zephyr/sys_clock.h
     - samples/kernel/
     - include/zephyr/kernel/
+    - include/zephyr/cleanup.h
+    - include/zephyr/cleanup/
     - tests/lib/p4workq/
   files-exclude:
     - tests/kernel/mem_protect/
+  file-groups:
+    - name: Cleanup helpers
+      collaborators:
+        - pdgendt
+      files:
+        - include/zephyr/cleanup.h
+        - include/zephyr/cleanup/
+        - doc/kernel/cleanup.rst
+        - tests/kernel/cleanup/
   labels:
     - "area: Kernel"
   tests:
@@ -5855,7 +5866,7 @@ TI MSPM0 Platforms:
     - d-philpot
   files:
     - soc/ti/mspm0/
-    - boards/ti/lp_mspm0g3507/
+    - boards/ti/*mspm0*/
     - dts/arm/ti/mspm0/
     - dts/bindings/*/*mspm0*
     - drivers/*/*_mspm0*
@@ -6091,9 +6102,8 @@ Twister:
     - scripts/pylib/twister/
     - scripts/tests/twister/
     - scripts/tests/twister_blackbox/
-    - doc/develop/test/twister.rst
     - scripts/pylib/pytest-twister-harness/
-    - doc/develop/test/pytest.rst
+    - doc/develop/twister/
     - tests/test_config.yaml
     - scripts/utils/twister_to_list.py
     - tests/robot/common.robot
