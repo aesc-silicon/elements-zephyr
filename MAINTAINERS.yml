@@ -899,11 +899,17 @@ Bouffalolab Platforms:
     - "platform: Bouffalo Lab"
 
 Broadcom Platforms:
-  status: odd fixes
+  status: maintained
+  maintainers:
+    - walidbadar
   files:
     - dts/*/broadcom/
     - soc/brcm/
     - boards/brcm/
+    - boards/raspberrypi/rpi_4b/
+    - boards/raspberrypi/rpi_5/
+  labels:
+    - "platform: Broadcom"
 
 Build Dashboard:
   status: maintained
@@ -1300,7 +1306,6 @@ Devicetree:
   maintainers:
     - mbolivar
   collaborators:
-    - decsny
     - rruuaanng
   files-regex:
     - ^dts/bindings/.*zephyr.*
@@ -1358,8 +1363,6 @@ Disk:
     - dts/bindings/disk/
   file-groups:
     - name: eMMC
-      collaborators:
-        - decsny
       files-regex:
         - ^(?!.*sdmmc).*mmc
   labels:
@@ -1929,7 +1932,6 @@ Documentation Infrastructure:
   maintainers:
     - maass-hamburg
   collaborators:
-    - decsny
     - lmajewski
     - pdgendt
     - ClaCodes
@@ -2618,8 +2620,6 @@ Documentation Infrastructure:
 
 "Drivers: Reset":
   status: odd fixes
-  collaborators:
-    - decsny
   files:
     - drivers/reset/
     - include/zephyr/drivers/reset.h
@@ -2708,7 +2708,6 @@ Documentation Infrastructure:
     - tbursztyka
   collaborators:
     - teburd
-    - decsny
   files:
     - drivers/spi/
     - include/zephyr/drivers/spi.h
