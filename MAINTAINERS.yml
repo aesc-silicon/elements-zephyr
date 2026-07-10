@@ -680,6 +680,7 @@ Bluetooth HCI:
     - "area: Bluetooth"
   tests:
     - bluetooth
+    - sample.bluetooth
 
 Bluetooth Host:
   status: maintained
@@ -1302,10 +1303,9 @@ Device Driver Model:
     - init
 
 Devicetree:
-  status: maintained
-  maintainers:
-    - mbolivar
+  status: odd fixes
   collaborators:
+    - mbolivar
     - rruuaanng
   files-regex:
     - ^dts/bindings/.*zephyr.*
@@ -3103,6 +3103,7 @@ Espressif Platforms:
     - uLipe
     - raffarost
     - wmrsouza
+    - tmedicci
   files:
     - drivers/*/*esp32*.c
     - boards/espressif/
@@ -3112,6 +3113,8 @@ Espressif Platforms:
     - samples/boards/espressif/
     - tests/boards/espressif/
     - drivers/*/*esp32*/
+    - drivers/wifi/esp_hosted/
+    - drivers/wifi/esp_at/
   file-groups:
     - name: Espressif hosted Wi-Fi driver
       files:
