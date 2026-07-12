@@ -1289,6 +1289,7 @@ Device Driver Model:
   collaborators:
     - dcpleung
     - nashif
+    - edersondisouza
   files:
     - include/zephyr/device.h
     - kernel/device.c
@@ -1307,6 +1308,7 @@ Devicetree:
   collaborators:
     - mbolivar
     - rruuaanng
+    - kylebonnici
   files-regex:
     - ^dts/bindings/.*zephyr.*
     - ^dts/bindings/[^,]+$
@@ -3610,6 +3612,7 @@ Key-Value Storage Systems:
     - lyakh
     - pillo79
     - laurenmurphyx64
+    - edersondisouza
   files:
     - cmake/llext-edk.cmake
     - samples/subsys/llext/
@@ -3651,6 +3654,7 @@ Linters and Static Analyzers:
     - nashif
     - kartben
     - pdgendt
+    - kylebonnici
   files:
     - .codechecker.yml
     - .codecov.yml
@@ -4981,10 +4985,10 @@ PMCI:
   status: maintained
   maintainers:
     - teburd
+    - edersondisouza
   collaborators:
     - nashif
     - kehintel
-    - edersondisouza
   files:
     - subsys/pmci/
     - samples/subsys/pmci/
@@ -5090,7 +5094,7 @@ RISCV arch:
   collaborators:
     - kgugala
     - tgorochowik
-    - edersondisouza
+    - dcpleung
     - katsuster
     - mgielda
     - npitre
@@ -6994,10 +6998,10 @@ West:
   status: maintained
   maintainers:
     - teburd
+    - edersondisouza
   collaborators:
     - nashif
     - dkalowsk
-    - edersondisouza
   files: []
   labels:
     - "area: MCTP"
