@@ -39,6 +39,12 @@ Major enhancements with this release include:
 
   - :ref:`Clock Monitor <clock_monitor_api>` for runtime observation of clock frequency
 
+**New subsystems**
+
+  Zephyr 4.5 adds several new subsystem APIs, including:
+
+  - :ref:`Video <video_api>` for controlling video drivers
+
 An overview of the changes required or recommended when migrating your application from Zephyr
 v4.4.0 to Zephyr v4.5.0 can be found in the separate :ref:`migration guide<migration_4.5>`.
 
@@ -105,6 +111,13 @@ Deprecated APIs and options
   * The :c:struct:`audio_codec_api` struct has been deprecated. Audio codec drivers are now
     expected to use the :c:macro:`DEVICE_API` macro to declare their driver API.
 
+* CPU Load
+
+  * :kconfig:option:`CONFIG_CPU_LOAD_METRIC` and :c:func:`cpu_load_metric_get` are deprecated. The
+    CPU load metric module has been merged into the unified :ref:`cpu_load` module; use
+    :kconfig:option:`CONFIG_CPU_LOAD` with the
+    :kconfig:option:`CONFIG_CPU_LOAD_BACKEND_RUNTIME_STATS` backend and :c:func:`cpu_load_get_cpu`.
+
 * :abbr:`DMIC (Digital Microphone Interface)`
 
   * The :c:struct:`_dmic_ops` struct has been deprecated. DMIC drivers are now expected to use the
@@ -148,6 +161,11 @@ Deprecated APIs and options
 
   * Deprecated :kconfig:option:`CONFIG_NET_L2_PTP`.
     Used :kconfig:option:`CONFIG_NET_L2_PTP_TIMESTAMPING` instead.
+
+* Video
+
+  * All functions in the video driver API (``<zephyr/drivers/video.h>``) have moved to the video
+    subsystem (``<zephyr/video/video.h>``). Application only need to rename the ``#include``.
 
 * Work queue
 
@@ -332,6 +350,11 @@ Libraries / Subsystems
     LoRaWAN 1.0.x Class A directly on top of the LoRa radio driver, without
     the Semtech LoRaMac-node dependency.  Currently supports the EU868 region.
   * :c:member:`lora_modem_config.sync_word`
+
+* Video
+
+  * Introducing a video subsystem that inherits all the function names previously in
+    video drivers.
 
 Devicetree
 **********
