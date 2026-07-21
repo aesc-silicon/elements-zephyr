@@ -232,6 +232,12 @@ Display
   :c:enumerator:`PIXEL_FORMAT_BGR_888`, for which the LVGL glue performs the red/blue channel swap
   automatically.
 
+* LVGL now renders directly in its ``RGB565_SWAPPED`` color format for displays reporting
+  :c:enumerator:`PIXEL_FORMAT_RGB_565X`, so :kconfig:option:`CONFIG_LV_COLOR_16_SWAP` is no longer
+  needed for these displays and must not be enabled together with that pixel format, otherwise the
+  buffer ends up byte-swapped twice. The ``t_deck``, ``m5stack_core2`` and ``wio_terminal`` boards
+  no longer enable the option by default.
+
 * The Kconfig options ``CONFIG_ST730X_POWERMODE_LOW`` for ST7305 and ST7306 displays has been
   removed in favour of toggling the low-power-mode property on the device node.
 
@@ -1011,6 +1017,13 @@ Ethernet
   address for the QEMU Ethernet device. Instead, :kconfig:option:`CONFIG_NET_QEMU_DEVICE_EXTRA_ARGS`
   can be used. This is because we are no longer using the ``-nic`` option for QEMU, but the
   ``-netdev`` and ``-device`` options. (:github:`107326`)
+
+* Ethernet drivers providing RX timestamps must now call
+  :c:func:`net_pkt_set_rx_timestamping` after storing a valid timestamp in the received packet.
+  AF_PACKET sockets use :c:func:`net_pkt_is_rx_timestamping` as the sole indication that
+  ``SO_TIMESTAMPING`` control data is valid. Out-of-tree drivers that only populate
+  ``pkt->timestamp`` must be updated or their RX timestamps will not be passed to
+  socket applications. (:github:`110582`)
 
 PTP
 ===
