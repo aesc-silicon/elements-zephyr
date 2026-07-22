@@ -1,4 +1,8 @@
 # SPDX-FileCopyrightText: Copyright The Zephyr Project Contributors
 # SPDX-License-Identifier: Apache-2.0
 
-CONFIG_SOC_RESET_HOOK=n
+description: ARM Cortex-R8F CPU
+
+compatible: "arm,cortex-r8f"
+
+include: cpu.yaml

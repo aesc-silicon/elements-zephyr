@@ -57,6 +57,8 @@
 #include <hal/gdma_ll.h>
 #include <hal/gdma_hal.h>
 #include <hal/dma_types.h>
+#include <esp_memory_utils.h>
+#include <soc/soc_caps.h>
 #endif
 #include <soc/uart_struct.h>
 #include <hal/uart_ll.h>
@@ -960,6 +962,27 @@ static int uart_esp32_async_callback_set(const struct device *dev, uart_callback
 	return 0;
 }
 
+static bool uart_esp32_tx_dma_capable(const uint8_t *buf)
+{
+	if (esp_ptr_dma_capable(buf)) {
+		return true;
+	}
+
+#if defined(CONFIG_ESP_SPIRAM)
+	if (esp_ptr_dma_ext_capable(buf)) {
+		return true;
+	}
+#endif
+
+#if defined(SOC_DMA_CAN_ACCESS_FLASH)
+	if (esp_ptr_in_drom(buf)) {
+		return true;
+	}
+#endif
+
+	return false;
+}
+
 static int uart_esp32_async_tx(const struct device *dev, const uint8_t *buf, size_t len,
 			       int32_t timeout)
 {
@@ -973,6 +996,12 @@ static int uart_esp32_async_tx(const struct device *dev, const uint8_t *buf, siz
 
 	if (config->tx_dma_channel == 0xFF) {
 		LOG_ERR("Tx DMA channel is not configured");
+		err = -ENOTSUP;
+		goto unlock;
+	}
+
+	if (!uart_esp32_tx_dma_capable(buf)) {
+		LOG_ERR("Tx buffer not in DMA capable memory: %p", buf);
 		err = -ENOTSUP;
 		goto unlock;
 	}
@@ -1228,12 +1257,16 @@ static void uart_esp32_sleep_retention_init(int port)
 	sleep_retention_module_init_param_t init_param = {
 		.cbs = {.create = {.handle = uart_create_sleep_retention_cb,
 				   .arg = (void *)(uintptr_t)port}},
+		.attribute = SLEEP_RETENTION_MODULE_ATTR_ATTACH,
 		.depends = RETENTION_MODULE_BITMAP_INIT(CLOCK_SYSTEM)};
 
 	esp_err_t err = sleep_retention_module_init(module, &init_param);
 
 	if (err == ESP_OK) {
 		err = sleep_retention_module_allocate(module);
+	}
+	if (err == ESP_OK) {
+		err = sleep_retention_module_attach(module);
 	}
 	if (err != ESP_OK) {
 		LOG_WRN("UART%d sleep retention init failed (%d)", port, err);

@@ -671,12 +671,15 @@ static struct net_pkt *eth_xmc4xxx_rx_pkt(const struct device *dev)
 			}
 		}
 
-prepare_dma_descriptor:
+prepare_dma_descriptor: {
+		struct net_buf *rx_buf = dev_data->rx_frag_list[tail];
+
 		/* Prepare the current DMA descriptor for the next reception. */
-		dma_desc->buffer1 = (uint32_t)dev_data->rx_frag_list[tail]->data;
-		dma_desc->length = dev_data->rx_frag_list[tail]->size |
+		dma_desc->buffer1 = (uint32_t)rx_buf->data;
+		dma_desc->length = rx_buf->size |
 				   ETH_RX_DMA_DESC_SECOND_ADDR_CHAINED_MASK;
 		dma_desc->status = ETH_MAC_DMA_RDES0_OWN;
+	}
 
 		if (tail == frame_end_index) {
 			/* Time to leave the loop. */
@@ -1108,10 +1111,6 @@ static enum ethernet_hw_caps eth_xmc4xxx_capabilities(const struct device *dev _
 	ARG_UNUSED(dev);
 	enum ethernet_hw_caps caps = ETHERNET_LINK_10BASE | ETHERNET_LINK_100BASE |
 				     ETHERNET_HW_TX_CHKSUM_OFFLOAD | ETHERNET_HW_RX_CHKSUM_OFFLOAD;
-
-#if defined(CONFIG_PTP_CLOCK_XMC4XXX)
-	caps |= ETHERNET_PTP;
-#endif
 
 #if defined(CONFIG_NET_VLAN)
 	caps |= ETHERNET_HW_VLAN;

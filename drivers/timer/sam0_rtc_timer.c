@@ -181,9 +181,8 @@ static void rtc_isr(const void *arg)
 #endif /* CONFIG_TICKLESS_KERNEL */
 }
 
-void sys_clock_set_timeout(uint32_t ticks, bool idle)
+void sys_clock_set_timeout(uint32_t ticks)
 {
-	ARG_UNUSED(idle);
 
 #ifdef CONFIG_TICKLESS_KERNEL
 
@@ -204,12 +203,6 @@ void sys_clock_set_timeout(uint32_t ticks, bool idle)
 	RTC0->COMP[0].reg = count + timeout;
 
 #else /* !CONFIG_TICKLESS_KERNEL */
-
-	if (IS_ENABLED(CONFIG_SYSTEM_CLOCK_SLOPPY_IDLE) && ticks == SYS_CLOCK_MAX_WAIT) {
-		/* Disable comparator when the kernel has no pending timeout. */
-		rtc_timeout = rtc_counter;
-		return;
-	}
 
 	if (ticks < 1) {
 		ticks = 1;
