@@ -2837,6 +2837,8 @@ Documentation Infrastructure:
     - "area: Timer"
   tests:
     - drivers.timer
+    - kernel
+    - arch
 
 "Drivers: Time Aware GPIO":
   status: maintained
@@ -4052,7 +4054,7 @@ Modem:
     - subsys/modem/
     - include/zephyr/modem/
     - tests/subsys/modem/
-    - doc/services/modem/
+    - doc/services/connectivity/modem/
     - samples/net/cellular_modem/
     - include/zephyr/drivers/cellular.h
   labels:
@@ -5926,6 +5928,19 @@ TDK Sensors:
     - drivers/sensor/tdk/
   tests:
     - drivers.sensor
+
+TI AM13 Platforms:
+  status: maintained
+  maintainers:
+    - glneo
+  collaborators:
+    - s-m33r
+  files:
+    - boards/ti/*am13*/
+    - dts/arm/ti/am13*/
+    - soc/ti/am13*/
+  labels:
+    - "platform: TI AM13"
 
 TI K3 Platforms:
   status: maintained

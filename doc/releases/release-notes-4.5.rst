@@ -345,6 +345,12 @@ Libraries / Subsystems
 
   * Added AES CFB and OFB cipher mode support.
 
+  * Mbed TLS was updated to version 4.1.1. Release notes can be found
+    `here <https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-4.1.1>`_.
+
+  * TF-PSA-Crypto was updated to version 1.1.1. Release notes can be found
+    `here <https://github.com/Mbed-TLS/TF-PSA-Crypto/releases/tag/tf-psa-crypto-1.1.1>`_.
+
 * DFU
 
   * Added :kconfig:option:`CONFIG_IMG_CUSTOM_SECTOR_SIZE` to allow MCUboot to use a different
@@ -395,17 +401,6 @@ Other notable changes
     :c:func:`k_thread_cpu_mask_disable` in PIN_ONLY mode triggers an assertion
     failure.  Use :c:func:`k_thread_cpu_pin` to reassign a thread to a
     different CPU.
-
-* Timer
-
-  * Tickless system-timer drivers can now be built on a shared implementation
-    header, :file:`drivers/timer/system_timer_generic.h`, which owns the tick
-    accounting each driver previously open-coded (and occasionally got wrong):
-    the cycle-to-tick conversion, the announce baseline, the tick-aligned
-    deadline and the counter wrap and range handling. A driver reduces to a few
-    cycle-domain primitives, a cycle-counter read plus an absolute-compare or
-    relative-reload arm. Many in-tree drivers have been converted, with more to
-    follow; see the :ref:`migration guide <migration_4.5>` for how to use it.
 
 * Wi-Fi
 
