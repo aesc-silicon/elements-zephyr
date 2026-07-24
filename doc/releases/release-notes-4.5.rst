@@ -82,6 +82,7 @@ Removed APIs and options
 
     * ``CONFIG_NET_TC_SKIP_FOR_HIGH_PRIO``
     * ``CONFIG_NET_SOCKETS_POLL_MAX``
+    * ``CONFIG_NET_GPTP_CLOCK_ACCURACY_*``
     * ``net_ipv6_set_hop_limit()``
     * ``net_if_ipv4_get_netmask()``
     * ``net_if_ipv4_set_netmask()``
@@ -252,6 +253,8 @@ New APIs and options
 * Network
 
   * Add :c:func:`net_eth_set_if_type_wifi` to set the ethernet interface type to Wi-Fi.
+  * Add :c:func:`net_dhcpv4_set_reboot_hint` to seed the DHCPv4 client with a
+    previously leased address for INIT-REBOOT.
 
 * Ring buffer
 
@@ -368,6 +371,12 @@ Libraries / Subsystems
 
   * Introducing a video subsystem that inherits all the function names previously in
     video drivers.
+
+* Zbus
+
+  * :kconfig:option:`CONFIG_ZBUS_MSG_SUBSCRIBER_NET_BUF_POOL_ISOLATION` now works without requiring
+    a dedicated pool on every channel (channels fall back to the shared pool until
+    :c:func:`zbus_chan_set_msg_sub_pool` is called)
 
 Devicetree
 **********
