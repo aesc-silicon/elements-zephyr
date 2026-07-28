@@ -621,8 +621,6 @@ static inline void l3_init(void)
 	net_ipv4_init();
 	net_ipv6_init();
 
-	net_ipv4_autoconf_init();
-
 	if (IS_ENABLED(CONFIG_NET_UDP) ||
 	    IS_ENABLED(CONFIG_NET_TCP) ||
 	    IS_ENABLED(CONFIG_NET_SOCKETS_PACKET) ||
@@ -711,8 +709,6 @@ static int net_init(void)
 	NET_DBG("Priority %d", CONFIG_NET_INIT_PRIO);
 
 	net_pkt_init();
-
-	net_context_init();
 
 	l3_init();
 

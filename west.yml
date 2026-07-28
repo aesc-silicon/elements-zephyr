@@ -172,7 +172,7 @@ manifest:
       groups:
         - hal
     - name: hal_espressif
-      revision: d6a25c8f2a019f7e4d21cf664075f6b94c28eae8
+      revision: 150e0c1bd24fd568864ae50fa690e9ec526022a4
       path: modules/hal/espressif
       west-commands: west/west-commands.yml
       groups:
@@ -198,7 +198,7 @@ manifest:
       groups:
         - hal
     - name: hal_microchip
-      revision: c0890ac01eaebdd19cb70a5475ed7b4f4ecc8911
+      revision: 1f2976a52e03c453a2d2fb86754664ba75275c61
       path: modules/hal/microchip
       groups:
         - hal
@@ -213,7 +213,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 6c77523dfdfc5a1ecefbafb31feee6499a5de8ec
+      revision: 90733605b734e3704a4c27097272b7da7bc5d72a
       path: modules/hal/nxp
       groups:
         - hal
@@ -278,7 +278,7 @@ manifest:
       groups:
         - hal
     - name: hal_wch
-      revision: dd3855ea624b05de7e6e95584789615d2058a0f3
+      revision: 1713a445d44278e902a00e0fee3a111d7bde0d60
       path: modules/hal/wch
       groups:
         - hal
@@ -409,6 +409,9 @@ manifest:
     - name: zcbor
       revision: 9164bd18dcd88ff9d9ef98279501fc1093571017
       path: modules/lib/zcbor
+    - name: zephyr-xenlib
+      revision: fa1fcd1d925f0ba82afaee81b323a9035e0c1269
+      path: modules/lib/zephyr-xenlib
   # zephyr-keep-sorted-stop
 
   self:
