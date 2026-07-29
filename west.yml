@@ -168,7 +168,7 @@ manifest:
         - hal
     - name: hal_bouffalolab
       path: modules/hal/bouffalolab
-      revision: 5d80bd5e43936dc0a8530dbfff94abe3a8e10e0d
+      revision: 6de5c882b3ea55c3a57cff5ab6debfc8ef2fff7f
       groups:
         - hal
     - name: hal_espressif
@@ -203,7 +203,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 06cad097864278160b167a65c800c4cef69d5ce3
+      revision: 39a63673760940e58ee4241238a0642f3c9d39a8
       path: modules/hal/nordic
       groups:
         - hal
@@ -213,7 +213,7 @@ manifest:
       groups:
         - hal
     - name: hal_nxp
-      revision: 90733605b734e3704a4c27097272b7da7bc5d72a
+      revision: 1e91007b164c52b74d58d4e75a856efbc5d4de05
       path: modules/hal/nxp
       groups:
         - hal
@@ -229,7 +229,7 @@ manifest:
         - hal
     - name: hal_realtek
       path: modules/hal/realtek
-      revision: 9a4caf9846d6f0ceb6b38f971a771b1325c1e4b9
+      revision: ba5032a9e47b6ad9e9488665c1e990ed0f434734
       groups:
         - hal
     - name: hal_renesas
@@ -294,7 +294,7 @@ manifest:
         - hal
     - name: hostap
       path: modules/lib/hostap
-      revision: 568e4423c76ec70b2ea9a5ed43085af9a29999ec
+      revision: d467a115b8fc20b8b7120937cb1d445dacebc6a1
     - name: liblc3
       revision: 48bbd3eacd36e99a57317a0a4867002e0b09e183
       path: modules/lib/liblc3
@@ -399,7 +399,7 @@ manifest:
       groups:
         - tee
     - name: trusted-firmware-m
-      revision: 52c7593c1f361a9d7cebc0fa83e5bcfb1e415032
+      revision: f2f7a8edd109825de35b0c239c8fbb77b06f24a2
       path: modules/tee/tf-m/trusted-firmware-m
       groups:
         - tee
