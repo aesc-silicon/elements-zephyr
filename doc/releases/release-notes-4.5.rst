@@ -182,6 +182,11 @@ New APIs and options
 
 .. zephyr-keep-sorted-start re(^\* \w) ignorecase
 
+* Architectures
+
+  * :kconfig:option:`CONFIG_ARM_MPU_CM7_UNMAPPED_REGION` (Arm Cortex-M7 catch-all MPU region
+    for unmapped addresses, erratum 1013783 workaround)
+
 * Audio
 
   * :c:member:`pcm_stream_cfg.gain_db`
@@ -389,6 +394,9 @@ Libraries / Subsystems
 
 Devicetree
 **********
+* Nodes can now use phandles to refer to their children without causing a cycle in the
+  dependency graph and a build error. See :ref:`dt-bindings-dependency-mode` how to
+  use this new feature. (:github:`108892`)
 
   * :c:macro:`DT_NODELABEL_C_TOKEN`
   * :c:macro:`DT_NODELABEL_C_TOKEN_BY_IDX`
@@ -434,6 +442,16 @@ Other notable changes
     production-signed images, while production bootloaders embed only the production
     key. The first entry is the key the application is signed with and the rest are
     verification-only public keys. See :ref:`build-signing`.
+
+* Arm
+
+  * The non-secure variant of
+      :zephyr:board:`Arm Musca-S1 <v2m_musca_s1>` (``v2m_musca_s1/musca_s1/ns``)
+      has been removed due to TF-M removing platform support for this board.
+
+  * As a consequence of the above, the secure variant of
+    :zephyr:board:`Arm Musca-S1 <v2m_musca_s1>` (``v2m_musca_s1``) has been deprecated.
+    This is to avoid a confusing state of partial support.
 
 ..
   Any more descriptive subsystem or driver changes. Do you really want to write
