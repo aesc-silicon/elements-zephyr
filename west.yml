@@ -188,7 +188,7 @@ manifest:
       groups:
         - hal
     - name: hal_infineon
-      revision: c73313ab49840fee98cb347034526aaab62122a6
+      revision: 13e4b3cd70fb2d862a37e55665f03af09fe74201
       path: modules/hal/infineon
       groups:
         - hal
@@ -203,7 +203,7 @@ manifest:
       groups:
         - hal
     - name: hal_nordic
-      revision: 39a63673760940e58ee4241238a0642f3c9d39a8
+      revision: 12e1c277b98ef765732e2b2a476076e5bb6c16f4
       path: modules/hal/nordic
       groups:
         - hal
@@ -229,7 +229,7 @@ manifest:
         - hal
     - name: hal_realtek
       path: modules/hal/realtek
-      revision: ba5032a9e47b6ad9e9488665c1e990ed0f434734
+      revision: c20e7ee9744a1b9b5f05b99260930a7f196b9b12
       groups:
         - hal
     - name: hal_renesas
@@ -239,7 +239,7 @@ manifest:
         - hal
     - name: hal_rpi_pico
       path: modules/hal/rpi_pico
-      revision: 562b41e10a1d8b1a761b253b107c5c6a84cf4535
+      revision: 266394b0f23dff8f77c54f67f89d62cee246f21d
       groups:
         - hal
     - name: hal_sifli
