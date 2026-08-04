@@ -29,6 +29,11 @@ Common
 Build System
 ************
 
+* The minimum required CMake version is now 3.28.0. CMake 3.28.3 is shipped in the Ubuntu 24.04 LTS
+  package repositories. Users of distributions providing an older CMake, such as Ubuntu 22.04 LTS,
+  can get a recent version from the `Kitware APT repository <https://apt.kitware.com/>`_ or with
+  ``pip install cmake``.
+
 * :kconfig:option:`CONFIG_LEGACY_GENERATED_INCLUDE_PATH` has been deprecated, and disabled by
   default, includes must now be prefixed with ``zephyr/`` for zephyr files.
 
@@ -570,6 +575,16 @@ PWM
 * STM32 PWM DT bindings macro ``PWM_STM32_COMPLEMENTARY`` that is deprecated since
   Zephyr v3.3.0 is no more defined. One shall use ``STM32_PWM_COMPLEMENTARY`` instead.
 
+* :dtcompatible:`nxp,ctimer-pwm` now routes its input capture signal through the generic
+  :ref:`mux <mux_api>` subsystem. The ``inputmux-connections`` property has been removed; describe
+  the routing with an INPUTMUX controller node (:dtcompatible:`nxp,inputmux`) and reference it from
+  the timer node's ``mux-states`` property instead. (:github:`112088`)
+
+* :dtcompatible:`nxp,sctimer-pwm` now routes its input capture signal through the generic
+  :ref:`mux <mux_api>` subsystem. The ``input-channels`` property has been removed; describe the
+  routing with an INPUTMUX controller node (:dtcompatible:`nxp,inputmux`) and reference it from the
+  timer node's ``mux-states`` property instead. (:github:`112088`)
+
 RTC
 ===
 
@@ -631,6 +646,17 @@ Sensor
   :dtcompatible:`tdk,ntcgxx3jx103x` to reflect that the compensation values are identical for TDK
   NTCG thermistor parts with the same resistance (R25) and beta (B25/85) values, as indicated in the
   part naming scheme (:github:`110123`).
+
+* :dtcompatible:`nxp,mcux-qdc` now routes its input signals through the generic
+  :ref:`mux <mux_api>` subsystem. The ``input-channels`` and ``inputmux-connections`` properties
+  have been removed; describe the routing with a mux controller node (for example
+  :dtcompatible:`nxp,inputmux`) and reference it from the decoder node's ``mux-states`` property
+  instead. (:github:`112088`)
+
+* :dtcompatible:`nxp,mcux-qdec` now routes its input signals through the generic
+  :ref:`mux <mux_api>` subsystem. The ``xbar`` property has been removed; describe the routing with
+  a mux controller node (for example :dtcompatible:`nxp,mcux-xbar`) and reference it from the
+  decoder node's ``mux-states`` property instead. (:github:`112088`)
 
 Serial
 ======
