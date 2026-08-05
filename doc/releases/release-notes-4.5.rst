@@ -246,6 +246,13 @@ New APIs and options
   * :c:func:`haptics_set_level`
   * :c:func:`haptics_stream_samples`
 
+* HWSPINLOCK
+
+  * :c:macro:`HWSPINLOCK_SPINLOCK_ARRAY_DT_DEFINE`
+  * :c:macro:`HWSPINLOCK_SPINLOCK_ARRAY_DT_INST_DEFINE`
+  * :c:macro:`HWSPINLOCK_COMMON_CONFIG_FROM_DT_NODE`
+  * :c:macro:`HWSPINLOCK_COMMON_CONFIG_FROM_DT_INST`
+
 * Kconfig
 
   * Add ``dt_partition_mtd`` preprocessor function (:github:`111599`)
@@ -254,6 +261,9 @@ New APIs and options
 
   * :c:func:`k_thread_runtime_stats_is_enabled`
   * :c:func:`atomic_test_and_set_bit_to`
+  * :c:macro:`K_MSGQ_DEFINE_STATIC`
+  * :c:macro:`K_MSGQ_DEFINE_TYPE`
+  * :c:macro:`K_MSGQ_DEFINE_STATIC_TYPE`
 
 * LoRa
 
@@ -386,11 +396,18 @@ Libraries / Subsystems
 
   * Added AES CFB and OFB cipher mode support.
 
+* Mbed TLS
+
   * Mbed TLS was updated to version 4.1.1. Release notes can be found
     `here <https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-4.1.1>`_.
 
   * TF-PSA-Crypto was updated to version 1.1.1. Release notes can be found
     `here <https://github.com/Mbed-TLS/TF-PSA-Crypto/releases/tag/tf-psa-crypto-1.1.1>`_.
+
+* TF-M
+
+  * TF-M was updated from version 2.2.2 to version 2.3.0. Release notes can be
+    found `here <https://trustedfirmware-m.readthedocs.io/en/tf-mv2.3.0/releases/2.3.0.htm>`_.
 
 * DFU
 
@@ -424,13 +441,6 @@ Devicetree
 
   * :c:macro:`DT_NODELABEL_C_TOKEN`
   * :c:macro:`DT_NODELABEL_C_TOKEN_BY_IDX`
-
-
-* TF-M
-
-  * TF-M was updated from version 2.2.2 to version 2.3.0. Release notes can be
-    found at:
-    https://trustedfirmware-m.readthedocs.io/en/tf-mv2.3.0/releases/2.3.0.html
 
 Other notable changes
 *********************
@@ -486,3 +496,10 @@ Other notable changes
 ..
   Any more descriptive subsystem or driver changes. Do you really want to write
   a paragraph or is it enough to link to the api/driver/Kconfig/board page above?
+
+Trusted Firmware-A
+******************
+
+* ``CONFIG_TFA_BUILD_FIP`` is introduced to configure FIP (Firmware Image Package) generation.
+  FIP generation is by default disabled, but can be enabled by setting ``CONFIG_TFA_BUILD_FIP=y``
+  in ``prj.conf`` or for custom boards, in the board's ``<board>_defconfig`` file.
