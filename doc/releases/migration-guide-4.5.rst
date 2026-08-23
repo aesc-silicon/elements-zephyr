@@ -475,6 +475,11 @@ Ethernet
   :kconfig:option:`CONFIG_ETH_NXP_ENET_QOS_UNIQUE_MAC_ADDRESS`. Configurations setting the old
   name must be updated to use the new one. (:github:`115952`)
 
+* The Synopsys DesignWare MAC driver now filters multicast by default
+  (:kconfig:option:`CONFIG_ETH_DWC_ETHER_MULTICAST_FILTER`), so only multicast for the addresses
+  the network stack has joined is received. Disable this option to receive all multicast, as
+  before. (:github:`113235`)
+
 Flash
 =====
 * :dtcompatible:`jedec,spi-nand` now requires a ``plane-bytes`` property, which indicates the size
@@ -552,6 +557,16 @@ I2C
   :dtcompatible:`ite,it51xxx-i2c` :dtcompatible:`ite,it8xxx2-i2c` transfer
   timeout is now using the generic ``zephyr,transfer-timeout-ms`` property
   instead of ``transfer-timeout-ms``, default to 500ms.
+
+I2S
+===
+
+* :c:func:`i2s_buf_write` now honours the ``timeout`` from the stream configuration when it
+  allocates the transmit block. It previously waited forever, so the documented ``-EAGAIN``
+  return was unreachable, as was ``-ENOMEM`` in a multithreaded build. A caller that relied
+  on the unbounded wait can set ``timeout`` to ``SYS_FOREVER_MS``, but the same field also
+  bounds the driver's enqueue wait, so no single value reproduces the old combination of an
+  unbounded allocation and a bounded enqueue.
 
 Input
 =====
