@@ -5,7 +5,7 @@ sphinx
 sphinx_rtd_theme~=3.0
 sphinx-tabs
 sphinxcontrib-svg2pdfconverter
-pygments>=2.9,!=2.19.0
+pygments!=2.19.0,>=2.21.0
 sphinx-notfound-page
 sphinx-copybutton
 sphinx-design
@@ -36,4 +36,4 @@ coverxygen!=1.8.2 # See https://github.com/psycofdj/coverxygen/issues/37
 python-dotenv
 
 # Used to export requirements from the reqmgmt module (StrictDoc)
-strictdoc>=0.16.2
+strictdoc>=0.28.1
