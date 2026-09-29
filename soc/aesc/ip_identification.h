@@ -54,6 +54,7 @@ struct aesc_ip_id_table {
 /* IP core IDs */
 #define IP_ID_GPIO		0U
 #define IP_ID_UART		3U
+#define IP_ID_RESET		11U
 #define IP_ID_CLOCK		12U
 #define IP_ID_PINMUX		13U
 #define IP_ID_PRNG		16U

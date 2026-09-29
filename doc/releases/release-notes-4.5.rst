@@ -1889,6 +1889,7 @@ New Drivers
 
 * Reset controller
 
+  * :dtcompatible:`aesc,reset-controller`
   * :dtcompatible:`wch,ch32-rcc-rctl` (:github:`115714`)
 
 * Retained memory
