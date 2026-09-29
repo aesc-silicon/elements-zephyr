@@ -32,4 +32,8 @@ config USE_DT_CODE_PARTITION
 config SYSCON_INIT_PRIORITY
 	default 20
 
+# sys_arch_reboot() resets the system domain through the reset controller.
+config RESET
+	default y if REBOOT
+
 endif # SOC_SERIES_HYDROGEN
